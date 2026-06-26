@@ -22,12 +22,16 @@ REPAIRABLE_TYPES = {
     "furniture_clearance_warning",
     "kitchen_workflow_collision",
     "kitchen_workflow_clearance_warning",
+    "door_swing_clearance_warning",
+    "circulation_width_warning",
 }
 REMOVE_FIRST_TYPES = {
     "furniture_furniture_collision",
     "kitchen_workflow_collision",
     "furniture_wall_collision",
     "door_swing_furniture_collision",
+    "door_swing_clearance_warning",
+    "circulation_width_warning",
 }
 
 
@@ -80,6 +84,23 @@ def append_reason(reasons: dict[str, list[str]], object_id: str, reason: str) ->
         reasons[object_id].append(reason)
 
 
+def issue_furniture_ids(issue: dict[str, Any]) -> list[str]:
+    if isinstance(issue.get("furniture_ids"), list):
+        return [str(value) for value in issue["furniture_ids"]]
+    if issue.get("furniture_id"):
+        return [str(issue["furniture_id"])]
+    if isinstance(issue.get("collides_with_furniture"), list):
+        return [str(value) for value in issue["collides_with_furniture"]]
+    blocked = issue.get("collides_or_too_close_furniture")
+    if isinstance(blocked, list):
+        ids = []
+        for item in blocked:
+            if isinstance(item, dict) and item.get("furniture_id"):
+                ids.append(str(item["furniture_id"]))
+        return ids
+    return []
+
+
 def draft_repairs(model: dict[str, Any], validation: dict[str, Any], padding: float) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     items = furniture_index(model)
     remove_targets: dict[str, list[str]] = {}
@@ -90,10 +111,10 @@ def draft_repairs(model: dict[str, Any], validation: dict[str, Any], padding: fl
 
     for issue in issues:
         issue_type = issue.get("type")
-        ids = issue.get("furniture_ids") or []
+        ids = issue_furniture_ids(issue)
 
         if issue_type in REMOVE_FIRST_TYPES:
-            target_id = issue.get("object_id") or choose_operation_owned(ids, items)
+            target_id = issue.get("object_id") or issue.get("furniture_id") or choose_operation_owned(ids, items)
             if target_id and target_id in items and is_operation_owned(items[target_id]):
                 append_reason(remove_targets, target_id, f"{issue_type}: temporary object conflicts with controlled geometry")
                 continue

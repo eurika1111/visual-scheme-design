@@ -98,6 +98,8 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 - 墙端点差一点没接上。
 - 门声明的宿主墙不包含门的位置。
 - 家具矩形撞到了墙。
+
+`examples/base_object_model.door-swing-sample.json` 是一份门扇冲突样例，用来确认程序能发现门扇打开时碰到临时家具、门扇安全距离不足和通道阻挡。
 ## 生成检查图
 
 可以把对象 JSON 和校验报告渲染成 SVG 检查图：
@@ -219,6 +221,8 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 ```
 
 第一版采用保守策略：如果严重冲突来自 `operation` 新增对象或 `copied_from` 复制对象，优先生成 `remove_furniture` 草案，而不是盲目移动到未知位置。草案需要人工确认后才能作为正式方案版本继续使用。
+
+当前草案器也会读取门扇和通道校验报告里的家具字段，例如 `collides_with_furniture`、`furniture_id`、`collides_or_too_close_furniture`，从而把门口临时凳子、临时柜体等对象转成待确认的移除草案。
 ## 确认修复草案
 
 `confirm_repair_draft.py` 用于在人工确认草案后，把修复草案转成正式方案版本。它会执行：
