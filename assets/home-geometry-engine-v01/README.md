@@ -139,6 +139,38 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 ```
 
 它会输出当前 `level`、`validation_status`、`active_base`、`active_option`，以及是否满足快速概念和稳妥深化门槛。
+## 一键运行方案操作链路
+
+`run_scheme_operation.py` 用来把一次方案操作串起来：
+
+```text
+应用 operations JSON
+→ 生成新方案模型
+→ 运行几何校验
+→ 可选渲染 SVG
+→ 写入 project_state.json
+→ 输出 state gate 摘要
+```
+
+示例：把方案 A 的岛台意图复制到方案 B，并自动校验和切换当前方案：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\run_scheme_operation.py' `
+  --state 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json' `
+  --base-model 'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\base_object_model.sample.json' `
+  --operations 'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\operations.copy-island.sample.json' `
+  --output-model 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\scheme_B_v1.json' `
+  --validation-output 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.scheme_B_v1.json' `
+  --render-output 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\plan.scheme_B_v1.svg' `
+  --option-id '方案 B' `
+  --version 'scheme_B_v1' `
+  --parent 'base_v1' `
+  --last-action 'copy_island_to_scheme_B' `
+  --source-model 'scheme_A=D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\scheme_A_v1.json'
+```
+
+如果新方案有 warning，它会被登记为 `待修改`，并关闭该方案的稳妥深化 gate；但不会降低底图 gate。
 ## 切换当前方案
 
 当对象操作生成一个新方案后，先运行校验，再用 `set_active_option.py` 把它写入 `project_state.json`。例如把方案 B 设为当前方案：
@@ -363,6 +395,7 @@ simple_renderer.py
 ```
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
+
 
 
 
