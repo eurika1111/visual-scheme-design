@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="104" viewBox="0 0 128 104">
+  <rect width="128" height="104" fill="#fff"/>
+  <g transform="translate(24 24)"><rect x="1" y="1" width="78" height="26" fill="#eee" stroke="#666" stroke-width="2.4"/><line x1="26.666666666666668" y1="2" x2="26.666666666666668" y2="26" stroke="#aaa"/><line x1="53.333333333333336" y1="2" x2="53.333333333333336" y2="26" stroke="#aaa"/></g>
+  <text x="64" y="96" text-anchor="middle" font-family="Microsoft YaHei,Noto Sans CJK SC,Arial,sans-serif" font-size="12" fill="#333">SHOE-25｜1000×250</text>
+  </svg>

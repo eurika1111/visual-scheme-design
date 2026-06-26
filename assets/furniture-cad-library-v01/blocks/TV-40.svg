@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="208" height="108" viewBox="0 0 208 108">
+  <rect width="208" height="108" fill="#fff"/>
+  <g transform="translate(24 24)"><rect x="1" y="1" width="158" height="30" fill="#eee" stroke="#666" stroke-width="2.4"/><line x1="53.333333333333336" y1="2" x2="53.333333333333336" y2="30" stroke="#aaa"/><line x1="106.66666666666667" y1="2" x2="106.66666666666667" y2="30" stroke="#aaa"/></g>
+  <text x="104" y="100" text-anchor="middle" font-family="Microsoft YaHei,Noto Sans CJK SC,Arial,sans-serif" font-size="12" fill="#333">TV-40｜2000×400</text>
+  </svg>

@@ -1,0 +1,40 @@
+{
+  "parent_version": "base_sample_v1",
+  "new_version": "scheme_A_v1",
+  "operations": [
+    {
+      "operation": "demolish_wall",
+      "target_id": "W-INT-T",
+      "reason": "create a more open public area"
+    },
+    {
+      "operation": "add_furniture",
+      "object": {
+        "id": "F-DINING-01",
+        "type": "furniture",
+        "category": "dining_table",
+        "geometry": {
+          "kind": "rect",
+          "center": [
+            4100,
+            1100
+          ],
+          "size": [
+            1400,
+            800
+          ],
+          "rotation": 0
+        },
+        "clearance_mm": 800
+      }
+    },
+    {
+      "operation": "move_object",
+      "target_id": "F-ISLAND-01",
+      "center": [
+        5000,
+        3500
+      ]
+    }
+  ]
+}

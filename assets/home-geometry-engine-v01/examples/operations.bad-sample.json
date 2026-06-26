@@ -1,0 +1,20 @@
+{
+  "parent_version": "base_sample_v1",
+  "new_version": "scheme_bad_v1",
+  "operations": [
+    {
+      "operation": "demolish_wall",
+      "target_id": "W-EXT-S",
+      "reason": "this should fail because exterior wall is do_not_alter"
+    },
+    {
+      "operation": "add_furniture",
+      "object": {
+        "id": "F-SOFA-01",
+        "type": "furniture",
+        "category": "duplicate_sofa",
+        "geometry": {"kind": "rect", "center": [2000, 2000], "size": [1000, 800], "rotation": 0}
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="128" viewBox="0 0 144 128">
+  <rect width="144" height="128" fill="#fff"/>
+  <g transform="translate(24 24)"><rect x="1" y="1" width="94" height="50" fill="#eee" stroke="#666" stroke-width="2.4"/><line x1="24" y1="18.2" x2="72" y2="18.2" stroke="#888" stroke-width="2"/><path d="M24 18.2 l10 -6 M24 18.2 l10 6 M72 18.2 l-10 -6 M72 18.2 l-10 6" stroke="#888" stroke-width="1.5"/></g>
+  <text x="72" y="120" text-anchor="middle" font-family="Microsoft YaHei,Noto Sans CJK SC,Arial,sans-serif" font-size="12" fill="#333">WARD-S65｜1200×650</text>
+  </svg>

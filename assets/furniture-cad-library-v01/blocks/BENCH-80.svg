@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="104" viewBox="0 0 112 104">
+  <rect width="112" height="104" fill="#fff"/>
+  <g transform="translate(24 24)"><rect x="1" y="1" width="62" height="26" rx="5" fill="#f7f7f5" stroke="#666" stroke-width="2.4"/><line x1="9.6" y1="7" x2="54.4" y2="7" stroke="#aaa" stroke-width="2"/></g>
+  <text x="56" y="96" text-anchor="middle" font-family="Microsoft YaHei,Noto Sans CJK SC,Arial,sans-serif" font-size="12" fill="#333">BENCH-80｜800×350</text>
+  </svg>

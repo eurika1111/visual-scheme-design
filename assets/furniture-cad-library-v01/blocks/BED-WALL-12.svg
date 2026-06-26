@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="156" height="112" viewBox="0 0 156 112">
+  <rect width="156" height="112" fill="#fff"/>
+  <g transform="translate(24 24)"><rect x="1" y="1" width="106" height="34" fill="#eee" stroke="#666" stroke-width="2.4"/><line x1="36" y1="2" x2="36" y2="34" stroke="#999" stroke-width="1.5"/><line x1="72" y1="2" x2="72" y2="34" stroke="#999" stroke-width="1.5"/><path d="M2 36 L54 79.2 L106 36" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="5 4"/></g>
+  <text x="78" y="104" text-anchor="middle" font-family="Microsoft YaHei,Noto Sans CJK SC,Arial,sans-serif" font-size="12" fill="#333">BED-WALL-12｜柜体1350×450，展开约1350×2150</text>
+  </svg>

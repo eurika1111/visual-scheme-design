@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="112" viewBox="0 0 128 112">
+  <rect width="128" height="112" fill="#fff"/>
+  <g transform="translate(24 24)"><rect x="1" y="1" width="78" height="34" rx="3" fill="#f7f7f5" stroke="#666" stroke-width="2.4"/><g transform="translate(40 61) rotate(0)"><rect x="-15" y="-17" width="30" height="34" rx="6" fill="none" stroke="#777" stroke-width="2"/><line x1="-10" y1="-10" x2="10" y2="-10" stroke="#999" stroke-width="2"/></g></g>
+  <text x="64" y="104" text-anchor="middle" font-family="Microsoft YaHei,Noto Sans CJK SC,Arial,sans-serif" font-size="12" fill="#333">DRESS-100｜1000×450</text>
+  </svg>

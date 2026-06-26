@@ -1,0 +1,24 @@
+{
+  "parent_version": "base_sample_v1",
+  "new_version": "scheme_B_v1",
+  "operations": [
+    {
+      "operation": "copy_furniture",
+      "from_model": "scheme_A",
+      "from_object_id": "F-ISLAND-01",
+      "new_id": "F-ISLAND-FROM-A-01",
+      "center": [6100, 3400],
+      "rotation": 0
+    },
+    {
+      "operation": "add_furniture",
+      "object": {
+        "id": "F-ROUND-TABLE-01",
+        "type": "furniture",
+        "category": "round_table_placeholder",
+        "geometry": {"kind": "rect", "center": [6100, 1700], "size": [1000, 1000], "rotation": 45},
+        "clearance_mm": 800
+      }
+    }
+  ]
+}
