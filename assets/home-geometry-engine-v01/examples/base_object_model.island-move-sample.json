@@ -1,0 +1,340 @@
+{
+  "schema_version": "home_geometry_v1",
+  "coordinate_system": {
+    "origin": "lower_left",
+    "x_axis": "right",
+    "y_axis": "up",
+    "unit": "mm",
+    "angle_positive": "counterclockwise"
+  },
+  "tolerance": {
+    "snap_mm": 30,
+    "host_wall_mm": 40,
+    "duplicate_mm": 10,
+    "angle_degrees": 8,
+    "kitchen_work_clearance_mm": 900
+  },
+  "walls": [
+    {
+      "id": "W-EXT-S",
+      "type": "wall",
+      "name": "south exterior wall",
+      "geometry": {
+        "kind": "line",
+        "start": [
+          0,
+          0
+        ],
+        "end": [
+          10000,
+          0
+        ],
+        "thickness": 240
+      },
+      "status": "existing",
+      "alteration": "do_not_alter",
+      "confidence": 0.95
+    },
+    {
+      "id": "W-EXT-E",
+      "type": "wall",
+      "name": "east exterior wall",
+      "geometry": {
+        "kind": "line",
+        "start": [
+          10000,
+          0
+        ],
+        "end": [
+          10000,
+          7000
+        ],
+        "thickness": 240
+      },
+      "status": "existing",
+      "alteration": "do_not_alter",
+      "confidence": 0.95
+    },
+    {
+      "id": "W-EXT-N",
+      "type": "wall",
+      "name": "north exterior wall",
+      "geometry": {
+        "kind": "line",
+        "start": [
+          10000,
+          7000
+        ],
+        "end": [
+          0,
+          7000
+        ],
+        "thickness": 240
+      },
+      "status": "existing",
+      "alteration": "do_not_alter",
+      "confidence": 0.95
+    },
+    {
+      "id": "W-EXT-W",
+      "type": "wall",
+      "name": "west exterior wall",
+      "geometry": {
+        "kind": "line",
+        "start": [
+          0,
+          7000
+        ],
+        "end": [
+          0,
+          0
+        ],
+        "thickness": 240
+      },
+      "status": "existing",
+      "alteration": "do_not_alter",
+      "confidence": 0.95
+    },
+    {
+      "id": "W-INT-V",
+      "type": "wall",
+      "name": "vertical partition",
+      "geometry": {
+        "kind": "line",
+        "start": [
+          3200,
+          0
+        ],
+        "end": [
+          3200,
+          7000
+        ],
+        "thickness": 120
+      },
+      "status": "existing",
+      "alteration": "candidate",
+      "confidence": 0.82
+    },
+    {
+      "id": "W-INT-T",
+      "type": "wall",
+      "name": "short T partition",
+      "geometry": {
+        "kind": "line",
+        "start": [
+          3200,
+          2600
+        ],
+        "end": [
+          5600,
+          2600
+        ],
+        "thickness": 120
+      },
+      "status": "existing",
+      "alteration": "candidate",
+      "confidence": 0.78
+    }
+  ],
+  "openings": [
+    {
+      "id": "D-ENTRY",
+      "type": "door",
+      "name": "entry door",
+      "host_wall_id": "W-EXT-S",
+      "position": [
+        1200,
+        0
+      ],
+      "width": 900,
+      "swing": {
+        "direction": "inward",
+        "hinge": "left"
+      }
+    },
+    {
+      "id": "WIN-N-01",
+      "type": "window",
+      "name": "north window",
+      "host_wall_id": "W-EXT-N",
+      "position": [
+        7600,
+        7000
+      ],
+      "width": 1600
+    }
+  ],
+  "furniture": [
+    {
+      "id": "F-SOFA-01",
+      "type": "furniture",
+      "category": "sofa",
+      "geometry": {
+        "kind": "rect",
+        "center": [
+          6500,
+          1500
+        ],
+        "size": [
+          1800,
+          900
+        ],
+        "rotation": 0
+      },
+      "clearance_mm": 600
+    },
+    {
+      "id": "F-ISLAND-01",
+      "type": "furniture",
+      "category": "kitchen_island",
+      "geometry": {
+        "kind": "rect",
+        "center": [
+          4700,
+          3300
+        ],
+        "size": [
+          1600,
+          800
+        ],
+        "rotation": 0
+      },
+      "clearance_mm": 900
+    },
+    {
+      "id": "F-CABINET-01",
+      "type": "furniture",
+      "category": "base_cabinet",
+      "geometry": {
+        "kind": "rect",
+        "center": [
+          4700,
+          4900
+        ],
+        "size": [
+          2200,
+          100
+        ],
+        "rotation": 0
+      },
+      "work_clearance_mm": 900
+    },
+    {
+      "id": "F-ISLAND-PRESERVE-01",
+      "type": "furniture",
+      "category": "kitchen_island",
+      "geometry": {
+        "kind": "rect",
+        "center": [
+          6700,
+          3300
+        ],
+        "size": [
+          1600,
+          800
+        ],
+        "rotation": 0
+      },
+      "clearance_mm": 900,
+      "source": "copied_from:scheme_A:F-ISLAND-01"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "ROOM-WEST",
+      "type": "room",
+      "name": "west room",
+      "polygon": [
+        [
+          0,
+          0
+        ],
+        [
+          3200,
+          0
+        ],
+        [
+          3200,
+          7000
+        ],
+        [
+          0,
+          7000
+        ]
+      ],
+      "area_label_sqm": 22.4,
+      "confidence": 0.85
+    },
+    {
+      "id": "ROOM-EAST-S",
+      "type": "room",
+      "name": "east south room",
+      "polygon": [
+        [
+          3200,
+          0
+        ],
+        [
+          10000,
+          0
+        ],
+        [
+          10000,
+          2600
+        ],
+        [
+          3200,
+          2600
+        ]
+      ],
+      "area_label_sqm": 17.68,
+      "confidence": 0.82,
+      "open_edges": [
+        2
+      ]
+    },
+    {
+      "id": "ROOM-EAST-N",
+      "type": "room",
+      "name": "east north room",
+      "polygon": [
+        [
+          3200,
+          2600
+        ],
+        [
+          10000,
+          2600
+        ],
+        [
+          10000,
+          7000
+        ],
+        [
+          3200,
+          7000
+        ]
+      ],
+      "area_label_sqm": 29.92,
+      "confidence": 0.82,
+      "open_edges": [
+        0
+      ]
+    }
+  ],
+  "circulation_paths": [
+    {
+      "id": "P-WEST-CLEAR",
+      "start": [
+        800,
+        700
+      ],
+      "end": [
+        2600,
+        700
+      ],
+      "required_width_mm": 800
+    }
+  ],
+  "version": "island_move_sample_v1"
+}

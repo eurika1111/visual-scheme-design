@@ -19,6 +19,7 @@ $ConfirmRepair = Join-Path $EngineDir 'confirm_repair_draft.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $DoorSwingModel = Join-Path $ExamplesDir 'base_object_model.door-swing-sample.json'
+$IslandMoveModel = Join-Path $ExamplesDir 'base_object_model.island-move-sample.json'
 $Operations = Join-Path $ExamplesDir 'operations.sample.json'
 
 $SchemeA = Join-Path $OutputDir 'scheme_A_v1.json'
@@ -26,10 +27,12 @@ $ValidationBase = Join-Path $OutputDir 'validation.json'
 $ValidationSchemeA = Join-Path $OutputDir 'validation.scheme_A_v1.json'
 $ValidationProblem = Join-Path $OutputDir 'validation.problem.json'
 $ValidationDoorSwing = Join-Path $OutputDir 'validation.door_swing_sample.json'
+$ValidationIslandMove = Join-Path $OutputDir 'validation.island_move_sample.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
 $PlanDoorSwing = Join-Path $OutputDir 'plan.door_swing_sample.svg'
+$PlanIslandMove = Join-Path $OutputDir 'plan.island_move_sample.svg'
 $ProjectState = Join-Path $OutputDir 'project_state.json'
 
 function Invoke-Step {
@@ -75,10 +78,12 @@ Invoke-Step 'build scheme A' { & $PythonExe $Applier $BaseModel $Operations $Sch
 Invoke-Step 'validate scheme A' { & $PythonExe $Validator $SchemeA $ValidationSchemeA }
 Invoke-Step 'validate problem sample' { & $PythonExe $Validator $ProblemModel $ValidationProblem } @(0, 1)
 Invoke-Step 'validate door swing sample' { & $PythonExe $Validator $DoorSwingModel $ValidationDoorSwing } @(0, 1)
+Invoke-Step 'validate island move sample' { & $PythonExe $Validator $IslandMoveModel $ValidationIslandMove } @(0, 1)
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
 Invoke-Step 'render door swing SVG' { & $PythonExe $Renderer $DoorSwingModel $PlanDoorSwing $ValidationDoorSwing }
+Invoke-Step 'render island move SVG' { & $PythonExe $Renderer $IslandMoveModel $PlanIslandMove $ValidationIslandMove }
 Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $BaseModel --base-validation $ValidationBase --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --problem-validation $ValidationProblem }
 
 Write-Host '== state gate'
@@ -89,15 +94,18 @@ Show-Summary 'base' $ValidationBase
 Show-Summary 'scheme_A' $ValidationSchemeA
 Show-Summary 'problem' $ValidationProblem
 Show-Summary 'door_swing' $ValidationDoorSwing
+Show-Summary 'island_move' $ValidationIslandMove
 
 Write-Host '== outputs'
 Write-Host $ValidationBase
 Write-Host $ValidationSchemeA
 Write-Host $ValidationProblem
 Write-Host $ValidationDoorSwing
+Write-Host $ValidationIslandMove
 Write-Host $PlanBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
 Write-Host $PlanDoorSwing
+Write-Host $PlanIslandMove
 Write-Host $ProjectState
 
