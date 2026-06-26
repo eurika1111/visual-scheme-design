@@ -102,6 +102,9 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 `examples/base_object_model.door-swing-sample.json` 是一份门扇冲突样例，用来确认程序能发现门扇打开时碰到临时家具、门扇安全距离不足和通道阻挡。
 
 `examples/base_object_model.island-move-sample.json` 是一份岛台保留移动样例，用来确认程序能在岛台净距不足时生成 `move_object` 草案，而不是直接删除复制来的岛台。
+
+`examples/base_object_model.arc-partition-sample.json` 是一份弧形隔断样例，用来确认 `geometry.kind = "arc"` 能参与通道和家具碰撞校验。
+
 ## 生成检查图
 
 可以把对象 JSON 和校验报告渲染成 SVG 检查图：
@@ -412,6 +415,24 @@ kitchen_island, base_cabinet, cabinet, countertop, sink_cabinet, stove, fridge
 - `door_swing_incomplete`：门不在声明的宿主墙上，或缺少门宽、开启方向、铰链侧等信息。
 
 当前门扇方向使用简化约定：相对宿主墙从 start 到 end 的方向，`inward` 默认向左侧旋转，`outward` 默认向右侧旋转。真实项目中如果门方向与现场不一致，应先修正对象数据再校验。
+
+## 弧形隔断校验
+
+弧形墙使用 `geometry.kind = "arc"` 表示，字段包括：
+
+```json
+{
+  "kind": "arc",
+  "center": [6100, 3300],
+  "radius": 1600,
+  "start_angle": 210,
+  "end_angle": 330,
+  "thickness": 100
+}
+```
+
+第一版不会做完整 CAD 曲线布尔运算，而是把弧线按角度采样成短线段，再复用已有的墙体、家具碰撞和通道宽度校验。校验报告会增加 `wall_segment_count`，用于说明实际参与计算的墙段数量。
+
 ## 房间边界覆盖率
 
 房间 `polygon` 的每条边现在会输出 `boundary_edges`，用于说明这条边：
@@ -482,15 +503,3 @@ simple_renderer.py
 ```
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
-
-
-
-
-
-
-
-
-
-
-
-

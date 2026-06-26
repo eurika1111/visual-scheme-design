@@ -44,6 +44,68 @@ def segment_length(seg: dict[str, Any]) -> float:
     return distance(as_point(seg["start"]), as_point(seg["end"]))
 
 
+def arc_points(geom: dict[str, Any], max_degrees: float = 10.0) -> list[Point]:
+    center = as_point(geom["center"])
+    radius = float(geom["radius"])
+    start_angle = float(geom["start_angle"])
+    end_angle = float(geom["end_angle"])
+    sweep = end_angle - start_angle
+    steps = max(4, int(math.ceil(abs(sweep) / max_degrees)))
+    points = []
+    for index in range(steps + 1):
+        angle = math.radians(start_angle + sweep * index / steps)
+        points.append((center[0] + radius * math.cos(angle), center[1] + radius * math.sin(angle)))
+    return points
+
+
+def wall_geometry_errors(wall: dict[str, Any], duplicate_tolerance: float) -> list[dict[str, Any]]:
+    wall_id = wall.get("id", "<missing>")
+    geom = wall.get("geometry", {})
+    kind = geom.get("kind")
+    if kind == "line":
+        if segment_length(geom) <= duplicate_tolerance:
+            return [{"type": "zero_length_wall", "object_id": wall_id}]
+        return []
+    if kind == "arc":
+        required = ["center", "radius", "start_angle", "end_angle", "thickness"]
+        missing = [key for key in required if key not in geom]
+        if missing:
+            return [{"type": "arc_wall_incomplete", "object_id": wall_id, "missing": missing}]
+        radius = float(geom.get("radius", 0))
+        sweep = abs(float(geom.get("end_angle", 0)) - float(geom.get("start_angle", 0)))
+        if radius <= duplicate_tolerance:
+            return [{"type": "arc_wall_invalid", "object_id": wall_id, "message": "Arc wall radius is too small"}]
+        if sweep <= 1:
+            return [{"type": "arc_wall_invalid", "object_id": wall_id, "message": "Arc wall sweep is too small"}]
+        return []
+    return [{"type": "unsupported_wall_geometry", "object_id": wall_id}]
+
+
+def wall_line_segments(wall: dict[str, Any]) -> list[dict[str, Any]]:
+    geom = wall.get("geometry", {})
+    if geom.get("kind") == "line":
+        return [wall]
+    if geom.get("kind") != "arc":
+        return []
+    try:
+        points = arc_points(geom)
+    except (KeyError, TypeError, ValueError):
+        return []
+    segments = []
+    for index, (start, end) in enumerate(zip(points, points[1:]), start=1):
+        segment = {**wall}
+        segment["id"] = f"{wall.get('id', 'ARC')}#S{index:02d}"
+        segment["source_wall_id"] = wall.get("id")
+        segment["geometry"] = {
+            "kind": "line",
+            "start": [start[0], start[1]],
+            "end": [end[0], end[1]],
+            "thickness": geom.get("thickness", 100),
+        }
+        segments.append(segment)
+    return segments
+
+
 def angle_between(a1: Point, a2: Point, b1: Point, b2: Point) -> float:
     va = sub(a2, a1)
     vb = sub(b2, b1)
@@ -724,7 +786,8 @@ def validate(model: dict[str, Any]) -> dict[str, Any]:
     errors: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
     all_walls = model.get("walls", [])
-    walls = [wall for wall in all_walls if wall.get("status") != "demolished"]
+    active_walls = [wall for wall in all_walls if wall.get("status") != "demolished"]
+    walls: list[dict[str, Any]] = []
     openings = model.get("openings", [])
     furniture_items = model.get("furniture", [])
     rooms = model.get("rooms", [])
@@ -737,17 +800,15 @@ def validate(model: dict[str, Any]) -> dict[str, Any]:
         })
 
     wall_ids = set()
-    for wall in walls:
+    for wall in active_walls:
         wall_id = wall.get("id", "<missing>")
         if wall_id in wall_ids:
             errors.append({"type": "duplicate_id", "object_id": wall_id})
         wall_ids.add(wall_id)
-        geom = wall.get("geometry", {})
-        if geom.get("kind") != "line":
-            errors.append({"type": "unsupported_wall_geometry", "object_id": wall_id})
-            continue
-        if segment_length(geom) <= duplicate:
-            errors.append({"type": "zero_length_wall", "object_id": wall_id})
+        wall_errors = wall_geometry_errors(wall, duplicate)
+        errors.extend(wall_errors)
+        if not wall_errors:
+            walls.extend(wall_line_segments(wall))
 
     for item in find_overlapping_walls(walls, duplicate):
         errors.append(item)
@@ -850,7 +911,8 @@ def validate(model: dict[str, Any]) -> dict[str, Any]:
         "can_generate_deepening": readiness in ["L3", "L4"],
         "summary": {
             "wall_count": len(all_walls),
-            "active_wall_count": len(walls),
+            "active_wall_count": len(active_walls),
+            "wall_segment_count": len(walls),
             "opening_count": len(openings),
             "furniture_count": len(furniture_items),
             "kitchen_object_count": len([item for item in furniture_items if item.get("category") in KITCHEN_WORK_CATEGORIES]),

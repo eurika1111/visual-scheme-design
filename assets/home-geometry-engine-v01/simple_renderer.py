@@ -42,6 +42,20 @@ def polygon_centroid(points: list[Point]) -> Point:
     return (sum(p[0] for p in points) / len(points), sum(p[1] for p in points) / len(points))
 
 
+def arc_points(geom: dict[str, Any], max_degrees: float = 10.0) -> list[Point]:
+    center = as_point(geom["center"])
+    radius = float(geom["radius"])
+    start_angle = float(geom["start_angle"])
+    end_angle = float(geom["end_angle"])
+    sweep = end_angle - start_angle
+    steps = max(4, int(math.ceil(abs(sweep) / max_degrees)))
+    points = []
+    for index in range(steps + 1):
+        angle = math.radians(start_angle + sweep * index / steps)
+        points.append((center[0] + radius * math.cos(angle), center[1] + radius * math.sin(angle)))
+    return points
+
+
 def collect_points(model: dict[str, Any], report: dict[str, Any] | None) -> list[Point]:
     points: list[Point] = []
     for wall in model.get("walls", []):
@@ -49,6 +63,11 @@ def collect_points(model: dict[str, Any], report: dict[str, Any] | None) -> list
         if geom.get("kind") == "line":
             points.append(as_point(geom["start"]))
             points.append(as_point(geom["end"]))
+        elif geom.get("kind") == "arc":
+            try:
+                points.extend(arc_points(geom))
+            except (KeyError, TypeError, ValueError):
+                pass
     for room in model.get("rooms", []):
         points.extend(as_point(p) for p in room.get("polygon", []))
     for opening in model.get("openings", []):
@@ -135,14 +154,21 @@ def render_model(model: dict[str, Any], report: dict[str, Any] | None = None) ->
 
     for wall in model.get("walls", []):
         geom = wall.get("geometry", {})
-        if geom.get("kind") != "line":
-            continue
         thickness = float(geom.get("thickness", 120))
         stroke = max(6.0, thickness * canvas.scale)
         color = "#111111" if wall.get("alteration") == "do_not_alter" else "#2b2b2b"
-        canvas.line(as_point(geom["start"]), as_point(geom["end"]), color, stroke)
-        mid = ((geom["start"][0] + geom["end"][0]) / 2, (geom["start"][1] + geom["end"][1]) / 2)
-        canvas.text(mid, wall.get("id", "wall"), size=14, fill="#374151")
+        if geom.get("kind") == "line":
+            canvas.line(as_point(geom["start"]), as_point(geom["end"]), color, stroke)
+            mid = ((geom["start"][0] + geom["end"][0]) / 2, (geom["start"][1] + geom["end"][1]) / 2)
+            canvas.text(mid, wall.get("id", "wall"), size=14, fill="#374151")
+        elif geom.get("kind") == "arc":
+            try:
+                points = arc_points(geom)
+            except (KeyError, TypeError, ValueError):
+                continue
+            for start, end in zip(points, points[1:]):
+                canvas.line(start, end, color, stroke)
+            canvas.text(points[len(points) // 2], wall.get("id", "arc"), size=14, fill="#374151")
 
     for opening in model.get("openings", []):
         pos = as_point(opening["position"])
