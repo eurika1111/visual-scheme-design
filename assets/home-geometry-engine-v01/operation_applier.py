@@ -88,6 +88,23 @@ def apply_move_object(model: dict[str, Any], operation: dict[str, Any]) -> None:
     append_log(model, operation, "error", f"Object not found: {object_id}")
 
 
+def apply_remove_furniture(model: dict[str, Any], operation: dict[str, Any]) -> None:
+    require_keys(operation, ["target_id"], "remove_furniture")
+    object_id = operation["target_id"]
+    furniture = model.setdefault("furniture", [])
+    item = find_by_id(furniture, object_id)
+    if not item:
+        append_log(model, operation, "error", f"Furniture not found: {object_id}")
+        return
+    source = str(item.get("source", ""))
+    removable = source == "operation" or source.startswith("copied_from:") or item.get("status") in {"new", "modified"}
+    if not removable and not operation.get("allow_existing"):
+        append_log(model, operation, "error", f"Furniture is not operation/copied/new: {object_id}")
+        return
+    model["furniture"] = [entry for entry in furniture if entry.get("id") != object_id]
+    append_log(model, operation, "applied", f"Furniture removed: {object_id}")
+
+
 def apply_copy_furniture(model: dict[str, Any], operation: dict[str, Any], source_models: dict[str, dict[str, Any]]) -> None:
     require_keys(operation, ["from_model", "from_object_id", "new_id"], "copy_furniture")
     source_name = operation["from_model"]
@@ -124,6 +141,7 @@ def apply_operations(base_model: dict[str, Any], operations_doc: dict[str, Any],
         "set_wall_status": lambda op: apply_set_wall_status(model, op),
         "add_furniture": lambda op: apply_add_furniture(model, op),
         "move_object": lambda op: apply_move_object(model, op),
+        "remove_furniture": lambda op: apply_remove_furniture(model, op),
         "copy_furniture": lambda op: apply_copy_furniture(model, op, source_models),
     }
 
@@ -168,3 +186,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

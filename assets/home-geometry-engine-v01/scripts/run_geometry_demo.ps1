@@ -13,6 +13,8 @@ $Applier = Join-Path $EngineDir 'operation_applier.py'
 $Renderer = Join-Path $EngineDir 'simple_renderer.py'
 $StateUpdater = Join-Path $EngineDir 'update_project_state.py'
 $StateReader = Join-Path $EngineDir 'read_project_state.py'
+$Summarizer = Join-Path $EngineDir 'summarize_validation.py'
+$RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $Operations = Join-Path $ExamplesDir 'operations.sample.json'
@@ -57,7 +59,10 @@ if (-not (Test-Path -Path $PythonExe)) {
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 Invoke-Step 'compile validator' { & $PythonExe -m py_compile $Validator }
+Invoke-Step 'compile operation applier' { & $PythonExe -m py_compile $Applier }
 Invoke-Step 'compile renderer' { & $PythonExe -m py_compile $Renderer }
+Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
+Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
 Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
@@ -85,3 +90,4 @@ Write-Host $PlanBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
 Write-Host $ProjectState
+

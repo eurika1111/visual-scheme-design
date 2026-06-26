@@ -202,6 +202,23 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
   'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.scheme_B_v1.json' `
   --json
 ```
+## 修复 operations 草案
+
+`draft_repair_operations.py` 可以把校验报告里的冲突转换成一份待确认的 operations 草案。它不会修改模型，也不会更新 `project_state.json`。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\draft_repair_operations.py' `
+  --model 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\scheme_B_v1.json' `
+  --validation 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.scheme_B_v1.json' `
+  --output 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\repair_operations.scheme_B_v1.draft.json' `
+  --parent-version 'scheme_B_v1' `
+  --new-version 'scheme_B_v2_draft'
+```
+
+第一版采用保守策略：如果严重冲突来自 `operation` 新增对象或 `copied_from` 复制对象，优先生成 `remove_furniture` 草案，而不是盲目移动到未知位置。草案需要人工确认后才能作为正式方案版本继续使用。
 ## 切换当前方案
 
 当对象操作生成一个新方案后，先运行校验，再用 `set_active_option.py` 把它写入 `project_state.json`。例如把方案 B 设为当前方案：
@@ -243,6 +260,7 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 - `set_wall_status`：修改墙状态。
 - `add_furniture`：新增家具或岛台等矩形对象。
 - `move_object`：移动矩形家具对象。
+- `remove_furniture`：移除 `operation` 新增、`copied_from` 复制或标记为新建/修改的临时家具对象。
 - `copy_furniture`：从另一个模型复制家具意图。
 
 如果操作违反规则，例如拆 `do_not_alter` 墙，脚本会把错误写进 `operation_log`，而不是假装成功。
