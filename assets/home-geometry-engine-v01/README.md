@@ -171,6 +171,17 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 ```
 
 如果新方案有 warning，它会被登记为 `待修改`，并关闭该方案的稳妥深化 gate；但不会降低底图 gate。
+## 校验问题摘要
+
+`summarize_validation.py` 可以把很长的 validation JSON 压缩成几条可执行问题：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\summarize_validation.py' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.scheme_B_v1.json'
+```
+
+典型输出会列出 readiness、错误/警告数量、问题类型统计，以及前几条关键冲突对象，例如家具重叠、厨房操作距离不足、门扇冲突、通道不足等。
 ## 切换当前方案
 
 当对象操作生成一个新方案后，先运行校验，再用 `set_active_option.py` 把它写入 `project_state.json`。例如把方案 B 设为当前方案：
@@ -395,6 +406,7 @@ simple_renderer.py
 ```
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
+
 
 
 

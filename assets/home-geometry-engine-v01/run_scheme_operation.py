@@ -44,6 +44,7 @@ def main() -> int:
     renderer = engine / "simple_renderer.py"
     set_active = engine / "set_active_option.py"
     state_reader = engine / "read_project_state.py"
+    summarizer = engine / "summarize_validation.py"
 
     run([py, str(operation_applier), str(args.base_model), str(args.operations), str(args.output_model), *args.source_model])
     run([py, str(validator), str(args.output_model), str(args.validation_output)], allowed={0, 1})
@@ -65,6 +66,7 @@ def main() -> int:
     if args.notes:
         set_active_cmd.extend(["--notes", args.notes])
     run(set_active_cmd, allowed={0, 1})
+    run([py, str(summarizer), str(args.validation_output)])
     run([py, str(state_reader), str(args.state)])
     return 0
 
