@@ -130,6 +130,15 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 - 相关模型、校验报告和问题样例报告的位置
 
 后续 Codex 工作应优先读取这个状态文件，再按需读取具体模型或校验报告，避免每次从长对话里重新推断项目进度。
+也可以单独读取状态摘要：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\read_project_state.py' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json'
+```
+
+它会输出当前 `level`、`validation_status`、`active_base`、`active_option`，以及是否满足快速概念和稳妥深化门槛。
 ## 应用对象操作
 
 `operation_applier.py` 用来把用户修改变成对象级操作，并生成新版本 JSON。它不会覆盖原始底图。
@@ -333,6 +342,7 @@ simple_renderer.py
 ```
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
+
 
 
 

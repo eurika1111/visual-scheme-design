@@ -12,6 +12,7 @@ $Validator = Join-Path $EngineDir 'geometry_validator.py'
 $Applier = Join-Path $EngineDir 'operation_applier.py'
 $Renderer = Join-Path $EngineDir 'simple_renderer.py'
 $StateUpdater = Join-Path $EngineDir 'update_project_state.py'
+$StateReader = Join-Path $EngineDir 'read_project_state.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $Operations = Join-Path $ExamplesDir 'operations.sample.json'
@@ -58,6 +59,7 @@ New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 Invoke-Step 'compile validator' { & $PythonExe -m py_compile $Validator }
 Invoke-Step 'compile renderer' { & $PythonExe -m py_compile $Renderer }
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
+Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
 Invoke-Step 'build scheme A' { & $PythonExe $Applier $BaseModel $Operations $SchemeA }
 Invoke-Step 'validate scheme A' { & $PythonExe $Validator $SchemeA $ValidationSchemeA }
@@ -66,6 +68,9 @@ Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $Val
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
 Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $BaseModel --base-validation $ValidationBase --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --problem-validation $ValidationProblem }
+
+Write-Host '== state gate'
+& $PythonExe $StateReader $ProjectState
 
 Write-Host '== validation summary'
 Show-Summary 'base' $ValidationBase
@@ -80,4 +85,3 @@ Write-Host $PlanBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
 Write-Host $ProjectState
-
