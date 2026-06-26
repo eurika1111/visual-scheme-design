@@ -34,8 +34,12 @@ Do not store large object models inside state. Store file paths, IDs, status, an
   "mode": "execute",
   "phase": "production",
   "level": "L3",
+  "base_level": "L3",
+  "base_validation_status": "passed",
   "active_base": "base_v1",
   "active_option": "scheme_A_v1",
+  "active_option_level": "L3",
+  "active_option_validation_status": "passed",
   "validation_status": "passed",
   "last_action": "validate_geometry",
   "option_registry": [
@@ -57,6 +61,15 @@ Do not store large object models inside state. Store file paths, IDs, status, an
 }
 ```
 
+
+## Base gate and active option gate
+
+Keep base readiness separate from the active scheme option:
+
+- `base_level` and `base_validation_status` decide whether quick concepts can continue from the confirmed base.
+- `active_option_level` and `active_option_validation_status` decide whether the selected option can enter stable deepening.
+- A warning in one option must not downgrade the base model or contaminate other options.
+- Switching active option updates `active_option`, `active_option_level`, `active_option_validation_status`, related files, and option registry only.
 ## Update rules
 
 - Update state after a phase change, validation run, option status change, scheme migration, rollback, or delivery.
@@ -95,3 +108,4 @@ Recommended flag shape:
 ```
 
 Only move an evolution flag into `SKILL.md` or references after the user approves maintenance work.
+

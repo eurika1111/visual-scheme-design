@@ -139,6 +139,27 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 ```
 
 它会输出当前 `level`、`validation_status`、`active_base`、`active_option`，以及是否满足快速概念和稳妥深化门槛。
+## 切换当前方案
+
+当对象操作生成一个新方案后，先运行校验，再用 `set_active_option.py` 把它写入 `project_state.json`。例如把方案 B 设为当前方案：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\set_active_option.py' `
+  --state 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json' `
+  --option-id '方案 B' `
+  --version 'scheme_B_v1' `
+  --model 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\scheme_B_v1.json' `
+  --validation 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.scheme_B_v1.json' `
+  --parent 'base_v1'
+```
+
+状态文件会分开记录：
+
+- 底图 gate：`base_level`、`base_validation_status`
+- 当前方案 gate：`active_option_level`、`active_option_validation_status`
+
+因此，一个方案有 warning 时，只会阻止该方案进入稳妥深化，不会把已通过的底图降级。
 ## 应用对象操作
 
 `operation_applier.py` 用来把用户修改变成对象级操作，并生成新版本 JSON。它不会覆盖原始底图。
@@ -342,6 +363,7 @@ simple_renderer.py
 ```
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
+
 
 
 

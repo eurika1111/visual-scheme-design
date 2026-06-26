@@ -21,20 +21,29 @@ def level_at_least(level: str | None, minimum: str) -> bool:
 
 
 def state_gate(state: dict[str, Any]) -> dict[str, Any]:
-    level = state.get("level")
-    status = state.get("validation_status")
+    base_level = state.get("base_level", state.get("level"))
+    base_status = state.get("base_validation_status", state.get("validation_status"))
+    option_level = state.get("active_option_level", state.get("level"))
+    option_status = state.get("active_option_validation_status", state.get("validation_status"))
     blockers = state.get("blockers") or []
-    base_ok = status == "passed" and not blockers
+    base_ok = base_status == "passed" and not blockers
+    option_ok = option_status == "passed" and not blockers
     return {
-        "can_quick_concept": base_ok and level_at_least(level, "L2"),
-        "can_stable_deepening": base_ok and level_at_least(level, "L3"),
-        "reason": "ok" if base_ok else "validation_not_passed_or_blocked",
+        "can_quick_concept": base_ok and level_at_least(base_level, "L2"),
+        "can_stable_deepening": base_ok and option_ok and level_at_least(option_level, "L3"),
+        "base_level": base_level,
+        "base_validation_status": base_status,
+        "active_option_level": option_level,
+        "active_option_validation_status": option_status,
+        "reason": "ok" if base_ok and option_ok else "base_or_active_option_not_passed",
     }
 
 
 def print_summary(state: dict[str, Any]) -> None:
     gate = state_gate(state)
-    print(f"state: {state.get('validation_status')} / {state.get('level')} / {state.get('phase')}")
+    print(f"state: {state.get('validation_status')} / {state.get('phase')}")
+    print(f"base: {gate['base_validation_status']} / {gate['base_level']}")
+    print(f"active_option_state: {gate['active_option_validation_status']} / {gate['active_option_level']}")
     print(f"domain: {state.get('domain')}  mode: {state.get('mode')}")
     print(f"active_base: {state.get('active_base')}")
     print(f"active_option: {state.get('active_option')}")
@@ -77,6 +86,10 @@ def main() -> int:
         output = {
             "validation_status": state.get("validation_status"),
             "level": state.get("level"),
+            "base_level": gate["base_level"],
+            "base_validation_status": gate["base_validation_status"],
+            "active_option_level": gate["active_option_level"],
+            "active_option_validation_status": gate["active_option_validation_status"],
             "phase": state.get("phase"),
             "active_base": state.get("active_base"),
             "active_option": state.get("active_option"),

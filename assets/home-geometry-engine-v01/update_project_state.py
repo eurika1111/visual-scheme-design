@@ -64,8 +64,12 @@ def main() -> int:
         "mode": "execute",
         "phase": "production",
         "level": base_report.get("readiness"),
+        "base_level": base_report.get("readiness"),
+        "base_validation_status": base_status,
         "active_base": "base_v1",
         "active_option": "scheme_A_v1",
+        "active_option_level": scheme_a_report.get("readiness"),
+        "active_option_validation_status": scheme_a_status,
         "validation_status": "passed" if base_status == "passed" and scheme_a_status == "passed" else "warning",
         "last_action": "run_geometry_demo",
         "option_registry": [
