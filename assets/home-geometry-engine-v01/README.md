@@ -67,6 +67,7 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 - 校验正常底图、方案 A、问题样例。
 - 重新渲染三张 SVG 检查图。
 - 输出 readiness、error、warning、厨房对象和通道数量摘要。
+- 更新 `project_state.json`，记录当前底图、方案、L0-L4 等级、校验状态和关键输出文件。
 
 这个脚本固定使用 Codex bundled Python，避免误触发 WindowsApps 的 `python.exe` 占位启动器。
 ## 使用方法
@@ -110,6 +111,25 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 ```
 
 渲染图只用于检查对象数据，不是最终方案图。
+## 项目状态文件
+
+一键验证脚本会生成：
+
+```text
+D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
+```
+
+它不是完整模型，而是一个轻量状态指针，用来告诉后续流程：
+
+- 当前领域：`residential`
+- 当前阶段：`production`
+- 当前底图：`base_v1`
+- 当前方案：`scheme_A_v1`
+- 当前等级：例如 `L3`
+- 校验状态：`passed`、`warning` 或 `failed`
+- 相关模型、校验报告和问题样例报告的位置
+
+后续 Codex 工作应优先读取这个状态文件，再按需读取具体模型或校验报告，避免每次从长对话里重新推断项目进度。
 ## 应用对象操作
 
 `operation_applier.py` 用来把用户修改变成对象级操作，并生成新版本 JSON。它不会覆盖原始底图。
@@ -313,6 +333,7 @@ simple_renderer.py
 ```
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
+
 
 
 
