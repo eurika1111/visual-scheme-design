@@ -219,6 +219,36 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 ```
 
 第一版采用保守策略：如果严重冲突来自 `operation` 新增对象或 `copied_from` 复制对象，优先生成 `remove_furniture` 草案，而不是盲目移动到未知位置。草案需要人工确认后才能作为正式方案版本继续使用。
+## 确认修复草案
+
+`confirm_repair_draft.py` 用于在人工确认草案后，把修复草案转成正式方案版本。它会执行：
+
+```text
+应用 repair draft
+→ 生成新方案模型
+→ 重新校验
+→ 可选渲染 SVG
+→ 更新 project_state.json
+→ 输出 state gate 摘要
+```
+
+为了避免误操作，脚本必须带 `--confirm` 才会执行：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\confirm_repair_draft.py' `
+  --state 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json' `
+  --current-model 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\scheme_B_v1.json' `
+  --repair-draft 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\repair_operations.scheme_B_v1.draft.json' `
+  --output-model 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\scheme_B_v2_confirmed.json' `
+  --validation-output 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.scheme_B_v2_confirmed.json' `
+  --render-output 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\plan.scheme_B_v2_confirmed.svg' `
+  --option-id '方案 B' `
+  --version 'scheme_B_v2_confirmed' `
+  --confirm
+```
+
+如果不带 `--confirm`，脚本会拒绝执行。确认后的版本仍然必须通过校验；如果校验失败或只有 L2，就不能进入稳妥深化。
 ## 切换当前方案
 
 当对象操作生成一个新方案后，先运行校验，再用 `set_active_option.py` 把它写入 `project_state.json`。例如把方案 B 设为当前方案：
