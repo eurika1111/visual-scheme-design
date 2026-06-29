@@ -43,7 +43,9 @@ $SourceQualityBase = Join-Path $OutputDir 'source_quality.base.json'
 $SourceQualityProblem = Join-Path $OutputDir 'source_quality.problem.json'
 $SourceExtractionValidation = Join-Path $OutputDir 'source_extraction.validation.json'
 $SourceExtractionProblemValidation = Join-Path $OutputDir 'source_extraction.problem.validation.json'
+$ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_v1.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
+$PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
 $PlanDoorSwing = Join-Path $OutputDir 'plan.door_swing_sample.svg'
@@ -105,7 +107,9 @@ Invoke-Step 'validate source extraction package' { & $PythonExe $SourceExtractio
 Invoke-Step 'validate source extraction problem package' { & $PythonExe $SourceExtractionValidator $SourceExtractionProblemPackage $SourceExtractionProblemValidation } @(0, 1)
 Invoke-Step 'export base model from extraction package' { & $PythonExe $BaseModelExporter $SourceExtractionPackage $ExportedBaseModel --validation-output $ExportedBaseValidation --minimum-level L3 --version base_from_extraction_v1 }
 Invoke-Step 'reject bad source extraction export' { & $PythonExe $BaseModelExporter $SourceExtractionProblemPackage $FailedBaseExport --validation-output $FailedBaseExportValidation --minimum-level L2 --allow-warning --version base_problem_v1 } @(0, 1)
+Invoke-Step 'validate exported base model' { & $PythonExe $Validator $ExportedBaseModel $ValidationExportedBase }
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
+Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
 Invoke-Step 'render door swing SVG' { & $PythonExe $Renderer $DoorSwingModel $PlanDoorSwing $ValidationDoorSwing }
@@ -118,6 +122,7 @@ Write-Host '== state gate'
 
 Write-Host '== validation summary'
 Show-Summary 'base' $ValidationBase
+Show-Summary 'exported_base' $ValidationExportedBase
 Show-Summary 'scheme_A' $ValidationSchemeA
 Show-Summary 'problem' $ValidationProblem
 Show-Summary 'door_swing' $ValidationDoorSwing
@@ -143,9 +148,11 @@ Write-Host $SourceQualityProblem
 Write-Host $SourceExtractionValidation
 Write-Host $SourceExtractionProblemValidation
 Write-Host $ExportedBaseModel
+Write-Host $ValidationExportedBase
 Write-Host $ExportedBaseValidation
 Write-Host $FailedBaseExportValidation
 Write-Host $PlanBase
+Write-Host $PlanExportedBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
 Write-Host $PlanDoorSwing
