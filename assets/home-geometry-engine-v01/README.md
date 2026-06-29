@@ -65,6 +65,7 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 - 检查 `geometry_validator.py` 和 `simple_renderer.py` 语法。
 - 重新生成 `scheme_A_v1.json`。
 - 校验正常底图、方案 A、问题样例。
+- 校验源户型图对象抽取包，确认识图输出是否符合入口规范。
 - 运行源数据质量门，判断对象化底图是否允许进入快速概念或稳妥深化。
 - 重新渲染三张 SVG 检查图。
 - 输出 readiness、error、warning、厨房对象和通道数量摘要。
@@ -179,6 +180,43 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 ```
 
 如果新方案有 warning，它会被登记为 `待修改`，并关闭该方案的稳妥深化 gate；但不会降低底图 gate。
+
+## 源户型图对象抽取包
+
+`templates/source_object_extraction_prompt.md` 是给 AI 或人工整理者使用的入口提示模板。它要求先输出 `source_extraction_package_v1`，再进入几何校验，而不是直接从图片生成方案。
+
+抽取包包含：
+
+- `source_images`：原始图、截图、扫描件等来源记录。
+- `dimension_chains`：可读尺寸链和来源。
+- `source_facts`：从源图得到的事实，必须引用对象 ID。
+- `candidate_model`：候选墙、房间、门窗、家具等对象模型。
+- `unresolved_questions`：低置信或需要用户确认的问题。
+- `extraction_notes`：抽取说明，不代替结构化字段。
+
+示例文件：
+
+```text
+D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json
+```
+
+校验命令：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\validate_source_extraction.py' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\source_extraction.validation.json'
+```
+
+典型输出：
+
+```text
+extraction_gate=passed extraction_level=L3
+can_quick_concept=true can_stable_deepening=true
+```
+
+这个校验位于识图和几何校验之间：先检查抽取包有没有来源、尺寸、事实、候选模型和未确认项，再把候选模型交给 `geometry_validator.py` 和 `source_quality_gate.py`。
 
 ## 源数据质量门
 
