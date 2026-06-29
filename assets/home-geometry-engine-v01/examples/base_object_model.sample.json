@@ -316,5 +316,70 @@
       ],
       "required_width_mm": 800
     }
+  ],
+  "source_images": [
+    {
+      "id": "SRC-PLAN-01",
+      "type": "sample_plan",
+      "role": "objectization_reference",
+      "note": "Synthetic sample source used to test traceable object data."
+    }
+  ],
+  "source_facts": [
+    {
+      "id": "SF-OUTLINE-01",
+      "type": "overall_outline",
+      "object_ids": [
+        "W-EXT-S",
+        "W-EXT-E",
+        "W-EXT-N",
+        "W-EXT-W"
+      ],
+      "source": "SRC-PLAN-01",
+      "confidence": 0.95
+    },
+    {
+      "id": "SF-ROOMS-01",
+      "type": "room_labels_and_areas",
+      "object_ids": [
+        "ROOM-WEST",
+        "ROOM-EAST-S",
+        "ROOM-EAST-N"
+      ],
+      "source": "SRC-PLAN-01",
+      "confidence": 0.84
+    }
+  ],
+  "dimension_chains": [
+    {
+      "id": "DIM-X-01",
+      "axis": "x",
+      "source": "SRC-PLAN-01",
+      "segments_mm": [
+        3200,
+        4800
+      ],
+      "object_ids": [
+        "W-EXT-W",
+        "W-INT-V",
+        "W-EXT-E"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": "DIM-Y-01",
+      "axis": "y",
+      "source": "SRC-PLAN-01",
+      "segments_mm": [
+        2600,
+        2400
+      ],
+      "object_ids": [
+        "W-EXT-S",
+        "W-INT-T",
+        "W-EXT-N"
+      ],
+      "confidence": 0.9
+    }
   ]
 }

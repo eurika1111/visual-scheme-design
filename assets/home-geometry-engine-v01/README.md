@@ -209,7 +209,7 @@ source_gate=passed source_level=L3 validation=L3
 can_quick_concept=true can_stable_deepening=true
 ```
 
-如果输出 `failed/L0` 或 `failed/L1`，不要继续出家装方案；应该先回到底图对象数据，修墙体、房间、门窗、坐标或低置信度对象。
+如果输出 `failed/L0` 或 `failed/L1`，不要继续出家装方案；应该先回到底图对象数据，修墙体、房间、门窗、坐标或低置信度对象。缺少 `source_facts`、`dimension_chains`、`source_images` 等追溯信息时，质量门最多只放到 L2，不直接进入稳妥深化。
 
 ## 校验问题摘要
 

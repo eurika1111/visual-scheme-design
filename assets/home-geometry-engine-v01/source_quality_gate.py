@@ -137,7 +137,7 @@ def assess_source_quality(model: dict[str, Any], validation: dict[str, Any] | No
     if source_trace_count(model) == 0:
         findings.append({
             "type": "source_traceability_weak",
-            "severity": "low",
+            "severity": "medium",
             "message": "No source_facts, dimensions, dimension_chains, source_images, or extraction_notes found",
         })
 
