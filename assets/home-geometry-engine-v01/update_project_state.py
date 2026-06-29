@@ -72,6 +72,9 @@ def main() -> int:
     source_gate = source_quality_report.get("source_gate") if source_quality_report else None
     source_level = source_quality_report.get("source_level") if source_quality_report else None
     source_quality_status = source_gate or "unknown"
+    extraction_gate = source_extraction_report.get("extraction_gate") if source_extraction_report else None
+    extraction_level = source_extraction_report.get("extraction_level") if source_extraction_report else None
+    extraction_status = extraction_gate or "unknown"
 
     state = {
         "schema_version": "space_scheme_state_v1",
@@ -85,11 +88,14 @@ def main() -> int:
         "base_source_gate": source_gate,
         "base_source_level": source_level,
         "base_source_quality_status": source_quality_status,
+        "base_source_extraction_gate": extraction_gate,
+        "base_source_extraction_level": extraction_level,
+        "base_source_extraction_status": extraction_status,
         "active_base": args.base_version,
         "active_option": args.scheme_a_version,
         "active_option_level": scheme_a_report.get("readiness"),
         "active_option_validation_status": scheme_a_status,
-        "validation_status": "passed" if base_status == "passed" and scheme_a_status == "passed" and source_quality_status in {"passed", "unknown"} else "warning",
+        "validation_status": "passed" if base_status == "passed" and scheme_a_status == "passed" and source_quality_status in {"passed", "unknown"} and extraction_status in {"passed", "unknown"} else "warning",
         "last_action": "run_geometry_demo",
         "option_registry": [
             option_entry("底图", args.base_version, base_report, args.base_model, args.base_validation),

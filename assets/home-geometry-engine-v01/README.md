@@ -147,7 +147,7 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
   'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json'
 ```
 
-它会输出当前 `level`、`validation_status`、`active_base`、`active_option`、`source_quality`，以及是否满足快速概念和稳妥深化门槛。
+它会输出当前 `level`、`validation_status`、`active_base`、`active_option`、`source_extraction`、`source_quality`，以及是否满足快速概念和稳妥深化门槛。
 ## 一键运行方案操作链路
 
 `run_scheme_operation.py` 用来把一次方案操作串起来：
