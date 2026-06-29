@@ -41,6 +41,7 @@ $ValidationIslandMove = Join-Path $OutputDir 'validation.island_move_sample.json
 $ValidationArcPartition = Join-Path $OutputDir 'validation.arc_partition_sample.json'
 $SourceQualityBase = Join-Path $OutputDir 'source_quality.base.json'
 $SourceQualityProblem = Join-Path $OutputDir 'source_quality.problem.json'
+$SourceQualityExportedBase = Join-Path $OutputDir 'source_quality.base_from_extraction_v1.json'
 $SourceExtractionValidation = Join-Path $OutputDir 'source_extraction.validation.json'
 $SourceExtractionProblemValidation = Join-Path $OutputDir 'source_extraction.problem.validation.json'
 $ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_v1.json'
@@ -95,8 +96,6 @@ Invoke-Step 'compile base model exporter' { & $PythonExe -m py_compile $BaseMode
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
 Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
-Invoke-Step 'build scheme A' { & $PythonExe $Applier $BaseModel $Operations $SchemeA }
-Invoke-Step 'validate scheme A' { & $PythonExe $Validator $SchemeA $ValidationSchemeA }
 Invoke-Step 'validate problem sample' { & $PythonExe $Validator $ProblemModel $ValidationProblem } @(0, 1)
 Invoke-Step 'validate door swing sample' { & $PythonExe $Validator $DoorSwingModel $ValidationDoorSwing } @(0, 1)
 Invoke-Step 'validate island move sample' { & $PythonExe $Validator $IslandMoveModel $ValidationIslandMove } @(0, 1)
@@ -108,6 +107,9 @@ Invoke-Step 'validate source extraction problem package' { & $PythonExe $SourceE
 Invoke-Step 'export base model from extraction package' { & $PythonExe $BaseModelExporter $SourceExtractionPackage $ExportedBaseModel --validation-output $ExportedBaseValidation --minimum-level L3 --version base_from_extraction_v1 }
 Invoke-Step 'reject bad source extraction export' { & $PythonExe $BaseModelExporter $SourceExtractionProblemPackage $FailedBaseExport --validation-output $FailedBaseExportValidation --minimum-level L2 --allow-warning --version base_problem_v1 } @(0, 1)
 Invoke-Step 'validate exported base model' { & $PythonExe $Validator $ExportedBaseModel $ValidationExportedBase }
+Invoke-Step 'source quality exported base' { & $PythonExe $SourceQualityGate $ExportedBaseModel $SourceQualityExportedBase --validation $ValidationExportedBase }
+Invoke-Step 'rebuild scheme A from exported base' { & $PythonExe $Applier $ExportedBaseModel $Operations $SchemeA }
+Invoke-Step 'validate scheme A from exported base' { & $PythonExe $Validator $SchemeA $ValidationSchemeA }
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
@@ -115,7 +117,7 @@ Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanPro
 Invoke-Step 'render door swing SVG' { & $PythonExe $Renderer $DoorSwingModel $PlanDoorSwing $ValidationDoorSwing }
 Invoke-Step 'render island move SVG' { & $PythonExe $Renderer $IslandMoveModel $PlanIslandMove $ValidationIslandMove }
 Invoke-Step 'render arc partition SVG' { & $PythonExe $Renderer $ArcPartitionModel $PlanArcPartition $ValidationArcPartition }
-Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $BaseModel --base-validation $ValidationBase --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --problem-validation $ValidationProblem --base-source-quality $SourceQualityBase }
+Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $ExportedBaseModel --base-validation $ValidationExportedBase --base-version base_from_extraction_v1 --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --scheme-a-version scheme_A_v1 --problem-validation $ValidationProblem --base-source-quality $SourceQualityExportedBase --base-source-extraction $SourceExtractionValidation }
 
 Write-Host '== state gate'
 & $PythonExe $StateReader $ProjectState
@@ -134,6 +136,7 @@ Write-Host '== source extraction gate'
 
 Write-Host '== source quality gate'
 & $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase
+& $PythonExe $SourceQualityGate $ExportedBaseModel $SourceQualityExportedBase --validation $ValidationExportedBase
 & $PythonExe $SourceQualityGate $ProblemModel $SourceQualityProblem --validation $ValidationProblem
 
 Write-Host '== outputs'
@@ -144,6 +147,7 @@ Write-Host $ValidationDoorSwing
 Write-Host $ValidationIslandMove
 Write-Host $ValidationArcPartition
 Write-Host $SourceQualityBase
+Write-Host $SourceQualityExportedBase
 Write-Host $SourceQualityProblem
 Write-Host $SourceExtractionValidation
 Write-Host $SourceExtractionProblemValidation

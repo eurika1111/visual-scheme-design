@@ -243,7 +243,7 @@ can_quick_concept=true can_stable_deepening=true
   --version base_from_extraction_v1
 ```
 
-导出的 base model 会保留来源图、来源事实、尺寸链和未确认问题；后续方案只读取导出的对象模型，不再直接从图片或聊天上下文里猜几何。
+导出的 base model 会保留来源图、来源事实、尺寸链和未确认问题；后续方案只读取导出的对象模型，不再直接从图片或聊天上下文里猜几何。一键验证脚本会把 `base_from_extraction_v1` 登记为当前底图，并基于它重建方案 A。
 
 ## 源数据质量门
 
