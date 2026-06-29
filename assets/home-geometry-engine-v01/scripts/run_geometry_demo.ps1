@@ -16,6 +16,7 @@ $StateReader = Join-Path $EngineDir 'read_project_state.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
 $ConfirmRepair = Join-Path $EngineDir 'confirm_repair_draft.py'
+$SourceQualityGate = Join-Path $EngineDir 'source_quality_gate.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $DoorSwingModel = Join-Path $ExamplesDir 'base_object_model.door-swing-sample.json'
@@ -30,6 +31,8 @@ $ValidationProblem = Join-Path $OutputDir 'validation.problem.json'
 $ValidationDoorSwing = Join-Path $OutputDir 'validation.door_swing_sample.json'
 $ValidationIslandMove = Join-Path $OutputDir 'validation.island_move_sample.json'
 $ValidationArcPartition = Join-Path $OutputDir 'validation.arc_partition_sample.json'
+$SourceQualityBase = Join-Path $OutputDir 'source_quality.base.json'
+$SourceQualityProblem = Join-Path $OutputDir 'source_quality.problem.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -74,6 +77,7 @@ Invoke-Step 'compile renderer' { & $PythonExe -m py_compile $Renderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
 Invoke-Step 'compile confirm repair' { & $PythonExe -m py_compile $ConfirmRepair }
+Invoke-Step 'compile source quality gate' { & $PythonExe -m py_compile $SourceQualityGate }
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
 Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
@@ -83,6 +87,8 @@ Invoke-Step 'validate problem sample' { & $PythonExe $Validator $ProblemModel $V
 Invoke-Step 'validate door swing sample' { & $PythonExe $Validator $DoorSwingModel $ValidationDoorSwing } @(0, 1)
 Invoke-Step 'validate island move sample' { & $PythonExe $Validator $IslandMoveModel $ValidationIslandMove } @(0, 1)
 Invoke-Step 'validate arc partition sample' { & $PythonExe $Validator $ArcPartitionModel $ValidationArcPartition } @(0, 1)
+Invoke-Step 'source quality base' { & $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase }
+Invoke-Step 'source quality problem' { & $PythonExe $SourceQualityGate $ProblemModel $SourceQualityProblem --validation $ValidationProblem } @(0, 1)
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
@@ -101,6 +107,9 @@ Show-Summary 'problem' $ValidationProblem
 Show-Summary 'door_swing' $ValidationDoorSwing
 Show-Summary 'island_move' $ValidationIslandMove
 Show-Summary 'arc_partition' $ValidationArcPartition
+Write-Host '== source quality gate'
+& $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase
+& $PythonExe $SourceQualityGate $ProblemModel $SourceQualityProblem --validation $ValidationProblem
 
 Write-Host '== outputs'
 Write-Host $ValidationBase
@@ -109,6 +118,8 @@ Write-Host $ValidationProblem
 Write-Host $ValidationDoorSwing
 Write-Host $ValidationIslandMove
 Write-Host $ValidationArcPartition
+Write-Host $SourceQualityBase
+Write-Host $SourceQualityProblem
 Write-Host $PlanBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
@@ -116,4 +127,3 @@ Write-Host $PlanDoorSwing
 Write-Host $PlanIslandMove
 Write-Host $PlanArcPartition
 Write-Host $ProjectState
-

@@ -65,6 +65,7 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 - 检查 `geometry_validator.py` 和 `simple_renderer.py` 语法。
 - 重新生成 `scheme_A_v1.json`。
 - 校验正常底图、方案 A、问题样例。
+- 运行源数据质量门，判断对象化底图是否允许进入快速概念或稳妥深化。
 - 重新渲染三张 SVG 检查图。
 - 输出 readiness、error、warning、厨房对象和通道数量摘要。
 - 更新 `project_state.json`，记录当前底图、方案、L0-L4 等级、校验状态和关键输出文件。
@@ -178,6 +179,38 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 ```
 
 如果新方案有 warning，它会被登记为 `待修改`，并关闭该方案的稳妥深化 gate；但不会降低底图 gate。
+
+## 源数据质量门
+
+`source_quality_gate.py` 用来检查“原始户型图已经被抽取成对象 JSON 之后，这份数据是否可靠”。它不负责从图片里识别墙体，也不会把生成图反写成数据。
+
+可以把它理解为底图验收：
+
+```text
+对象 JSON + 几何校验报告
+→ 检查坐标规则、墙/房间/门窗数量、置信度、重复 ID、源信息可追溯性
+→ 输出 source_gate、source_level、是否允许快速概念/稳妥深化
+```
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\source_quality_gate.py' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\base_object_model.sample.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\source_quality.base.json' `
+  --validation 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.json'
+```
+
+典型输出：
+
+```text
+source_gate=passed source_level=L3 validation=L3
+can_quick_concept=true can_stable_deepening=true
+```
+
+如果输出 `failed/L0` 或 `failed/L1`，不要继续出家装方案；应该先回到底图对象数据，修墙体、房间、门窗、坐标或低置信度对象。
+
 ## 校验问题摘要
 
 `summarize_validation.py` 可以把很长的 validation JSON 压缩成几条可执行问题：
