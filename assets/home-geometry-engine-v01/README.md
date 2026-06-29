@@ -221,6 +221,30 @@ can_quick_concept=true can_stable_deepening=true
 
 这个校验位于识图和几何校验之间：先检查抽取包有没有来源、尺寸、事实、候选模型和未确认项，再把候选模型交给 `geometry_validator.py` 和 `source_quality_gate.py`。
 
+## 从抽取包导出底图模型
+
+`export_base_model_from_extraction.py` 用来把通过入口校验的 `source_extraction_package_v1` 导出成真正进入几何引擎的 `base_object_model`。
+
+它会先运行抽取包校验：
+
+- 默认至少需要 L2，适合快速概念底图。
+- 使用 `--minimum-level L3` 时，只有通过 L3 的抽取包才能导出稳妥深化底图。
+- 问题包会被拒绝，并写出 validation report 供修复。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\export_base_model_from_extraction.py' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\base_from_extraction_v1.json' `
+  --validation-output 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\source_extraction.export.validation.json' `
+  --minimum-level L3 `
+  --version base_from_extraction_v1
+```
+
+导出的 base model 会保留来源图、来源事实、尺寸链和未确认问题；后续方案只读取导出的对象模型，不再直接从图片或聊天上下文里猜几何。
+
 ## 源数据质量门
 
 `source_quality_gate.py` 用来检查“原始户型图已经被抽取成对象 JSON 之后，这份数据是否可靠”。它不负责从图片里识别墙体，也不会把生成图反写成数据。

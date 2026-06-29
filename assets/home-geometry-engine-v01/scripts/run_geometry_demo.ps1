@@ -18,6 +18,7 @@ $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
 $ConfirmRepair = Join-Path $EngineDir 'confirm_repair_draft.py'
 $SourceQualityGate = Join-Path $EngineDir 'source_quality_gate.py'
 $SourceExtractionValidator = Join-Path $EngineDir 'validate_source_extraction.py'
+$BaseModelExporter = Join-Path $EngineDir 'export_base_model_from_extraction.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $DoorSwingModel = Join-Path $ExamplesDir 'base_object_model.door-swing-sample.json'
@@ -27,6 +28,10 @@ $Operations = Join-Path $ExamplesDir 'operations.sample.json'
 $SourceExtractionPackage = Join-Path $ExamplesDir 'source_extraction_package.sample.json'
 $SourceExtractionProblemPackage = Join-Path $ExamplesDir 'source_extraction_package.problem-sample.json'
 
+$ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
+$ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
+$FailedBaseExport = Join-Path $OutputDir 'base_from_extraction_problem.json'
+$FailedBaseExportValidation = Join-Path $OutputDir 'source_extraction.problem.export.validation.json'
 $SchemeA = Join-Path $OutputDir 'scheme_A_v1.json'
 $ValidationBase = Join-Path $OutputDir 'validation.json'
 $ValidationSchemeA = Join-Path $OutputDir 'validation.scheme_A_v1.json'
@@ -84,6 +89,7 @@ Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
 Invoke-Step 'compile confirm repair' { & $PythonExe -m py_compile $ConfirmRepair }
 Invoke-Step 'compile source quality gate' { & $PythonExe -m py_compile $SourceQualityGate }
 Invoke-Step 'compile source extraction validator' { & $PythonExe -m py_compile $SourceExtractionValidator }
+Invoke-Step 'compile base model exporter' { & $PythonExe -m py_compile $BaseModelExporter }
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
 Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
@@ -97,6 +103,8 @@ Invoke-Step 'source quality base' { & $PythonExe $SourceQualityGate $BaseModel $
 Invoke-Step 'source quality problem' { & $PythonExe $SourceQualityGate $ProblemModel $SourceQualityProblem --validation $ValidationProblem } @(0, 1)
 Invoke-Step 'validate source extraction package' { & $PythonExe $SourceExtractionValidator $SourceExtractionPackage $SourceExtractionValidation }
 Invoke-Step 'validate source extraction problem package' { & $PythonExe $SourceExtractionValidator $SourceExtractionProblemPackage $SourceExtractionProblemValidation } @(0, 1)
+Invoke-Step 'export base model from extraction package' { & $PythonExe $BaseModelExporter $SourceExtractionPackage $ExportedBaseModel --validation-output $ExportedBaseValidation --minimum-level L3 --version base_from_extraction_v1 }
+Invoke-Step 'reject bad source extraction export' { & $PythonExe $BaseModelExporter $SourceExtractionProblemPackage $FailedBaseExport --validation-output $FailedBaseExportValidation --minimum-level L2 --allow-warning --version base_problem_v1 } @(0, 1)
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
@@ -134,6 +142,9 @@ Write-Host $SourceQualityBase
 Write-Host $SourceQualityProblem
 Write-Host $SourceExtractionValidation
 Write-Host $SourceExtractionProblemValidation
+Write-Host $ExportedBaseModel
+Write-Host $ExportedBaseValidation
+Write-Host $FailedBaseExportValidation
 Write-Host $PlanBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
