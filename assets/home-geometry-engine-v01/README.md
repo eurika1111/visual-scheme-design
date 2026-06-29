@@ -198,7 +198,10 @@ D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\project_state.json
 
 ```text
 D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json
+D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.problem-sample.json
 ```
+
+其中 `problem-sample` 故意包含坐标规则错误、缺少来源图、尺寸引用空对象等问题，用来确认入口校验能阻断错误抽取结果。
 
 校验命令：
 

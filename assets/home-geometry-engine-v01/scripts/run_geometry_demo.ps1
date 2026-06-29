@@ -25,6 +25,7 @@ $IslandMoveModel = Join-Path $ExamplesDir 'base_object_model.island-move-sample.
 $ArcPartitionModel = Join-Path $ExamplesDir 'base_object_model.arc-partition-sample.json'
 $Operations = Join-Path $ExamplesDir 'operations.sample.json'
 $SourceExtractionPackage = Join-Path $ExamplesDir 'source_extraction_package.sample.json'
+$SourceExtractionProblemPackage = Join-Path $ExamplesDir 'source_extraction_package.problem-sample.json'
 
 $SchemeA = Join-Path $OutputDir 'scheme_A_v1.json'
 $ValidationBase = Join-Path $OutputDir 'validation.json'
@@ -36,6 +37,7 @@ $ValidationArcPartition = Join-Path $OutputDir 'validation.arc_partition_sample.
 $SourceQualityBase = Join-Path $OutputDir 'source_quality.base.json'
 $SourceQualityProblem = Join-Path $OutputDir 'source_quality.problem.json'
 $SourceExtractionValidation = Join-Path $OutputDir 'source_extraction.validation.json'
+$SourceExtractionProblemValidation = Join-Path $OutputDir 'source_extraction.problem.validation.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -94,6 +96,7 @@ Invoke-Step 'validate arc partition sample' { & $PythonExe $Validator $ArcPartit
 Invoke-Step 'source quality base' { & $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase }
 Invoke-Step 'source quality problem' { & $PythonExe $SourceQualityGate $ProblemModel $SourceQualityProblem --validation $ValidationProblem } @(0, 1)
 Invoke-Step 'validate source extraction package' { & $PythonExe $SourceExtractionValidator $SourceExtractionPackage $SourceExtractionValidation }
+Invoke-Step 'validate source extraction problem package' { & $PythonExe $SourceExtractionValidator $SourceExtractionProblemPackage $SourceExtractionProblemValidation } @(0, 1)
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
@@ -114,6 +117,7 @@ Show-Summary 'island_move' $ValidationIslandMove
 Show-Summary 'arc_partition' $ValidationArcPartition
 Write-Host '== source extraction gate'
 & $PythonExe $SourceExtractionValidator $SourceExtractionPackage $SourceExtractionValidation
+& $PythonExe $SourceExtractionValidator $SourceExtractionProblemPackage $SourceExtractionProblemValidation
 
 Write-Host '== source quality gate'
 & $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase
@@ -129,6 +133,7 @@ Write-Host $ValidationArcPartition
 Write-Host $SourceQualityBase
 Write-Host $SourceQualityProblem
 Write-Host $SourceExtractionValidation
+Write-Host $SourceExtractionProblemValidation
 Write-Host $PlanBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem

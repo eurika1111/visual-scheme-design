@@ -1,0 +1,82 @@
+{
+  "schema_version": "source_extraction_package_v1",
+  "package_id": "source_extraction_broken_sample_v1",
+  "coordinate_system": {
+    "origin": "upper_left",
+    "x_axis": "right",
+    "y_axis": "down",
+    "unit": "px",
+    "angle_positive": "clockwise"
+  },
+  "source_images": [],
+  "dimension_chains": [
+    {
+      "id": "DIM-BAD-01",
+      "axis": "horizontal",
+      "source": "SRC-MISSING",
+      "segments_mm": [
+        3200,
+        -500
+      ],
+      "object_ids": [
+        "W-MISSING"
+      ],
+      "confidence": 0.4
+    }
+  ],
+  "source_facts": [
+    {
+      "id": "SF-BAD-01",
+      "type": "room_label",
+      "source": "SRC-MISSING",
+      "object_ids": [
+        "ROOM-MISSING"
+      ],
+      "source_value": "unclear room label"
+    }
+  ],
+  "candidate_model": {
+    "schema_version": "home_geometry_v1",
+    "walls": [
+      {
+        "id": "W-BAD-01",
+        "type": "wall",
+        "geometry": {
+          "kind": "line",
+          "start": [
+            0,
+            0
+          ],
+          "end": [
+            0,
+            0
+          ],
+          "thickness": 120
+        },
+        "status": "existing",
+        "alteration": "unknown",
+        "confidence": 0.45
+      }
+    ],
+    "rooms": [],
+    "openings": []
+  },
+  "unresolved_questions": [
+    {
+      "id": "UQ-BAD-01",
+      "severity": "high",
+      "question": "Coordinate origin and dimension endpoints are not clear.",
+      "blocks": [
+        "quick_concept",
+        "stable_deepening"
+      ]
+    }
+  ],
+  "extraction_notes": [
+    {
+      "id": "NOTE-BAD-01",
+      "type": "bad_sample",
+      "message": "Intentionally broken extraction package."
+    }
+  ]
+}
