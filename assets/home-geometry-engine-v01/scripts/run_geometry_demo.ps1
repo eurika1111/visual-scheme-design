@@ -95,7 +95,7 @@ Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanPro
 Invoke-Step 'render door swing SVG' { & $PythonExe $Renderer $DoorSwingModel $PlanDoorSwing $ValidationDoorSwing }
 Invoke-Step 'render island move SVG' { & $PythonExe $Renderer $IslandMoveModel $PlanIslandMove $ValidationIslandMove }
 Invoke-Step 'render arc partition SVG' { & $PythonExe $Renderer $ArcPartitionModel $PlanArcPartition $ValidationArcPartition }
-Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $BaseModel --base-validation $ValidationBase --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --problem-validation $ValidationProblem }
+Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $BaseModel --base-validation $ValidationBase --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --problem-validation $ValidationProblem --base-source-quality $SourceQualityBase }
 
 Write-Host '== state gate'
 & $PythonExe $StateReader $ProjectState

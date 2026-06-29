@@ -48,14 +48,19 @@ def main() -> int:
     parser.add_argument("--scheme-a-model", required=True, type=Path)
     parser.add_argument("--scheme-a-validation", required=True, type=Path)
     parser.add_argument("--problem-validation", required=True, type=Path)
+    parser.add_argument("--base-source-quality", type=Path, help="Optional source quality gate report for the base model")
     args = parser.parse_args()
 
     base_report = load_json(args.base_validation)
     scheme_a_report = load_json(args.scheme_a_validation)
     problem_report = load_json(args.problem_validation)
+    source_quality_report = load_json(args.base_source_quality) if args.base_source_quality else None
 
     base_status = validation_status(base_report)
     scheme_a_status = validation_status(scheme_a_report)
+    source_gate = source_quality_report.get("source_gate") if source_quality_report else None
+    source_level = source_quality_report.get("source_level") if source_quality_report else None
+    source_quality_status = source_gate or "unknown"
 
     state = {
         "schema_version": "space_scheme_state_v1",
@@ -66,11 +71,14 @@ def main() -> int:
         "level": base_report.get("readiness"),
         "base_level": base_report.get("readiness"),
         "base_validation_status": base_status,
+        "base_source_gate": source_gate,
+        "base_source_level": source_level,
+        "base_source_quality_status": source_quality_status,
         "active_base": "base_v1",
         "active_option": "scheme_A_v1",
         "active_option_level": scheme_a_report.get("readiness"),
         "active_option_validation_status": scheme_a_status,
-        "validation_status": "passed" if base_status == "passed" and scheme_a_status == "passed" else "warning",
+        "validation_status": "passed" if base_status == "passed" and scheme_a_status == "passed" and source_quality_status in {"passed", "unknown"} else "warning",
         "last_action": "run_geometry_demo",
         "option_registry": [
             option_entry("底图", "base_v1", base_report, args.base_model, args.base_validation),
@@ -82,6 +90,7 @@ def main() -> int:
             "active_scheme_model": str(args.scheme_a_model),
             "active_scheme_validation_report": str(args.scheme_a_validation),
             "problem_sample_validation_report": str(args.problem_validation),
+            "base_source_quality_report": str(args.base_source_quality) if args.base_source_quality else None,
         },
         "checks": {
             "base": {
@@ -89,6 +98,7 @@ def main() -> int:
                 "status": base_status,
                 "summary": base_report.get("summary", {}),
             },
+            "base_source_quality": source_quality_report or {},
             "scheme_A": {
                 "readiness": scheme_a_report.get("readiness"),
                 "status": scheme_a_status,
