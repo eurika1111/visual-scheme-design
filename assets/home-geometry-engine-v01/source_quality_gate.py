@@ -69,6 +69,25 @@ def source_trace_count(model: dict[str, Any]) -> int:
     return sum(1 for key in keys if model.get(key))
 
 
+def source_reference_findings(model: dict[str, Any], known_ids: set[str]) -> list[dict[str, Any]]:
+    findings = []
+    for group_name in ["source_facts", "dimensions", "dimension_chains"]:
+        for item in model.get(group_name, []) or []:
+            refs = item.get("object_ids") or []
+            if isinstance(refs, str):
+                refs = [refs]
+            missing = [str(ref) for ref in refs if str(ref) not in known_ids]
+            if missing:
+                findings.append({
+                    "type": "source_reference_missing_object",
+                    "severity": "high",
+                    "group": group_name,
+                    "source_id": item.get("id", "<missing>"),
+                    "object_ids": missing,
+                })
+    return findings
+
+
 def assess_source_quality(model: dict[str, Any], validation: dict[str, Any] | None = None) -> dict[str, Any]:
     validation_report = validation or validate(model)
     findings: list[dict[str, Any]] = []
@@ -105,9 +124,11 @@ def assess_source_quality(model: dict[str, Any], validation: dict[str, Any] | No
     all_ids = []
     for items in groups.values():
         all_ids.extend(object_ids(items))
+    known_ids = set(all_ids)
     duplicates = sorted([item_id for item_id, count in Counter(all_ids).items() if count > 1])
     if duplicates:
         findings.append({"type": "duplicate_object_id", "severity": "high", "object_ids": duplicates})
+    findings.extend(source_reference_findings(model, known_ids))
 
     findings.extend(count_missing_confidence({"walls": walls, "rooms": rooms}))
 

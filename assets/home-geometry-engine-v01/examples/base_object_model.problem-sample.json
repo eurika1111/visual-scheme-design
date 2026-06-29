@@ -224,5 +224,23 @@
       ],
       "required_width_mm": 800
     }
+  ],
+  "source_facts": [
+    {
+      "id": "SF-BROKEN-REF-01",
+      "type": "wall_trace",
+      "object_ids": [
+        "W-MISSING-SOURCE-REF"
+      ],
+      "source": "SRC-PROBLEM-01",
+      "confidence": 0.5
+    }
+  ],
+  "source_images": [
+    {
+      "id": "SRC-PROBLEM-01",
+      "type": "problem_sample",
+      "role": "broken_reference_test"
+    }
   ]
 }
