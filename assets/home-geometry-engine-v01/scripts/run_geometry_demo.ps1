@@ -22,6 +22,7 @@ $BaseModelExporter = Join-Path $EngineDir 'export_base_model_from_extraction.py'
 $DimensionChainAudit = Join-Path $EngineDir 'dimension_chain_audit.py'
 $DimensionChainCalibrator = Join-Path $EngineDir 'dimension_chain_calibrator.py'
 $DimensionAnchorDrafter = Join-Path $EngineDir 'dimension_chain_anchor_drafter.py'
+$DimensionAnchorApplier = Join-Path $EngineDir 'apply_dimension_anchor_draft.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $DoorSwingModel = Join-Path $ExamplesDir 'base_object_model.door-swing-sample.json'
@@ -53,6 +54,9 @@ $DimensionCalibrationPlan = Join-Path $OutputDir 'dimension_calibration_plan.jso
 $DimensionProblemCalibrationPlan = Join-Path $OutputDir 'dimension_calibration_plan.problem.json'
 $DimensionAnchorDraft = Join-Path $OutputDir 'dimension_anchor_draft.json'
 $DimensionProblemAnchorDraft = Join-Path $OutputDir 'dimension_anchor_draft.problem.json'
+$DimensionAnchorAppliedPackage = Join-Path $OutputDir 'source_extraction.anchors_applied.json'
+$DimensionAnchorApplyReport = Join-Path $OutputDir 'dimension_anchor_apply.report.json'
+$DimensionAnchorAppliedValidation = Join-Path $OutputDir 'source_extraction.anchors_applied.validation.json'
 $ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_v1.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
@@ -105,6 +109,7 @@ Invoke-Step 'compile base model exporter' { & $PythonExe -m py_compile $BaseMode
 Invoke-Step 'compile dimension chain audit' { & $PythonExe -m py_compile $DimensionChainAudit }
 Invoke-Step 'compile dimension chain calibrator' { & $PythonExe -m py_compile $DimensionChainCalibrator }
 Invoke-Step 'compile dimension anchor drafter' { & $PythonExe -m py_compile $DimensionAnchorDrafter }
+Invoke-Step 'compile dimension anchor applier' { & $PythonExe -m py_compile $DimensionAnchorApplier }
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
 Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
@@ -122,6 +127,8 @@ Invoke-Step 'plan source dimension calibration' { & $PythonExe $DimensionChainCa
 Invoke-Step 'plan problem dimension calibration' { & $PythonExe $DimensionChainCalibrator $SourceExtractionProblemPackage $DimensionProblemCalibrationPlan } @(0, 1)
 Invoke-Step 'draft source dimension anchors' { & $PythonExe $DimensionAnchorDrafter $SourceExtractionPackage $DimensionAnchorDraft }
 Invoke-Step 'draft problem dimension anchors' { & $PythonExe $DimensionAnchorDrafter $SourceExtractionProblemPackage $DimensionProblemAnchorDraft } @(0, 1)
+Invoke-Step 'apply source dimension anchor draft' { & $PythonExe $DimensionAnchorApplier $SourceExtractionPackage $DimensionAnchorDraft $DimensionAnchorAppliedPackage $DimensionAnchorApplyReport --version source_extraction_anchors_applied_v1 }
+Invoke-Step 'validate source with applied anchors' { & $PythonExe $SourceExtractionValidator $DimensionAnchorAppliedPackage $DimensionAnchorAppliedValidation }
 Invoke-Step 'export base model from extraction package' { & $PythonExe $BaseModelExporter $SourceExtractionPackage $ExportedBaseModel --validation-output $ExportedBaseValidation --minimum-level L3 --version base_from_extraction_v1 }
 Invoke-Step 'reject bad source extraction export' { & $PythonExe $BaseModelExporter $SourceExtractionProblemPackage $FailedBaseExport --validation-output $FailedBaseExportValidation --minimum-level L2 --allow-warning --version base_problem_v1 } @(0, 1)
 Invoke-Step 'validate exported base model' { & $PythonExe $Validator $ExportedBaseModel $ValidationExportedBase }
@@ -164,6 +171,10 @@ Write-Host '== dimension anchor draft'
 & $PythonExe $DimensionAnchorDrafter $SourceExtractionPackage $DimensionAnchorDraft
 & $PythonExe $DimensionAnchorDrafter $SourceExtractionProblemPackage $DimensionProblemAnchorDraft
 
+Write-Host '== dimension anchor apply'
+& $PythonExe $DimensionAnchorApplier $SourceExtractionPackage $DimensionAnchorDraft $DimensionAnchorAppliedPackage $DimensionAnchorApplyReport --version source_extraction_anchors_applied_v1
+& $PythonExe $SourceExtractionValidator $DimensionAnchorAppliedPackage $DimensionAnchorAppliedValidation
+
 Write-Host '== source quality gate'
 & $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase
 & $PythonExe $SourceQualityGate $ExportedBaseModel $SourceQualityExportedBase --validation $ValidationExportedBase
@@ -187,6 +198,9 @@ Write-Host $DimensionCalibrationPlan
 Write-Host $DimensionProblemCalibrationPlan
 Write-Host $DimensionAnchorDraft
 Write-Host $DimensionProblemAnchorDraft
+Write-Host $DimensionAnchorAppliedPackage
+Write-Host $DimensionAnchorApplyReport
+Write-Host $DimensionAnchorAppliedValidation
 Write-Host $ExportedBaseModel
 Write-Host $ValidationExportedBase
 Write-Host $ExportedBaseValidation
