@@ -159,6 +159,14 @@ def classify_wall_junction(w1: dict[str, Any], w2: dict[str, Any], tolerance: fl
     ]
     nearest = min(endpoint_pairs, key=lambda pair: distance(pair[0], pair[1]))
     nearest_distance = distance(nearest[0], nearest[1])
+    if nearest_distance <= EPS:
+        return {
+            "type": "endpoint_junction",
+            "members": [w1["id"], w2["id"]],
+            "point": [round(nearest[0][0], 3), round(nearest[0][1], 3)],
+            "angle_degrees": angle,
+            "status": "valid",
+        }
     if nearest_distance <= tolerance:
         mid = ((nearest[0][0] + nearest[1][0]) / 2, (nearest[0][1] + nearest[1][1]) / 2)
         return {
