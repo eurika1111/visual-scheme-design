@@ -68,6 +68,7 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 - 校验源户型图对象抽取包，确认识图输出是否符合入口规范。
 - 审计源图尺寸链，检查各方向标注总长是否互相冲突、是否匹配当前对象模型边界。
 - 生成尺寸链校准计划，选择当前主基准链，并标记不能直接用于 L3 的冲突链。
+- 生成尺寸链锚点草案，为每条尺寸链提供 start_ref、end_ref 和 datum_role 候选。
 - 运行源数据质量门，判断对象化底图是否允许进入快速概念或稳妥深化。
 - 重新渲染三张 SVG 检查图。
 - 输出 readiness、error、warning、厨房对象和通道数量摘要。
@@ -252,6 +253,27 @@ D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction
 ```
 
 如果输出是 `calibration_gate=plan_only`，说明当前只生成校准建议，不应自动改写底图。
+## 尺寸链锚点草案
+
+`dimension_chain_anchor_drafter.py` 用来把校准计划进一步变成可审查的锚点草案。它仍然不会改写源数据，只输出候选：
+
+- `start_ref`：尺寸链起点候选。
+- `end_ref`：尺寸链终点候选。
+- `datum_role`：主基准、兼容参考、局部或未解参考。
+- `residual_mm`：候选锚点跨度与尺寸链总长的差值。
+
+主基准链会优先使用当前模型外包边界作为锚点候选；冲突链会保留为 `local_or_unresolved_reference`，等待人工确认。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\dimension_chain_anchor_drafter.py' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_draft.json'
+```
+
+如果输出是 `anchor_level=L2`，说明锚点草案可供检查，但仍不能作为 L3 深化底图依据。
 典型输出：
 
 ```text
