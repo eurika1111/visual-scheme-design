@@ -20,6 +20,7 @@ $SourceQualityGate = Join-Path $EngineDir 'source_quality_gate.py'
 $SourceExtractionValidator = Join-Path $EngineDir 'validate_source_extraction.py'
 $BaseModelExporter = Join-Path $EngineDir 'export_base_model_from_extraction.py'
 $DimensionChainAudit = Join-Path $EngineDir 'dimension_chain_audit.py'
+$DimensionChainCalibrator = Join-Path $EngineDir 'dimension_chain_calibrator.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $DoorSwingModel = Join-Path $ExamplesDir 'base_object_model.door-swing-sample.json'
@@ -47,6 +48,8 @@ $SourceExtractionValidation = Join-Path $OutputDir 'source_extraction.validation
 $SourceExtractionProblemValidation = Join-Path $OutputDir 'source_extraction.problem.validation.json'
 $DimensionChainAuditReport = Join-Path $OutputDir 'dimension_chain_audit.json'
 $DimensionChainProblemAuditReport = Join-Path $OutputDir 'dimension_chain_audit.problem.json'
+$DimensionCalibrationPlan = Join-Path $OutputDir 'dimension_calibration_plan.json'
+$DimensionProblemCalibrationPlan = Join-Path $OutputDir 'dimension_calibration_plan.problem.json'
 $ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_v1.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
@@ -97,6 +100,7 @@ Invoke-Step 'compile source quality gate' { & $PythonExe -m py_compile $SourceQu
 Invoke-Step 'compile source extraction validator' { & $PythonExe -m py_compile $SourceExtractionValidator }
 Invoke-Step 'compile base model exporter' { & $PythonExe -m py_compile $BaseModelExporter }
 Invoke-Step 'compile dimension chain audit' { & $PythonExe -m py_compile $DimensionChainAudit }
+Invoke-Step 'compile dimension chain calibrator' { & $PythonExe -m py_compile $DimensionChainCalibrator }
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
 Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
@@ -110,6 +114,8 @@ Invoke-Step 'validate source extraction package' { & $PythonExe $SourceExtractio
 Invoke-Step 'validate source extraction problem package' { & $PythonExe $SourceExtractionValidator $SourceExtractionProblemPackage $SourceExtractionProblemValidation } @(0, 1)
 Invoke-Step 'audit source dimension chains' { & $PythonExe $DimensionChainAudit $SourceExtractionPackage $DimensionChainAuditReport }
 Invoke-Step 'audit problem dimension chains' { & $PythonExe $DimensionChainAudit $SourceExtractionProblemPackage $DimensionChainProblemAuditReport } @(0, 1)
+Invoke-Step 'plan source dimension calibration' { & $PythonExe $DimensionChainCalibrator $SourceExtractionPackage $DimensionCalibrationPlan }
+Invoke-Step 'plan problem dimension calibration' { & $PythonExe $DimensionChainCalibrator $SourceExtractionProblemPackage $DimensionProblemCalibrationPlan } @(0, 1)
 Invoke-Step 'export base model from extraction package' { & $PythonExe $BaseModelExporter $SourceExtractionPackage $ExportedBaseModel --validation-output $ExportedBaseValidation --minimum-level L3 --version base_from_extraction_v1 }
 Invoke-Step 'reject bad source extraction export' { & $PythonExe $BaseModelExporter $SourceExtractionProblemPackage $FailedBaseExport --validation-output $FailedBaseExportValidation --minimum-level L2 --allow-warning --version base_problem_v1 } @(0, 1)
 Invoke-Step 'validate exported base model' { & $PythonExe $Validator $ExportedBaseModel $ValidationExportedBase }
@@ -144,6 +150,10 @@ Write-Host '== dimension chain audit'
 & $PythonExe $DimensionChainAudit $SourceExtractionPackage $DimensionChainAuditReport
 & $PythonExe $DimensionChainAudit $SourceExtractionProblemPackage $DimensionChainProblemAuditReport
 
+Write-Host '== dimension calibration plan'
+& $PythonExe $DimensionChainCalibrator $SourceExtractionPackage $DimensionCalibrationPlan
+& $PythonExe $DimensionChainCalibrator $SourceExtractionProblemPackage $DimensionProblemCalibrationPlan
+
 Write-Host '== source quality gate'
 & $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase
 & $PythonExe $SourceQualityGate $ExportedBaseModel $SourceQualityExportedBase --validation $ValidationExportedBase
@@ -163,6 +173,8 @@ Write-Host $SourceExtractionValidation
 Write-Host $SourceExtractionProblemValidation
 Write-Host $DimensionChainAuditReport
 Write-Host $DimensionChainProblemAuditReport
+Write-Host $DimensionCalibrationPlan
+Write-Host $DimensionProblemCalibrationPlan
 Write-Host $ExportedBaseModel
 Write-Host $ValidationExportedBase
 Write-Host $ExportedBaseValidation
