@@ -66,6 +66,7 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 - 重新生成 `scheme_A_v1.json`。
 - 校验正常底图、方案 A、问题样例。
 - 校验源户型图对象抽取包，确认识图输出是否符合入口规范。
+- 审计源图尺寸链，检查各方向标注总长是否互相冲突、是否匹配当前对象模型边界。
 - 运行源数据质量门，判断对象化底图是否允许进入快速概念或稳妥深化。
 - 重新渲染三张 SVG 检查图。
 - 输出 readiness、error、warning、厨房对象和通道数量摘要。
@@ -212,6 +213,25 @@ D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction
   'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\source_extraction.validation.json'
 ```
 
+
+## 尺寸链审计
+
+`dimension_chain_audit.py` 用来检查“标注数字”是否自洽。它不会替你改墙，只回答三个问题：
+
+- 每条尺寸链的总长是多少。
+- 同一方向的尺寸链之间差多少。
+- 尺寸链总长和当前对象模型的外包边界差多少。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\dimension_chain_audit.py' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_chain_audit.json'
+```
+
+如果结果是 `dimension_gate=warning / dimension_level=L2`，说明可以辅助快速概念，但不能作为稳妥深化底图。
 典型输出：
 
 ```text
@@ -266,6 +286,7 @@ can_quick_concept=true can_stable_deepening=true
   'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\source_quality.base.json' `
   --validation 'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\validation.json'
 ```
+
 
 典型输出：
 

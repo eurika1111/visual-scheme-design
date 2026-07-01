@@ -15,6 +15,7 @@ from typing import Any
 
 from geometry_validator import validate as validate_geometry
 from source_quality_gate import assess_source_quality
+from dimension_chain_audit import audit as audit_dimension_chains
 
 
 REQUIRED_COORDINATE = {
@@ -134,14 +135,31 @@ def validate_package(package: dict[str, Any]) -> dict[str, Any]:
 
     geometry_report = validate_geometry(model) if model else {"readiness": "L0", "summary": {"error_count": 1, "warning_count": 0}}
     source_quality_report = assess_source_quality(model, geometry_report) if model else {"source_gate": "failed", "source_level": "L0"}
+    dimension_report = audit_dimension_chains(package) if model else {"dimension_gate": "failed", "dimension_level": "L0", "summary": {}}
+    for dimension_issue in dimension_report.get("issues", []):
+        issues.append(
+            issue(
+                dimension_issue.get("level", "warning"),
+                "dimension_audit_" + dimension_issue.get("type", "issue"),
+                dimension_issue.get("message", "Dimension audit issue."),
+                dimension_issue.get("target"),
+            )
+        )
 
     error_count = sum(1 for item in issues if item["level"] == "error")
     warning_count = sum(1 for item in issues if item["level"] == "warning")
     source_level = source_quality_report.get("source_level", "L0")
+    dimension_gate = dimension_report.get("dimension_gate", "failed")
+    dimension_level = dimension_report.get("dimension_level", "L0")
     if error_count:
         extraction_gate = "failed"
         extraction_level = "L0"
-    elif LEVEL_ORDER.get(source_level, 0) >= LEVEL_ORDER["L3"] and not high_unresolved:
+    elif (
+        LEVEL_ORDER.get(source_level, 0) >= LEVEL_ORDER["L3"]
+        and LEVEL_ORDER.get(dimension_level, 0) >= LEVEL_ORDER["L3"]
+        and dimension_gate == "passed"
+        and not high_unresolved
+    ):
         extraction_gate = "passed"
         extraction_level = source_level
     elif LEVEL_ORDER.get(source_level, 0) >= LEVEL_ORDER["L2"]:
@@ -167,10 +185,13 @@ def validate_package(package: dict[str, Any]) -> dict[str, Any]:
             "geometry_readiness": geometry_report.get("readiness"),
             "source_gate": source_quality_report.get("source_gate"),
             "source_level": source_quality_report.get("source_level"),
+            "dimension_gate": dimension_gate,
+            "dimension_level": dimension_level,
         },
         "issues": issues,
         "geometry_summary": geometry_report.get("summary", {}),
         "source_quality_summary": source_quality_report.get("summary", {}),
+        "dimension_summary": dimension_report.get("summary", {}),
     }
 
 
@@ -182,7 +203,7 @@ def summarize(report: dict[str, Any]) -> list[str]:
         "counts="
         f"sources:{summary.get('source_image_count')} dimensions:{summary.get('dimension_chain_count')} "
         f"facts:{summary.get('source_fact_count')} unresolved:{summary.get('unresolved_question_count')}",
-        f"geometry={summary.get('geometry_readiness')} source_quality={summary.get('source_gate')}/{summary.get('source_level')}",
+        f"geometry={summary.get('geometry_readiness')} source_quality={summary.get('source_gate')}/{summary.get('source_level')} dimension={summary.get('dimension_gate')}/{summary.get('dimension_level')}",
     ]
     for item in report.get("issues", [])[:10]:
         target = f" ({item['target']})" if item.get("target") else ""
