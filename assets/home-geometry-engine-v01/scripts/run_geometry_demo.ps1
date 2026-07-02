@@ -24,6 +24,7 @@ $DimensionChainCalibrator = Join-Path $EngineDir 'dimension_chain_calibrator.py'
 $DimensionAnchorDrafter = Join-Path $EngineDir 'dimension_chain_anchor_drafter.py'
 $DimensionAnchorApplier = Join-Path $EngineDir 'apply_dimension_anchor_draft.py'
 $DimensionAnchorChecklist = Join-Path $EngineDir 'dimension_anchor_confirmation_checklist.py'
+$DimensionAnchorConfirmationApplier = Join-Path $EngineDir 'apply_dimension_anchor_confirmation.py'
 $BaseModel = Join-Path $ExamplesDir 'base_object_model.sample.json'
 $ProblemModel = Join-Path $ExamplesDir 'base_object_model.problem-sample.json'
 $DoorSwingModel = Join-Path $ExamplesDir 'base_object_model.door-swing-sample.json'
@@ -32,6 +33,7 @@ $ArcPartitionModel = Join-Path $ExamplesDir 'base_object_model.arc-partition-sam
 $Operations = Join-Path $ExamplesDir 'operations.sample.json'
 $SourceExtractionPackage = Join-Path $ExamplesDir 'source_extraction_package.sample.json'
 $SourceExtractionProblemPackage = Join-Path $ExamplesDir 'source_extraction_package.problem-sample.json'
+$DimensionAnchorConfirmationResponse = Join-Path $ExamplesDir 'dimension_anchor_confirmation_response.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -60,6 +62,9 @@ $DimensionAnchorApplyReport = Join-Path $OutputDir 'dimension_anchor_apply.repor
 $DimensionAnchorAppliedValidation = Join-Path $OutputDir 'source_extraction.anchors_applied.validation.json'
 $DimensionAnchorChecklistJson = Join-Path $OutputDir 'dimension_anchor_confirmation_checklist.json'
 $DimensionAnchorChecklistMd = Join-Path $OutputDir 'dimension_anchor_confirmation_checklist.md'
+$DimensionAnchorConfirmedPackage = Join-Path $OutputDir 'source_extraction.anchors_confirmed.json'
+$DimensionAnchorConfirmationApplyReport = Join-Path $OutputDir 'dimension_anchor_confirmation_apply.report.json'
+$DimensionAnchorConfirmedValidation = Join-Path $OutputDir 'source_extraction.anchors_confirmed.validation.json'
 $ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_v1.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
@@ -114,6 +119,7 @@ Invoke-Step 'compile dimension chain calibrator' { & $PythonExe -m py_compile $D
 Invoke-Step 'compile dimension anchor drafter' { & $PythonExe -m py_compile $DimensionAnchorDrafter }
 Invoke-Step 'compile dimension anchor applier' { & $PythonExe -m py_compile $DimensionAnchorApplier }
 Invoke-Step 'compile dimension anchor checklist' { & $PythonExe -m py_compile $DimensionAnchorChecklist }
+Invoke-Step 'compile dimension anchor confirmation applier' { & $PythonExe -m py_compile $DimensionAnchorConfirmationApplier }
 Invoke-Step 'compile state updater' { & $PythonExe -m py_compile $StateUpdater }
 Invoke-Step 'compile state reader' { & $PythonExe -m py_compile $StateReader }
 Invoke-Step 'validate base model' { & $PythonExe $Validator $BaseModel $ValidationBase }
@@ -134,6 +140,8 @@ Invoke-Step 'draft problem dimension anchors' { & $PythonExe $DimensionAnchorDra
 Invoke-Step 'apply source dimension anchor draft' { & $PythonExe $DimensionAnchorApplier $SourceExtractionPackage $DimensionAnchorDraft $DimensionAnchorAppliedPackage $DimensionAnchorApplyReport --version source_extraction_anchors_applied_v1 }
 Invoke-Step 'validate source with applied anchors' { & $PythonExe $SourceExtractionValidator $DimensionAnchorAppliedPackage $DimensionAnchorAppliedValidation }
 Invoke-Step 'build dimension anchor confirmation checklist' { & $PythonExe $DimensionAnchorChecklist $DimensionAnchorDraft $DimensionAnchorChecklistJson $DimensionAnchorChecklistMd --title 'Dimension Anchor Confirmation Checklist' }
+Invoke-Step 'apply dimension anchor confirmation response' { & $PythonExe $DimensionAnchorConfirmationApplier $SourceExtractionPackage $DimensionAnchorChecklistJson $DimensionAnchorConfirmationResponse $DimensionAnchorConfirmedPackage $DimensionAnchorConfirmationApplyReport --version source_extraction_anchors_confirmed_v1 }
+Invoke-Step 'validate source with confirmed anchors' { & $PythonExe $SourceExtractionValidator $DimensionAnchorConfirmedPackage $DimensionAnchorConfirmedValidation }
 Invoke-Step 'export base model from extraction package' { & $PythonExe $BaseModelExporter $SourceExtractionPackage $ExportedBaseModel --validation-output $ExportedBaseValidation --minimum-level L3 --version base_from_extraction_v1 }
 Invoke-Step 'reject bad source extraction export' { & $PythonExe $BaseModelExporter $SourceExtractionProblemPackage $FailedBaseExport --validation-output $FailedBaseExportValidation --minimum-level L2 --allow-warning --version base_problem_v1 } @(0, 1)
 Invoke-Step 'validate exported base model' { & $PythonExe $Validator $ExportedBaseModel $ValidationExportedBase }
@@ -183,6 +191,10 @@ Write-Host '== dimension anchor apply'
 Write-Host '== dimension anchor confirmation checklist'
 & $PythonExe $DimensionAnchorChecklist $DimensionAnchorDraft $DimensionAnchorChecklistJson $DimensionAnchorChecklistMd --title 'Dimension Anchor Confirmation Checklist'
 
+Write-Host '== dimension anchor confirmation apply'
+& $PythonExe $DimensionAnchorConfirmationApplier $SourceExtractionPackage $DimensionAnchorChecklistJson $DimensionAnchorConfirmationResponse $DimensionAnchorConfirmedPackage $DimensionAnchorConfirmationApplyReport --version source_extraction_anchors_confirmed_v1
+& $PythonExe $SourceExtractionValidator $DimensionAnchorConfirmedPackage $DimensionAnchorConfirmedValidation
+
 Write-Host '== source quality gate'
 & $PythonExe $SourceQualityGate $BaseModel $SourceQualityBase --validation $ValidationBase
 & $PythonExe $SourceQualityGate $ExportedBaseModel $SourceQualityExportedBase --validation $ValidationExportedBase
@@ -211,6 +223,9 @@ Write-Host $DimensionAnchorApplyReport
 Write-Host $DimensionAnchorAppliedValidation
 Write-Host $DimensionAnchorChecklistJson
 Write-Host $DimensionAnchorChecklistMd
+Write-Host $DimensionAnchorConfirmedPackage
+Write-Host $DimensionAnchorConfirmationApplyReport
+Write-Host $DimensionAnchorConfirmedValidation
 Write-Host $ExportedBaseModel
 Write-Host $ValidationExportedBase
 Write-Host $ExportedBaseValidation

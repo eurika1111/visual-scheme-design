@@ -43,6 +43,16 @@ def dimension_chains(data: dict[str, Any], model: dict[str, Any]) -> list[dict[s
     return model_chains if isinstance(model_chains, list) else []
 
 
+def is_global_chain(chain: dict[str, Any]) -> bool:
+    if chain.get("exclude_from_global_audit") is True:
+        return False
+    if chain.get("dimension_scope") in {"local", "ocr_error", "site_measurement_required"}:
+        return False
+    if chain.get("anchor_status") in {"confirmed_local_dimension", "rejected_ocr_or_reading_error", "needs_site_measurement"}:
+        return False
+    return True
+
+
 def collect_points(model: dict[str, Any]) -> list[tuple[float, float]]:
     points: list[tuple[float, float]] = []
     for wall in model.get("walls", []) or []:
@@ -98,6 +108,10 @@ def summarize_chains(chains: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "total_mm": round(sum(numeric_segments), 3),
                 "confidence": chain.get("confidence"),
                 "object_ids": chain.get("object_ids") or [],
+                "dimension_scope": chain.get("dimension_scope", "global_or_unknown"),
+                "datum_role": chain.get("datum_role"),
+                "anchor_status": chain.get("anchor_status"),
+                "global_audit": is_global_chain(chain),
                 "note": chain.get("note"),
             }
         )
@@ -115,21 +129,25 @@ def classify_gate(issues: list[dict[str, Any]]) -> tuple[str, str]:
 def audit(data: dict[str, Any], tolerance_mm: float = DEFAULT_TOLERANCE_MM) -> dict[str, Any]:
     model = candidate_model(data)
     chains = dimension_chains(data, model)
+    global_chains = [chain for chain in chains if is_global_chain(chain)]
     issues: list[dict[str, Any]] = []
     summaries = summarize_chains(chains)
+    global_summaries = [item for item in summaries if item.get("global_audit")]
     extents = model_extents(model)
 
     if not chains:
         issues.append(issue("error", "missing_dimension_chains", "No dimension chains are available."))
+    elif not global_chains:
+        issues.append(issue("warning", "missing_global_dimension_chains", "No global dimension chains remain after confirmation filtering."))
 
-    for item in summaries:
+    for item in global_summaries:
         if item["axis"] not in {"x", "y"}:
             issues.append(issue("warning", "dimension_axis_not_audited", "Only x/y chains can be compared to model extents.", item["id"]))
         if item["segment_count"] <= 0 or item["total_mm"] <= 0:
             issues.append(issue("error", "dimension_total_invalid", "Dimension chain total must be positive.", item["id"]))
 
     for axis in ["x", "y"]:
-        axis_items = [item for item in summaries if item["axis"] == axis]
+        axis_items = [item for item in global_summaries if item["axis"] == axis]
         if len(axis_items) < 2:
             continue
         totals = [float(item["total_mm"]) for item in axis_items]
@@ -148,7 +166,7 @@ def audit(data: dict[str, Any], tolerance_mm: float = DEFAULT_TOLERANCE_MM) -> d
     if extents.get("available"):
         for axis in ["x", "y"]:
             span = float(extents[f"span_{axis}"])
-            for item in [entry for entry in summaries if entry["axis"] == axis]:
+            for item in [entry for entry in global_summaries if entry["axis"] == axis]:
                 residual = abs(float(item["total_mm"]) - span)
                 if residual > tolerance_mm:
                     issues.append(
@@ -173,6 +191,8 @@ def audit(data: dict[str, Any], tolerance_mm: float = DEFAULT_TOLERANCE_MM) -> d
         "tolerance_mm": tolerance_mm,
         "summary": {
             "dimension_chain_count": len(chains),
+            "global_dimension_chain_count": len(global_chains),
+            "excluded_dimension_chain_count": len(chains) - len(global_chains),
             "error_count": sum(1 for item in issues if item["level"] == "error"),
             "warning_count": sum(1 for item in issues if item["level"] == "warning"),
             "model_extents": extents,

@@ -1,0 +1,18 @@
+{
+  "schema_version": "dimension_anchor_confirmation_response_v1",
+  "response_id": "dimension_anchor_confirmation_response_sample_v1",
+  "decisions": [
+    {
+      "dimension_chain_id": "DIM-X-01",
+      "answer": "accept",
+      "confirmed_by": "demo_human_review",
+      "note": "Sample X dimension chain is accepted as the primary datum."
+    },
+    {
+      "dimension_chain_id": "DIM-Y-01",
+      "answer": "accept",
+      "confirmed_by": "demo_human_review",
+      "note": "Sample Y dimension chain is accepted as the primary datum."
+    }
+  ]
+}

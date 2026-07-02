@@ -321,6 +321,33 @@ D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction
 
 确认清单是人工判断入口，不是 L3 通行证。确认结果必须再通过脚本应用并重新校验。
 
+## 尺寸链确认结果回填
+
+`apply_dimension_anchor_confirmation.py` 用来把人工确认结果应用到新的抽取包候选。
+
+它支持这些判断：
+
+- `accept`：接受清单中的干净候选锚点。
+- `full_extent_dimension`：确认这是全局尺寸，必须有可用起止锚点。
+- `local_dimension`：确认这是局部尺寸，保留记录，但从全局尺寸审计中排除。
+- `ocr_or_reading_error`：确认这是读取错误，保留记录，但从全局尺寸审计中排除。
+- `needs_site_measurement`：需要现场复尺，会阻止稳妥深化。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\apply_dimension_anchor_confirmation.py' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_confirmation_checklist.json' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\dimension_anchor_confirmation_response.sample.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\source_extraction.anchors_confirmed.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_confirmation_apply.report.json' `
+  --version source_extraction_anchors_confirmed_v1
+```
+
+回填结果仍然不是最终通行证。必须继续运行 `validate_source_extraction.py`，由完整的源数据、几何和尺寸校验共同决定是否达到 L3。
+
 典型输出：
 
 ```text

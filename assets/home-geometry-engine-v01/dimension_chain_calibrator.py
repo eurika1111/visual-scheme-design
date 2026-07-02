@@ -15,6 +15,8 @@ def chain_residuals(audit_report: dict[str, Any]) -> dict[str, list[dict[str, An
     extents = audit_report.get("summary", {}).get("model_extents", {}) or {}
     result: dict[str, list[dict[str, Any]]] = {"x": [], "y": []}
     for chain in audit_report.get("chain_summaries", []) or []:
+        if chain.get("global_audit") is False:
+            continue
         axis = chain.get("axis")
         if axis not in {"x", "y"}:
             continue
