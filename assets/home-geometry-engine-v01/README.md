@@ -70,6 +70,7 @@ L4：施工前资料整理，仍需现场复尺和专业确认
 - 生成尺寸链校准计划，选择当前主基准链，并标记不能直接用于 L3 的冲突链。
 - 生成尺寸链锚点草案，为每条尺寸链提供 start_ref、end_ref 和 datum_role 候选。
 - 应用高置信尺寸链锚点到新的抽取包候选，冲突链只保留确认标记。
+- 生成尺寸链锚点人工确认清单，把待确认链输出为 JSON 和 Markdown。
 - 运行源数据质量门，判断对象化底图是否允许进入快速概念或稳妥深化。
 - 重新渲染三张 SVG 检查图。
 - 输出 readiness、error、warning、厨房对象和通道数量摘要。
@@ -297,6 +298,29 @@ D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction
   'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_apply.report.json' `
   --version source_extraction_anchors_applied_v1
 ```
+
+## 尺寸链锚点确认清单
+
+`dimension_anchor_confirmation_checklist.py` 用来把锚点草案转成给人看的确认清单，同时输出机器可读 JSON。
+
+它不会改写模型，只回答：
+
+- 哪些尺寸链已经是可接受候选。
+- 哪些尺寸链需要人工确认。
+- 每条待确认链应判断为全局尺寸、局部尺寸、读取错误，还是需要现场复尺。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\dimension_anchor_confirmation_checklist.py' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_draft.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_confirmation_checklist.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_confirmation_checklist.md'
+```
+
+确认清单是人工判断入口，不是 L3 通行证。确认结果必须再通过脚本应用并重新校验。
+
 典型输出：
 
 ```text
