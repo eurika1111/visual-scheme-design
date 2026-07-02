@@ -357,6 +357,25 @@ can_quick_concept=true can_stable_deepening=true
 
 这个校验位于识图和几何校验之间：先检查抽取包有没有来源、尺寸、事实、候选模型和未确认项，再把候选模型交给 `geometry_validator.py` 和 `source_quality_gate.py`。
 
+## 尺寸链校对图
+
+`dimension_anchor_review_svg.py` 用来把抽取包中的尺寸链、确认状态和是否参与全局审计画成 SVG。
+
+它只做可视化，不反写数据：
+
+- 绿色实线：已确认的全局主基准或兼容参考。
+- 橙色虚线：已确认的局部尺寸，保留记录但不参与全局尺寸审计。
+- 红色：OCR/读取错误或需要现场复尺。
+- 灰色：未确认或草案状态。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\dimension_anchor_review_svg.py' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\source_extraction.anchors_confirmed.json' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\dimension_anchor_review.svg'
+```
 ## 从抽取包导出底图模型
 
 `export_base_model_from_extraction.py` 用来把通过入口校验的 `source_extraction_package_v1` 导出成真正进入几何引擎的 `base_object_model`。
