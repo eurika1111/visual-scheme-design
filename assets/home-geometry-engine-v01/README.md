@@ -45,13 +45,34 @@ Y 轴：向上为正
 ```text
 L0：不可用，不应出方案
 L1：可读草模，只适合列疑点
-L2：可概念设计，可以做快速方案
-L3：可深化设计，可以做更稳妥的布局深化
-L4：施工前资料整理，仍需现场复尺和专业确认
+L2：方案底图，可以做快速视觉方案
+L3：深化参考底图，可以做视觉深化和参考导出
+L4：参考资料整理，仍需现场复尺和专业确认
 ```
 
-第一版通常只能判断到 L2/L3，不承诺施工级准确。
+第一版通常只能判断到 L2/L3，不承诺施工级准确；目标是结构一致和关键元素厘米级方案误差。
 
+## 推荐统一入口
+
+优先使用 `home_geometry_workflow.py`，让 skill 不必直接面对一堆底层脚本。
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\home_geometry_workflow.py' `
+  check-source `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\examples\source_extraction_package.sample.json' `
+  --output-dir 'D:\Codex\视觉方案\outputs\geometry-engine-workflow'
+```
+
+常用命令：
+
+- `check-source`：校验方案底图抽取包并审计尺寸。
+- `make-checklist`：生成尺寸锚点草案和确认清单。
+- `apply-confirmation`：应用人工确认结果并重新校验。
+- `render-review`：生成尺寸链校对 SVG。
+- `run-demo`：运行项目内完整示例流程。
+
+底层脚本仍保留，但日常应优先走这个统一入口。
 ## 一键验证脚本
 
 为了减少 Windows 权限、Python 路径和长命令拼写造成的中断，项目提供了一个固定脚本：
