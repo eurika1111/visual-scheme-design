@@ -14,6 +14,8 @@ $Renderer = Join-Path $EngineDir 'simple_renderer.py'
 $StateUpdater = Join-Path $EngineDir 'update_project_state.py'
 $StateReader = Join-Path $EngineDir 'read_project_state.py'
 $Workflow = Join-Path $EngineDir 'home_geometry_workflow.py'
+$BaseHandoffBuilder = Join-Path $EngineDir 'base_handoff_builder.py'
+$SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
 $ConfirmRepair = Join-Path $EngineDir 'confirm_repair_draft.py'
@@ -112,6 +114,8 @@ Invoke-Step 'compile validator' { & $PythonExe -m py_compile $Validator }
 Invoke-Step 'compile operation applier' { & $PythonExe -m py_compile $Applier }
 Invoke-Step 'compile renderer' { & $PythonExe -m py_compile $Renderer }
 Invoke-Step 'compile workflow entrypoint' { & $PythonExe -m py_compile $Workflow }
+Invoke-Step 'compile base handoff builder' { & $PythonExe -m py_compile $BaseHandoffBuilder }
+Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
 Invoke-Step 'compile confirm repair' { & $PythonExe -m py_compile $ConfirmRepair }

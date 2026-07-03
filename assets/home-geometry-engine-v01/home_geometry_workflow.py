@@ -87,6 +87,70 @@ def render_review(package: Path, output_svg: Path) -> None:
     print(f"review_svg={output_svg}")
 
 
+def build_handoff(
+    base_model: Path,
+    review_svg: Path,
+    validation: Path,
+    output: Path,
+    project_root: Path,
+    source_image: Path | None,
+    dimension_audit: Path | None,
+    checklist: Path | None,
+    checklist_md: Path | None,
+    title: str | None,
+) -> None:
+    ensure_dir(output.parent)
+    child_args = [
+        "base_handoff_builder.py",
+        "--project-root",
+        str(project_root),
+        "--base-model",
+        str(base_model),
+        "--review-svg",
+        str(review_svg),
+        "--validation",
+        str(validation),
+        "--output",
+        str(output),
+    ]
+    for flag, value in [
+        ("--source-image", source_image),
+        ("--dimension-audit", dimension_audit),
+        ("--checklist", checklist),
+        ("--checklist-md", checklist_md),
+    ]:
+        if value:
+            child_args.extend([flag, str(value)])
+    if title:
+        child_args.extend(["--title", title])
+    run_step("build client base handoff", child_args)
+
+
+def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
+    output_dir = ensure_dir(output_dir)
+    stem = version or scheme_intent.stem.replace("_intent", "")
+    draft_model = output_dir / f"{stem}.draft_model.json"
+    validation = output_dir / f"{stem}.validation.json"
+    svg = output_dir / f"{stem}.draft.svg"
+    report = output_dir / f"{stem}.draft_report.json"
+    run_step(
+        "render deterministic scheme draft",
+        [
+            "scheme_draft_renderer.py",
+            str(base_model),
+            str(scheme_intent),
+            "--output-model",
+            str(draft_model),
+            "--validation-output",
+            str(validation),
+            "--svg-output",
+            str(svg),
+            "--report-output",
+            str(report),
+        ],
+    )
+
+
 def run_demo(output_dir: Path) -> None:
     script = ENGINE_DIR / "scripts" / "run_geometry_demo.ps1"
     print("== run geometry demo", flush=True)
@@ -130,6 +194,24 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("package", type=Path)
     review.add_argument("output_svg", type=Path)
 
+    handoff = sub.add_parser("build-handoff", help="Build a client-visible base handoff markdown.")
+    handoff.add_argument("--base-model", type=Path, required=True)
+    handoff.add_argument("--review-svg", type=Path, required=True)
+    handoff.add_argument("--validation", type=Path, required=True)
+    handoff.add_argument("--output", type=Path, required=True)
+    handoff.add_argument("--project-root", type=Path, default=Path.cwd())
+    handoff.add_argument("--source-image", type=Path)
+    handoff.add_argument("--dimension-audit", type=Path)
+    handoff.add_argument("--checklist", type=Path)
+    handoff.add_argument("--checklist-md", type=Path)
+    handoff.add_argument("--title")
+
+    draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
+    draft.add_argument("base_model", type=Path)
+    draft.add_argument("scheme_intent", type=Path)
+    draft.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    draft.add_argument("--version")
+
     demo = sub.add_parser("run-demo", help="Run the bundled demo workflow.")
     demo.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser
@@ -146,6 +228,21 @@ def main() -> int:
         apply_confirmation(args.package, args.checklist, args.response, args.output_dir, args.version)
     elif args.command == "render-review":
         render_review(args.package, args.output_svg)
+    elif args.command == "build-handoff":
+        build_handoff(
+            args.base_model,
+            args.review_svg,
+            args.validation,
+            args.output,
+            args.project_root,
+            args.source_image,
+            args.dimension_audit,
+            args.checklist,
+            args.checklist_md,
+            args.title,
+        )
+    elif args.command == "render-scheme-draft":
+        render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":
         run_demo(args.output_dir)
     return 0
