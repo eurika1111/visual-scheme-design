@@ -780,3 +780,7 @@ simple_renderer.py
 ```
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
+
+## 底图 SVG 客户确认版
+
+simple_renderer.py 默认输出内部调试版，会显示对象 ID 和校验标记。需要给客户确认底图时，使用 --mode client；它会隐藏内部对象 ID，并显示房间名、主尺寸、坐标原点、比例尺和校验摘要。

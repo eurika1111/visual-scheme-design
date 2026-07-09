@@ -72,6 +72,7 @@ $DimensionAnchorConfirmedValidation = Join-Path $OutputDir 'source_extraction.an
 $DimensionAnchorReviewSvg = Join-Path $OutputDir 'dimension_anchor_review.svg'
 $ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_v1.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
+$PlanBaseClient = Join-Path $OutputDir 'plan.client_base.svg'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -159,6 +160,7 @@ Invoke-Step 'source quality exported base' { & $PythonExe $SourceQualityGate $Ex
 Invoke-Step 'rebuild scheme A from exported base' { & $PythonExe $Applier $ExportedBaseModel $Operations $SchemeA }
 Invoke-Step 'validate scheme A from exported base' { & $PythonExe $Validator $SchemeA $ValidationSchemeA }
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
+Invoke-Step 'render client base SVG' { & $PythonExe $Renderer $BaseModel $PlanBaseClient $ValidationBase --mode client --title 'Client Base Confirmation' }
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
@@ -243,6 +245,7 @@ Write-Host $ValidationExportedBase
 Write-Host $ExportedBaseValidation
 Write-Host $FailedBaseExportValidation
 Write-Host $PlanBase
+Write-Host $PlanBaseClient
 Write-Host $PlanExportedBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem

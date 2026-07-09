@@ -13,9 +13,10 @@ time. The source JSON remains lower-left based.
 
 from __future__ import annotations
 
+import argparse
+import html
 import json
 import math
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,19 @@ def polygon_centroid(points: list[Point]) -> Point:
     if not points:
         return (0.0, 0.0)
     return (sum(p[0] for p in points) / len(points), sum(p[1] for p in points) / len(points))
+
+
+def polygon_area(points: list[Point]) -> float:
+    if len(points) < 3:
+        return 0.0
+    total = 0.0
+    for a, b in zip(points, points[1:] + points[:1]):
+        total += a[0] * b[1] - b[0] * a[1]
+    return abs(total) / 2
+
+
+def safe_text(value: Any) -> str:
+    return html.escape(str(value), quote=True)
 
 
 def arc_points(geom: dict[str, Any], max_degrees: float = 10.0) -> list[Point]:
@@ -84,7 +98,7 @@ def collect_points(model: dict[str, Any], report: dict[str, Any] | None) -> list
 
 
 class SvgCanvas:
-    def __init__(self, points: list[Point], margin: float = 80.0, target_width: float = 1200.0) -> None:
+    def __init__(self, points: list[Point], margin: float = 130.0, target_width: float = 1200.0) -> None:
         xs = [p[0] for p in points]
         ys = [p[1] for p in points]
         self.min_x = min(xs)
@@ -126,8 +140,23 @@ class SvgCanvas:
 
     def text(self, pos: Point, text: str, size: float = 18.0, fill: str = "#111827") -> None:
         x, y = self.xy(pos)
-        safe = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
-        self.add(f'<text x="{x:.2f}" y="{y:.2f}" font-size="{size:.2f}" fill="{fill}" font-family="Arial">{safe}</text>')
+        self.add(
+            f'<text x="{x:.2f}" y="{y:.2f}" font-size="{size:.2f}" fill="{fill}" '
+            f'font-family="Arial, Microsoft YaHei">{safe_text(text)}</text>'
+        )
+
+    def centered_text(self, pos: Point, text: str, size: float = 18.0, fill: str = "#111827") -> None:
+        x, y = self.xy(pos)
+        self.add(
+            f'<text x="{x:.2f}" y="{y:.2f}" font-size="{size:.2f}" fill="{fill}" '
+            f'font-family="Arial, Microsoft YaHei" text-anchor="middle" dominant-baseline="middle">{safe_text(text)}</text>'
+        )
+
+    def screen_text(self, x: float, y: float, text: str, size: float = 18.0, fill: str = "#111827") -> None:
+        self.add(
+            f'<text x="{x:.2f}" y="{y:.2f}" font-size="{size:.2f}" fill="{fill}" '
+            f'font-family="Arial, Microsoft YaHei">{safe_text(text)}</text>'
+        )
 
     def render(self) -> str:
         return (
@@ -139,18 +168,77 @@ class SvgCanvas:
         )
 
 
-def render_model(model: dict[str, Any], report: dict[str, Any] | None = None) -> str:
-    canvas = SvgCanvas(collect_points(model, report))
+def room_label(room: dict[str, Any], points: list[Point], mode: str) -> str:
+    if mode == "debug":
+        return room.get("id", "room")
+    name = room.get("name") or room.get("label") or room.get("id", "room")
+    area_sqm = polygon_area(points) / 1_000_000
+    if area_sqm > 0:
+        return f"{name}\n{area_sqm:.1f}m2"
+    return str(name)
 
-    room_colors = ["#dbeafe", "#dcfce7", "#fef3c7", "#fce7f3", "#ede9fe"]
+
+def opening_label(opening: dict[str, Any], mode: str) -> str:
+    if mode == "debug":
+        return opening.get("id", "opening")
+    if opening.get("type") == "door":
+        return "D"
+    if opening.get("type") == "window":
+        return "W"
+    return "O"
+
+
+def render_header(canvas: SvgCanvas, model: dict[str, Any], report: dict[str, Any] | None, mode: str, title: str | None) -> None:
+    readiness = report.get("readiness") if report else "no validation"
+    warnings = len(report.get("warnings", [])) if report else 0
+    errors = len(report.get("errors", [])) if report else 0
+    heading = title or ("Client Base Confirmation" if mode == "client" else "Home Geometry Check")
+    canvas.screen_text(26, 38, heading, 24, "#111827")
+    canvas.screen_text(26, 66, f"readiness: {readiness}  rooms: {len(model.get('rooms', []))}  openings: {len(model.get('openings', []))}", 15, "#475569")
+    canvas.screen_text(26, 88, f"warnings: {warnings}  errors: {errors}  coordinate origin: lower-left, unit: mm", 15, "#475569")
+
+
+def render_scale_and_origin(canvas: SvgCanvas) -> None:
+    base_y = canvas.height - 42
+    base_x = 26
+    scale_mm = 2000
+    scale_px = scale_mm * canvas.scale
+    canvas.add(f'<line x1="{base_x}" y1="{base_y}" x2="{base_x + scale_px:.2f}" y2="{base_y}" stroke="#111827" stroke-width="3"/>')
+    canvas.add(f'<line x1="{base_x}" y1="{base_y - 8}" x2="{base_x}" y2="{base_y + 8}" stroke="#111827" stroke-width="2"/>')
+    canvas.add(f'<line x1="{base_x + scale_px:.2f}" y1="{base_y - 8}" x2="{base_x + scale_px:.2f}" y2="{base_y + 8}" stroke="#111827" stroke-width="2"/>')
+    canvas.screen_text(base_x, base_y + 24, "2000 mm", 13, "#334155")
+    ox, oy = canvas.xy((canvas.min_x, canvas.min_y))
+    canvas.circle((canvas.min_x, canvas.min_y), 7, "#111827", "white", 1.5)
+    canvas.screen_text(ox + 12, oy - 10, "(0,0) lower-left", 13, "#334155")
+
+
+def render_main_dimensions(canvas: SvgCanvas) -> None:
+    width_mm = canvas.max_x - canvas.min_x
+    height_mm = canvas.max_y - canvas.min_y
+    left, top = canvas.xy((canvas.min_x, canvas.max_y))
+    right, bottom = canvas.xy((canvas.max_x, canvas.min_y))
+    dim_top = max(106.0, top - 26.0)
+    dim_right = min(canvas.width - 32.0, right + 34.0)
+    canvas.add(f'<line x1="{left:.2f}" y1="{dim_top:.2f}" x2="{right:.2f}" y2="{dim_top:.2f}" stroke="#475569" stroke-width="2"/>')
+    canvas.screen_text((left + right) / 2 - 38, dim_top - 8, f"{width_mm:.0f} mm", 15, "#334155")
+    canvas.add(f'<line x1="{dim_right:.2f}" y1="{top:.2f}" x2="{dim_right:.2f}" y2="{bottom:.2f}" stroke="#475569" stroke-width="2"/>')
+    canvas.screen_text(dim_right + 8, (top + bottom) / 2, f"{height_mm:.0f} mm", 15, "#334155")
+
+
+def render_model(model: dict[str, Any], report: dict[str, Any] | None = None, mode: str = "debug", title: str | None = None) -> str:
+    canvas = SvgCanvas(collect_points(model, report))
+    render_header(canvas, model, report, mode, title)
+
+    room_colors = ["#eef2ff", "#ecfdf5", "#fffbeb", "#fdf2f8", "#f0f9ff"]
     for index, room in enumerate(model.get("rooms", [])):
         points = [as_point(p) for p in room.get("polygon", [])]
         if len(points) < 3:
             continue
         fill = room_colors[index % len(room_colors)]
-        canvas.polygon(points, fill, "#94a3b8", 1.2, opacity=0.35)
-        label = room.get("id", "room")
-        canvas.text(polygon_centroid(points), label, size=18, fill="#334155")
+        canvas.polygon(points, fill, "#cbd5e1", 1.2, opacity=0.5 if mode == "client" else 0.35)
+        cx, cy = polygon_centroid(points)
+        for offset, line in enumerate(room_label(room, points, mode).splitlines()):
+            canvas.centered_text((cx, cy - offset * 150 / canvas.scale), line, size=17 if mode == "client" else 18, fill="#334155")
 
     for wall in model.get("walls", []):
         geom = wall.get("geometry", {})
@@ -159,8 +247,9 @@ def render_model(model: dict[str, Any], report: dict[str, Any] | None = None) ->
         color = "#111111" if wall.get("alteration") == "do_not_alter" else "#2b2b2b"
         if geom.get("kind") == "line":
             canvas.line(as_point(geom["start"]), as_point(geom["end"]), color, stroke)
-            mid = ((geom["start"][0] + geom["end"][0]) / 2, (geom["start"][1] + geom["end"][1]) / 2)
-            canvas.text(mid, wall.get("id", "wall"), size=14, fill="#374151")
+            if mode == "debug":
+                mid = ((geom["start"][0] + geom["end"][0]) / 2, (geom["start"][1] + geom["end"][1]) / 2)
+                canvas.text(mid, wall.get("id", "wall"), size=14, fill="#374151")
         elif geom.get("kind") == "arc":
             try:
                 points = arc_points(geom)
@@ -168,13 +257,15 @@ def render_model(model: dict[str, Any], report: dict[str, Any] | None = None) ->
                 continue
             for start, end in zip(points, points[1:]):
                 canvas.line(start, end, color, stroke)
-            canvas.text(points[len(points) // 2], wall.get("id", "arc"), size=14, fill="#374151")
+            if mode == "debug":
+                canvas.text(points[len(points) // 2], wall.get("id", "arc"), size=14, fill="#374151")
 
     for opening in model.get("openings", []):
         pos = as_point(opening["position"])
         color = "#2563eb" if opening.get("type") == "door" else "#0891b2"
-        canvas.circle(pos, 8, color, "white", 2)
-        canvas.text((pos[0] + 80, pos[1] + 80), opening.get("id", "opening"), size=15, fill=color)
+        canvas.circle(pos, 9 if mode == "client" else 8, color, "white", 2)
+        label_offset = 95 if mode == "client" else 80
+        canvas.text((pos[0] + label_offset, pos[1] + label_offset), opening_label(opening, mode), size=15, fill=color)
 
     for item in model.get("furniture", []):
         geom = item.get("geometry", {})
@@ -182,9 +273,10 @@ def render_model(model: dict[str, Any], report: dict[str, Any] | None = None) ->
             continue
         corners = rect_corners(as_point(geom["center"]), as_point(geom["size"]), float(geom.get("rotation", 0)))
         canvas.polygon(corners, "#f9d38c", "#b45309", 2.0, opacity=0.75)
-        canvas.text(as_point(geom["center"]), item.get("id", "furniture"), size=15, fill="#7c2d12")
+        label = item.get("id", "furniture") if mode == "debug" else item.get("name", item.get("type", "furniture"))
+        canvas.text(as_point(geom["center"]), label, size=15, fill="#7c2d12")
 
-    if report:
+    if report and mode == "debug":
         for junction in report.get("junctions", []):
             point = as_point(junction["point"])
             if junction.get("type") == "near_miss":
@@ -237,30 +329,27 @@ def render_model(model: dict[str, Any], report: dict[str, Any] | None = None) ->
                     canvas.circle(pos, 14, "none", "#dc2626", 3)
                     canvas.text((pos[0] + 120, pos[1] - 120), "bad host", size=18, fill="#dc2626")
 
-    title_y = canvas.max_y + (80 / canvas.scale)
-    readiness = report.get("readiness") if report else "no validation"
-    canvas.text((canvas.min_x, title_y), f"Home geometry check - readiness: {readiness}", size=22, fill="#111827")
+    render_main_dimensions(canvas)
+    render_scale_and_origin(canvas)
     return canvas.render()
 
 
 def main() -> int:
-    if len(sys.argv) not in [3, 4]:
-        print("Usage: simple_renderer.py <base_object_model.json> <output.svg> [validation.json]")
-        return 2
-    model_path = Path(sys.argv[1])
-    output_path = Path(sys.argv[2])
-    report_path = Path(sys.argv[3]) if len(sys.argv) == 4 else None
-    model = json.loads(model_path.read_text(encoding="utf-8-sig"))
-    report = json.loads(report_path.read_text(encoding="utf-8-sig")) if report_path else None
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(render_model(model, report), encoding="utf-8")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("base_object_model", type=Path)
+    parser.add_argument("output_svg", type=Path)
+    parser.add_argument("validation", type=Path, nargs="?")
+    parser.add_argument("--mode", choices=["debug", "client"], default="debug")
+    parser.add_argument("--title")
+    args = parser.parse_args()
+
+    model = json.loads(args.base_object_model.read_text(encoding="utf-8-sig"))
+    report = json.loads(args.validation.read_text(encoding="utf-8-sig")) if args.validation else None
+    args.output_svg.parent.mkdir(parents=True, exist_ok=True)
+    args.output_svg.write_text(render_model(model, report, args.mode, args.title), encoding="utf-8")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-
-
 
