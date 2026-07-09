@@ -784,3 +784,16 @@ simple_renderer.py
 ## 底图 SVG 客户确认版
 
 simple_renderer.py 默认输出内部调试版，会显示对象 ID 和校验标记。需要给客户确认底图时，使用 --mode client；它会隐藏内部对象 ID，并显示房间名、主尺寸、坐标原点、比例尺、校验摘要、门洞、门扇开启弧和窗线。
+
+## SVG 预览 PNG
+
+`svg_preview_renderer.py` 用来把项目生成的 SVG 转成 PNG 预览图。它不调用浏览器、不启动 GUI，只依赖 bundled Python 中的 Pillow，主要用于规避 Windows 浏览器/图片查看器权限问题。
+
+示例：
+
+```powershell
+& 'C:\Users\eurik\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  'D:\Codex\视觉方案\assets\home-geometry-engine-v01\svg_preview_renderer.py' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\plan.client_base.svg' `
+  'D:\Codex\视觉方案\outputs\geometry-engine-demo-v01\plan.client_base.preview.png'
+```

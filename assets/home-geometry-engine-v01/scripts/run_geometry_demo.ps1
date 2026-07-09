@@ -11,6 +11,7 @@ $ExamplesDir = Join-Path $EngineDir 'examples'
 $Validator = Join-Path $EngineDir 'geometry_validator.py'
 $Applier = Join-Path $EngineDir 'operation_applier.py'
 $Renderer = Join-Path $EngineDir 'simple_renderer.py'
+$SvgPreviewRenderer = Join-Path $EngineDir 'svg_preview_renderer.py'
 $StateUpdater = Join-Path $EngineDir 'update_project_state.py'
 $StateReader = Join-Path $EngineDir 'read_project_state.py'
 $Workflow = Join-Path $EngineDir 'home_geometry_workflow.py'
@@ -73,6 +74,7 @@ $DimensionAnchorReviewSvg = Join-Path $OutputDir 'dimension_anchor_review.svg'
 $ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_v1.json'
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanBaseClient = Join-Path $OutputDir 'plan.client_base.svg'
+$PlanBaseClientPreview = Join-Path $OutputDir 'plan.client_base.preview.png'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -114,6 +116,7 @@ New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 Invoke-Step 'compile validator' { & $PythonExe -m py_compile $Validator }
 Invoke-Step 'compile operation applier' { & $PythonExe -m py_compile $Applier }
 Invoke-Step 'compile renderer' { & $PythonExe -m py_compile $Renderer }
+Invoke-Step 'compile SVG preview renderer' { & $PythonExe -m py_compile $SvgPreviewRenderer }
 Invoke-Step 'compile workflow entrypoint' { & $PythonExe -m py_compile $Workflow }
 Invoke-Step 'compile base handoff builder' { & $PythonExe -m py_compile $BaseHandoffBuilder }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
@@ -161,6 +164,7 @@ Invoke-Step 'rebuild scheme A from exported base' { & $PythonExe $Applier $Expor
 Invoke-Step 'validate scheme A from exported base' { & $PythonExe $Validator $SchemeA $ValidationSchemeA }
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
 Invoke-Step 'render client base SVG' { & $PythonExe $Renderer $BaseModel $PlanBaseClient $ValidationBase --mode client --title 'Client Base Confirmation' }
+Invoke-Step 'render client base PNG preview' { & $PythonExe $SvgPreviewRenderer $PlanBaseClient $PlanBaseClientPreview --max-width 1600 }
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
@@ -246,6 +250,7 @@ Write-Host $ExportedBaseValidation
 Write-Host $FailedBaseExportValidation
 Write-Host $PlanBase
 Write-Host $PlanBaseClient
+Write-Host $PlanBaseClientPreview
 Write-Host $PlanExportedBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
