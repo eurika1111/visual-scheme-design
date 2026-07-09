@@ -1,0 +1,45 @@
+{
+  "project_id": "demo_residential_needs_v1",
+  "answers": {
+    "household": {
+      "choice": ["三口之家", "有小孩"],
+      "notes": "孩子需要学习区，偶尔有老人短住。"
+    },
+    "must_keep_rooms": {
+      "choice": ["保留3卧", "儿童学习区"],
+      "confidence": "normal"
+    },
+    "demolition_attitude": {
+      "choice": "depends",
+      "notes": "不排斥局部拆改，但希望先看效果和施工量。",
+      "confidence": "low"
+    },
+    "kitchen_attitude": {
+      "choice": ["more_open", "depends"],
+      "notes": "喜欢通透感，但担心油烟。"
+    },
+    "island_attitude": {
+      "choice": "depends",
+      "notes": "喜欢岛台，但担心占地方。"
+    },
+    "storage_priority": {
+      "choice": "high",
+      "notes": "希望收纳多，但不要显得压抑。"
+    },
+    "life_focus": {
+      "choice": ["亲子活动", "居家办公", "客餐厅社交"]
+    },
+    "style_preference": {
+      "choice": ["干净温暖", "no_clear_preference"],
+      "notes": "先看布局，风格后面再定。"
+    },
+    "budget_risk": {
+      "choice": "controlled",
+      "notes": "希望性价比高，可以比较高低两档。"
+    },
+    "no_change_areas": {
+      "choice": ["卫生间不动", "承重墙不动"],
+      "notes": "其他位置不确定哪些能动。"
+    }
+  }
+}

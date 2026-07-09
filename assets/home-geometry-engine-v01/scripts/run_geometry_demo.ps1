@@ -16,6 +16,7 @@ $StateUpdater = Join-Path $EngineDir 'update_project_state.py'
 $StateReader = Join-Path $EngineDir 'read_project_state.py'
 $Workflow = Join-Path $EngineDir 'home_geometry_workflow.py'
 $BaseHandoffBuilder = Join-Path $EngineDir 'base_handoff_builder.py'
+$NeedsBriefBuilder = Join-Path $EngineDir 'needs_brief_builder.py'
 $SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
@@ -39,6 +40,7 @@ $Operations = Join-Path $ExamplesDir 'operations.sample.json'
 $SourceExtractionPackage = Join-Path $ExamplesDir 'source_extraction_package.sample.json'
 $SourceExtractionProblemPackage = Join-Path $ExamplesDir 'source_extraction_package.problem-sample.json'
 $DimensionAnchorConfirmationResponse = Join-Path $ExamplesDir 'dimension_anchor_confirmation_response.sample.json'
+$NeedsResponse = Join-Path $ExamplesDir 'needs_response.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -77,6 +79,8 @@ $PlanBaseClient = Join-Path $OutputDir 'plan.client_base.svg'
 $PlanBaseClientPreview = Join-Path $OutputDir 'plan.client_base.preview.png'
 $BaseHandoff = Join-Path $OutputDir 'base_handoff.md'
 $BaseReviewPackageDir = Join-Path $OutputDir 'base_review_package'
+$NeedsBriefJson = Join-Path $OutputDir 'client.needs_brief.json'
+$NeedsBriefMd = Join-Path $OutputDir 'client.needs_brief.md'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -121,6 +125,7 @@ Invoke-Step 'compile renderer' { & $PythonExe -m py_compile $Renderer }
 Invoke-Step 'compile SVG preview renderer' { & $PythonExe -m py_compile $SvgPreviewRenderer }
 Invoke-Step 'compile workflow entrypoint' { & $PythonExe -m py_compile $Workflow }
 Invoke-Step 'compile base handoff builder' { & $PythonExe -m py_compile $BaseHandoffBuilder }
+Invoke-Step 'compile needs brief builder' { & $PythonExe -m py_compile $NeedsBriefBuilder }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
@@ -169,6 +174,7 @@ Invoke-Step 'render client base SVG' { & $PythonExe $Renderer $BaseModel $PlanBa
 Invoke-Step 'render client base PNG preview' { & $PythonExe $SvgPreviewRenderer $PlanBaseClient $PlanBaseClientPreview --max-width 1600 }
 Invoke-Step 'build client base handoff with preview' { & $PythonExe $BaseHandoffBuilder --project-root $OutputDir --base-model $BaseModel --review-svg $PlanBaseClient --preview-png $PlanBaseClientPreview --validation $ValidationBase --output $BaseHandoff --title 'Demo Base Review Package' }
 Invoke-Step 'build one-command base review package' { & $PythonExe $Workflow build-base-review --base-model $ExportedBaseModel --validation $ValidationExportedBase --output-dir $BaseReviewPackageDir --project-root $OutputDir --title 'Demo One-Command Base Review' --stem 'base_from_extraction_v1' }
+Invoke-Step 'build needs brief' { & $PythonExe $Workflow build-needs-brief $NeedsResponse --output-dir $OutputDir --stem 'client' }
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
@@ -257,6 +263,8 @@ Write-Host $PlanBaseClient
 Write-Host $PlanBaseClientPreview
 Write-Host $BaseHandoff
 Write-Host $BaseReviewPackageDir
+Write-Host $NeedsBriefJson
+Write-Host $NeedsBriefMd
 Write-Host $PlanExportedBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem
@@ -264,3 +272,6 @@ Write-Host $PlanDoorSwing
 Write-Host $PlanIslandMove
 Write-Host $PlanArcPartition
 Write-Host $ProjectState
+
+# Demo intentionally runs negative samples; reaching this point means required steps passed.
+exit 0

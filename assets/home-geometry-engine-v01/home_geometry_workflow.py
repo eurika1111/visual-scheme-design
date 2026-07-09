@@ -175,6 +175,24 @@ def build_base_review(
     print(f"handoff={handoff}")
 
 
+def build_needs_brief(response: Path, output_dir: Path, stem: str) -> None:
+    output_dir = ensure_dir(output_dir)
+    output_json = output_dir / f"{stem}.needs_brief.json"
+    output_md = output_dir / f"{stem}.needs_brief.md"
+    run_step(
+        "build needs brief",
+        [
+            "needs_brief_builder.py",
+            str(response),
+            "--output-json",
+            str(output_json),
+            "--output-md",
+            str(output_md),
+        ],
+    )
+    print(f"needs_brief_json={output_json}")
+    print(f"needs_brief_md={output_md}")
+
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
     output_dir = ensure_dir(output_dir)
     stem = version or scheme_intent.stem.replace("_intent", "")
@@ -268,6 +286,11 @@ def build_parser() -> argparse.ArgumentParser:
     base_review.add_argument("--title")
     base_review.add_argument("--stem", default="base_review")
 
+    needs = sub.add_parser("build-needs-brief", help="Build structured residential needs brief from client answers.")
+    needs.add_argument("response", type=Path)
+    needs.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    needs.add_argument("--stem", default="client")
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -317,6 +340,8 @@ def main() -> int:
             args.title,
             args.stem,
         )
+    elif args.command == "build-needs-brief":
+        build_needs_brief(args.response, args.output_dir, args.stem)
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":
