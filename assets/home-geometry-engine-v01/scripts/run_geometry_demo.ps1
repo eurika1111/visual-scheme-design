@@ -76,6 +76,7 @@ $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanBaseClient = Join-Path $OutputDir 'plan.client_base.svg'
 $PlanBaseClientPreview = Join-Path $OutputDir 'plan.client_base.preview.png'
 $BaseHandoff = Join-Path $OutputDir 'base_handoff.md'
+$BaseReviewPackageDir = Join-Path $OutputDir 'base_review_package'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -167,6 +168,7 @@ Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $Val
 Invoke-Step 'render client base SVG' { & $PythonExe $Renderer $BaseModel $PlanBaseClient $ValidationBase --mode client --title 'Client Base Confirmation' }
 Invoke-Step 'render client base PNG preview' { & $PythonExe $SvgPreviewRenderer $PlanBaseClient $PlanBaseClientPreview --max-width 1600 }
 Invoke-Step 'build client base handoff with preview' { & $PythonExe $BaseHandoffBuilder --project-root $OutputDir --base-model $BaseModel --review-svg $PlanBaseClient --preview-png $PlanBaseClientPreview --validation $ValidationBase --output $BaseHandoff --title 'Demo Base Review Package' }
+Invoke-Step 'build one-command base review package' { & $PythonExe $Workflow build-base-review --base-model $ExportedBaseModel --validation $ValidationExportedBase --output-dir $BaseReviewPackageDir --project-root $OutputDir --title 'Demo One-Command Base Review' --stem 'base_from_extraction_v1' }
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
@@ -254,6 +256,7 @@ Write-Host $PlanBase
 Write-Host $PlanBaseClient
 Write-Host $PlanBaseClientPreview
 Write-Host $BaseHandoff
+Write-Host $BaseReviewPackageDir
 Write-Host $PlanExportedBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem

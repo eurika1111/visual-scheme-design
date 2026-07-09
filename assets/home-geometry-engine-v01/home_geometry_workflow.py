@@ -127,6 +127,53 @@ def build_handoff(
         child_args.extend(["--title", title])
     run_step("build client base handoff", child_args)
 
+def build_base_review(
+    base_model: Path,
+    validation: Path,
+    output_dir: Path,
+    project_root: Path,
+    source_image: Path | None,
+    dimension_audit: Path | None,
+    checklist: Path | None,
+    checklist_md: Path | None,
+    title: str | None,
+    stem: str,
+) -> None:
+    output_dir = ensure_dir(output_dir)
+    review_svg = output_dir / f"{stem}.client_base.svg"
+    preview_png = output_dir / f"{stem}.client_base.preview.png"
+    handoff = output_dir / f"{stem}.base_handoff.md"
+    run_step(
+        "render client base SVG",
+        [
+            "simple_renderer.py",
+            str(base_model),
+            str(review_svg),
+            str(validation),
+            "--mode",
+            "client",
+            "--title",
+            title or "Client Base Confirmation",
+        ],
+    )
+    run_step("render client base PNG preview", ["svg_preview_renderer.py", str(review_svg), str(preview_png), "--max-width", "1600"])
+    build_handoff(
+        base_model,
+        review_svg,
+        preview_png,
+        validation,
+        handoff,
+        project_root,
+        source_image,
+        dimension_audit,
+        checklist,
+        checklist_md,
+        title or "Client Base Review Package",
+    )
+    print(f"review_svg={review_svg}")
+    print(f"preview_png={preview_png}")
+    print(f"handoff={handoff}")
+
 
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
     output_dir = ensure_dir(output_dir)
@@ -209,6 +256,18 @@ def build_parser() -> argparse.ArgumentParser:
     handoff.add_argument("--checklist-md", type=Path)
     handoff.add_argument("--title")
 
+    base_review = sub.add_parser("build-base-review", help="Render client SVG, PNG preview, and handoff markdown.")
+    base_review.add_argument("--base-model", type=Path, required=True)
+    base_review.add_argument("--validation", type=Path, required=True)
+    base_review.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    base_review.add_argument("--project-root", type=Path, default=Path.cwd())
+    base_review.add_argument("--source-image", type=Path)
+    base_review.add_argument("--dimension-audit", type=Path)
+    base_review.add_argument("--checklist", type=Path)
+    base_review.add_argument("--checklist-md", type=Path)
+    base_review.add_argument("--title")
+    base_review.add_argument("--stem", default="base_review")
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -244,6 +303,19 @@ def main() -> int:
             args.checklist,
             args.checklist_md,
             args.title,
+        )
+    elif args.command == "build-base-review":
+        build_base_review(
+            args.base_model,
+            args.validation,
+            args.output_dir,
+            args.project_root,
+            args.source_image,
+            args.dimension_audit,
+            args.checklist,
+            args.checklist_md,
+            args.title,
+            args.stem,
         )
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)

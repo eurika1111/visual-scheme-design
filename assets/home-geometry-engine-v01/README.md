@@ -70,7 +70,7 @@ L4：参考资料整理，仍需现场复尺和专业确认
 - `make-checklist`：生成尺寸锚点草案和确认清单。
 - `apply-confirmation`：应用人工确认结果并重新校验。
 - `render-review`：生成尺寸链校对 SVG。
-- `build-handoff`：生成客户可确认的底图交接 Markdown；可传入 `--preview-png`，优先给客户查看 PNG 预览，减少 SVG/浏览器权限问题。
+- `build-handoff`：生成客户可确认的底图交接 Markdown；可传入 `--preview-png`，优先给客户查看 PNG 预览，减少 SVG/浏览器权限问题。`n- `build-base-review`：一键生成客户版底图 SVG、PNG 预览和底图交接 Markdown。
 - `render-scheme-draft`：从底图模型和方案意图生成确定性方案草图 SVG。
 - `run-demo`：运行项目内完整示例流程。
 
