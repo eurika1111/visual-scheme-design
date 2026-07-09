@@ -121,13 +121,13 @@ class SvgCanvas:
     def add(self, raw: str) -> None:
         self.items.append(raw)
 
-    def line(self, a: Point, b: Point, color: str, width: float, dash: str | None = None, opacity: float = 1.0) -> None:
+    def line(self, a: Point, b: Point, color: str, width: float, dash: str | None = None, opacity: float = 1.0, cap: str = "round") -> None:
         x1, y1 = self.xy(a)
         x2, y2 = self.xy(b)
         dash_attr = f' stroke-dasharray="{dash}"' if dash else ""
         self.add(
             f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" '
-            f'stroke="{color}" stroke-width="{width:.2f}" stroke-linecap="round" opacity="{opacity}"{dash_attr}/>'
+            f'stroke="{color}" stroke-width="{width:.2f}" stroke-linecap="{cap}" opacity="{opacity}"{dash_attr}/>'
         )
 
     def polygon(self, points: list[Point], fill: str, stroke: str, width: float, opacity: float = 1.0) -> None:
@@ -188,6 +188,88 @@ def opening_label(opening: dict[str, Any], mode: str) -> str:
     return "O"
 
 
+def wall_index(model: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {str(wall.get("id")): wall for wall in model.get("walls", []) if wall.get("id")}
+
+
+def line_wall_frame(wall: dict[str, Any]) -> tuple[Point, Point, Point, Point, float, float] | None:
+    geom = wall.get("geometry", {})
+    if geom.get("kind") != "line":
+        return None
+    start = as_point(geom["start"])
+    end = as_point(geom["end"])
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    length = math.hypot(dx, dy)
+    if length <= 0:
+        return None
+    unit = (dx / length, dy / length)
+    normal = (-unit[1], unit[0])
+    thickness = float(geom.get("thickness", 120))
+    return start, end, unit, normal, length, thickness
+
+
+def opening_frame(opening: dict[str, Any], walls: dict[str, dict[str, Any]]) -> tuple[Point, Point, Point, float, float] | None:
+    wall = walls.get(str(opening.get("host_wall_id")))
+    if not wall:
+        return None
+    frame = line_wall_frame(wall)
+    if not frame:
+        return None
+    _, _, unit, normal, _, thickness = frame
+    pos = as_point(opening["position"])
+    width = float(opening.get("width") or 800)
+    return pos, unit, normal, width, thickness
+
+
+def offset(point: Point, direction: Point, distance: float) -> Point:
+    return (point[0] + direction[0] * distance, point[1] + direction[1] * distance)
+
+
+def render_opening_symbol(canvas: SvgCanvas, opening: dict[str, Any], walls: dict[str, dict[str, Any]], mode: str) -> None:
+    frame = opening_frame(opening, walls)
+    if not frame:
+        pos = as_point(opening["position"])
+        color = "#2563eb" if opening.get("type") == "door" else "#0891b2"
+        canvas.circle(pos, 9 if mode == "client" else 8, color, "white", 2)
+        canvas.text((pos[0] + 95, pos[1] + 95), opening_label(opening, mode), size=15, fill=color)
+        return
+
+    pos, unit, normal, width, thickness = frame
+    half = width / 2
+    gap_start = offset(pos, unit, -half)
+    gap_end = offset(pos, unit, half)
+    canvas.line(gap_start, gap_end, "#fbfaf7", max(10.0, (thickness + 90) * canvas.scale), cap="butt")
+
+    if opening.get("type") == "window":
+        for shift in (-thickness * 0.22, thickness * 0.22):
+            a = offset(gap_start, normal, shift)
+            b = offset(gap_end, normal, shift)
+            canvas.line(a, b, "#0f172a", 1.6, cap="butt")
+        canvas.line(gap_start, gap_end, "#0891b2", 2.0, cap="butt")
+    else:
+        hinge_side = -1 if opening.get("swing", {}).get("hinge") == "left" else 1
+        hinge = gap_start if hinge_side < 0 else gap_end
+        leaf_end = offset(hinge, normal, width)
+        canvas.line(hinge, leaf_end, "#111827", 2.0, cap="butt")
+        start_angle = math.degrees(math.atan2(unit[1] * hinge_side, unit[0] * hinge_side))
+        end_angle = math.degrees(math.atan2(normal[1], normal[0]))
+        points = []
+        sweep = end_angle - start_angle
+        while sweep > 180:
+            sweep -= 360
+        while sweep < -180:
+            sweep += 360
+        for index in range(9):
+            angle = math.radians(start_angle + sweep * index / 8)
+            points.append((hinge[0] + width * math.cos(angle), hinge[1] + width * math.sin(angle)))
+        for a, b in zip(points, points[1:]):
+            canvas.line(a, b, "#64748b", 1.5, dash="5 4", opacity=0.85, cap="butt")
+
+    if mode == "debug":
+        canvas.text((pos[0] + 95, pos[1] + 95), opening_label(opening, mode), size=15, fill="#2563eb")
+
+
 def render_header(canvas: SvgCanvas, model: dict[str, Any], report: dict[str, Any] | None, mode: str, title: str | None) -> None:
     readiness = report.get("readiness") if report else "no validation"
     warnings = len(report.get("warnings", [])) if report else 0
@@ -246,7 +328,7 @@ def render_model(model: dict[str, Any], report: dict[str, Any] | None = None, mo
         stroke = max(6.0, thickness * canvas.scale)
         color = "#111111" if wall.get("alteration") == "do_not_alter" else "#2b2b2b"
         if geom.get("kind") == "line":
-            canvas.line(as_point(geom["start"]), as_point(geom["end"]), color, stroke)
+            canvas.line(as_point(geom["start"]), as_point(geom["end"]), color, stroke, cap="butt")
             if mode == "debug":
                 mid = ((geom["start"][0] + geom["end"][0]) / 2, (geom["start"][1] + geom["end"][1]) / 2)
                 canvas.text(mid, wall.get("id", "wall"), size=14, fill="#374151")
@@ -260,12 +342,9 @@ def render_model(model: dict[str, Any], report: dict[str, Any] | None = None, mo
             if mode == "debug":
                 canvas.text(points[len(points) // 2], wall.get("id", "arc"), size=14, fill="#374151")
 
+    walls = wall_index(model)
     for opening in model.get("openings", []):
-        pos = as_point(opening["position"])
-        color = "#2563eb" if opening.get("type") == "door" else "#0891b2"
-        canvas.circle(pos, 9 if mode == "client" else 8, color, "white", 2)
-        label_offset = 95 if mode == "client" else 80
-        canvas.text((pos[0] + label_offset, pos[1] + label_offset), opening_label(opening, mode), size=15, fill=color)
+        render_opening_symbol(canvas, opening, walls, mode)
 
     for item in model.get("furniture", []):
         geom = item.get("geometry", {})
@@ -352,4 +431,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
