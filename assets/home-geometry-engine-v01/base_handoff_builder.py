@@ -94,6 +94,7 @@ def build_markdown(args: argparse.Namespace) -> str:
 - Original source image: `{rel(args.source_image, project_root)}`
 - Base model: `{rel(args.base_model, project_root)}`
 - Base review SVG: `{rel(args.review_svg, project_root)}`
+- Base preview PNG: `{rel(args.preview_png, project_root)}`
 - Source validation: `{rel(args.validation, project_root)}`
 - Dimension audit: `{rel(args.dimension_audit, project_root)}`
 - Dimension checklist: `{rel(args.checklist_md, project_root)}`
@@ -140,6 +141,7 @@ def main() -> int:
     parser.add_argument("--source-image", type=Path, default=None)
     parser.add_argument("--base-model", type=Path, required=True)
     parser.add_argument("--review-svg", type=Path, required=True)
+    parser.add_argument("--preview-png", type=Path, default=None)
     parser.add_argument("--validation", type=Path, required=True)
     parser.add_argument("--dimension-audit", type=Path, default=None)
     parser.add_argument("--checklist", type=Path, default=None)

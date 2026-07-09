@@ -90,6 +90,7 @@ def render_review(package: Path, output_svg: Path) -> None:
 def build_handoff(
     base_model: Path,
     review_svg: Path,
+    preview_png: Path | None,
     validation: Path,
     output: Path,
     project_root: Path,
@@ -115,6 +116,7 @@ def build_handoff(
     ]
     for flag, value in [
         ("--source-image", source_image),
+        ("--preview-png", preview_png),
         ("--dimension-audit", dimension_audit),
         ("--checklist", checklist),
         ("--checklist-md", checklist_md),
@@ -197,6 +199,7 @@ def build_parser() -> argparse.ArgumentParser:
     handoff = sub.add_parser("build-handoff", help="Build a client-visible base handoff markdown.")
     handoff.add_argument("--base-model", type=Path, required=True)
     handoff.add_argument("--review-svg", type=Path, required=True)
+    handoff.add_argument("--preview-png", type=Path)
     handoff.add_argument("--validation", type=Path, required=True)
     handoff.add_argument("--output", type=Path, required=True)
     handoff.add_argument("--project-root", type=Path, default=Path.cwd())
@@ -232,6 +235,7 @@ def main() -> int:
         build_handoff(
             args.base_model,
             args.review_svg,
+            args.preview_png,
             args.validation,
             args.output,
             args.project_root,
