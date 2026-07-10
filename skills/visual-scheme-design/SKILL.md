@@ -1,6 +1,6 @@
 ---
 name: visual-scheme-design
-description: Direct home-design, interior-space styling, live-stream staging, temporary set-design, and space-scheme workflows. Use when Codex should turn a residential or staging brief into staged space directions, GPT Image/Midjourney/Stable Diffusion/Flux prompts, client-facing concept boards, live-stream set boards, top-view or 45-degree execution views, decoration/style proposals, spatial mood references, repair prompts, iteration rules, or deterministic post-layout assembly guidance. Also use when generated space options are too similar, inaccurate, cluttered, impractical, too expensive, too studio-like, or full of broken labels.
+description: Direct home-design, interior-space styling, live-stream staging, temporary set-design, and space-scheme workflows. Use when Codex should turn a residential or staging brief into staged space directions, GPT Image/Midjourney/Stable Diffusion/Flux prompts, client-facing concept boards, live-stream set boards, top-view or 45-degree execution views, decoration/style proposals, spatial mood references, real-time engine handoff plans, repair prompts, iteration rules, or deterministic post-layout assembly guidance. Also use when generated space options are too similar, inaccurate, cluttered, impractical, too expensive, too studio-like, or full of broken labels.
 ---
 
 # Space Scheme Design
@@ -73,6 +73,7 @@ Read references only as needed:
 - Residential readiness levels, wall topology, openings, curved partitions, furniture clearance, kitchen clearance, circulation checks: read `references/home-geometry-validation.md`.
 - Raster floor-plan redraw, listing screenshots, dimensioned platform plans, source-plan confirmation gates: read `references/residential-plan-redraw.md`.
 - Live-stream set design, temporary staging, interior styling, spatial mood, top view, 45-degree execution view: read `references/scene-and-space-workflows.md`.
+- UE or another real-time engine handoff, object-driven 3D visualization, or MCP scene execution planning: read `references/ue-visualization-workflow.md` after the relevant residential or scene reference.
 - Failed generations, similar options, user visual feedback, repair prompts: read `references/repair-and-iteration.md`.
 - Client-facing option boards, ranking, copy, delivery QA: read `references/client-board-output.md`.
 - Copy-paste image prompts or staged prompt packages: read `references/prompt-templates.md`.
@@ -84,11 +85,11 @@ For residential renovation and whole-home space planning, object data controls i
 
 - `L0`: unusable; do not generate schemes.
 - `L1`: readable draft; output only understanding draft, object list, uncertainty, and correction needs.
-- `L2`: quick concept may start; each option needs structured intent and generation report.
-- `L3`: stable deepening may start; geometry, openings, fixed-service constraints, furniture footprints, and operation logs must be controlled.
-- `L4`: documentation preparation only; do not claim construction readiness.
+- `L2`: quick concept may start from a centimeter-level scheme base; each option needs structured intent and generation report.
+- `L3`: visual deepening/reference export may start; structure, openings, key dimensions, fixed-service constraints, furniture footprints, and operation logs must be controlled.
+- `L4`: reference documentation/export only; DWG/DXF/SVG outputs are for review and site measurement, not construction-ready drawings.
 
-Do not produce residential concept schemes before `L2`. Do not use quick concept images as geometry authority for deepening.
+Do not produce residential concept schemes before `L2`. Do not use quick concept images as geometry authority for deepening. Residential outputs prioritize visual scheme design, not construction drawings.
 
 ## Live Scene And Set-Design Rules
 

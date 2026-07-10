@@ -237,3 +237,163 @@ New prompt:
 Negative constraints:
 - [repeat the specific failure to avoid]
 ```
+
+## Residential Base Review Handoff
+
+Use after source objectization and before any residential scheme generation.
+
+```text
+Base review package for [project]
+
+Show:
+- original source plan
+- base SVG / deterministic review drawing
+- coordinate origin and orientation
+- main dimension anchors
+- room, wall, opening, and fixed-service IDs
+- unresolved questions and assumptions
+
+Ask the client to confirm:
+1. Does the outline match the original plan?
+2. Are room names and adjacency correct?
+3. Are doors, windows, kitchen, bathrooms, and balcony in the right places?
+4. Are any walls, door openings, or service zones visibly wrong?
+5. May we proceed to needs intake and concept options with these assumptions?
+```
+
+## Residential Needs Intake
+
+Use before generating home-design options when the user has not provided enough constraints.
+
+```text
+Before creating options, collect only high-impact needs:
+
+- Who will live here?
+- Must we keep the current number of bedrooms?
+- Can the kitchen become open or semi-open?
+- Is an island or dining island desired?
+- Can any non-structural wall be considered for removal?
+- What storage problems matter most?
+- What budget/risk level is acceptable: conservative, medium, or exploratory?
+- What style direction should options explore?
+- Which spaces must not be changed?
+
+Separate hard constraints from preferences.
+```
+
+## Residential Case Strategy Extraction
+
+Use after needs are known and before A/B/C scheme intents.
+
+```text
+For each reference case, extract strategy only:
+
+Case: [name/source]
+Observed idea: [what is interesting]
+Transferable strategy: [principle that could apply]
+Possible placement in current plan: [room/zone/object]
+Risk level: [low / medium / high]
+Required validation: [clearance / demolition feasibility / wet-zone risk / curved geometry / door swing]
+Use in option: [A / B / C / none]
+
+Do not copy reference geometry directly.
+Do not let case images override the source plan.
+```
+
+## Residential Differentiated Options
+
+Use to create A/B/C before visual rendering.
+
+```text
+Option A - Low-risk optimization
+Scope: retain structure; improve furniture, storage, circulation, and style.
+Risk: low.
+Must validate: door swings, furniture fit, storage not blocking circulation.
+
+Option B - Medium-risk functional upgrade
+Scope: open or semi-open kitchen, island/dining island, local partition or dining-living relation changes.
+Risk: medium.
+Must validate: kitchen workflow, island clearance, fixed-service zones, door/window access.
+
+Option C - High-creativity exploration
+Scope: curved partition, multifunction room, stronger spatial reorganization, demolition candidates, bold storage/function strategy.
+Risk: medium-high or high.
+Must validate: alteration feasibility, wall status, circulation, fixed-service zones, curved geometry, furniture fit.
+```
+
+## Residential Deterministic Draft Brief
+
+Use before image generation for plan-like home options.
+
+```text
+Create a deterministic scheme draft from object data, not from visual guessing.
+
+Include:
+- base walls, room boundaries, doors, windows, kitchen, bathrooms, balcony
+- proposal objects: new walls, demolished candidates, island, storage, key furniture
+- option ID and version
+- coordinate/grid or main dimension anchors
+- clear room labels and object IDs added by layout tool
+
+Do not use AI-generated concept images as the geometry source.
+```
+
+## Residential Top-Down Visual Prompt
+
+Use only after base confirmation, needs brief, scheme intent, and preferably deterministic draft exist.
+
+```text
+Purpose: Generate one client-facing top-down residential visual concept for [Option ID and short name].
+
+Use the deterministic draft and base plan as the structural reference.
+Preserve the apartment outline, main walls, doors, windows, kitchen, bathrooms, balcony, and fixed-service zones.
+
+Design intent:
+[scheme-specific intent]
+
+Controlled proposal objects:
+[island / storage / curved partition / new furniture / local wall change]
+
+Visual direction:
+[style, palette, material, furniture language]
+
+Hard constraints:
+- do not change the base outline or fixed-service zones
+- do not thicken, break, or invent walls
+- do not move doors or windows
+- do not block bathroom, kitchen, balcony, or bedroom access
+- no dense dimensions, small labels, arrows, legends, UI, watermarks, or unreadable text
+- labels and dimensions will be added later by deterministic layout tools
+
+Avoid:
+- copying another option
+- treating reference cases as direct floor plans
+- impossible furniture orientation
+- missing shower/toilet fixtures in bathrooms
+- duplicate TV walls unless requested
+```
+
+## Residential Post-Generation Review
+
+Use immediately after each generated residential plan image.
+
+```text
+Review status: generated_pending_review
+
+Check:
+- outline and room topology still match base
+- walls are continuous and not randomly thickened
+- doors and windows remain in plausible host walls
+- kitchen and bathrooms are complete and not moved
+- furniture orientation is usable
+- island/storage/partition does not block circulation
+- A/B/C are meaningfully different
+- no garbled labels, watermarks, UI, or dense fake dimensions
+
+Set result:
+- reviewed_passed
+- needs_repair
+- rejected
+
+Repair only the smallest failed layer: prompt, scheme intent, deterministic draft, or base model.
+```

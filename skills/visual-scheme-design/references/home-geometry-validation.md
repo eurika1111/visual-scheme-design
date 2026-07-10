@@ -1,24 +1,42 @@
 # Home Geometry Validation
 
-Use this reference when residential plan data must be judged before quick concept generation, stable deepening, wall modification, opening placement, curved partitions, or furniture clearance checks.
+Use this reference when residential plan data must be judged before quick concepts, visual deepening, wall edits, curved partitions, opening placement, furniture clearance, or reference export.
 
-## Core principle
+## Core Principle
 
-AI extracts candidate objects. Deterministic geometry checks decide whether those objects are connected, valid, and ready for design. Do not rely on image similarity or conversational memory for topology.
+Geometry checks protect visual scheme reliability. They do not turn the output into construction drawings.
 
-## Readiness levels
+Target:
 
-- `L0 unusable`: exterior outline, room identities, or major wall topology are broken. Do not generate schemes.
-- `L1 readable draft`: basic spaces are recognizable, but geometry cannot support design operations. Output only an understanding draft and uncertainty list.
-- `L2 concept-design ready`: base topology, room identities, major walls, openings, and fixed service spaces are controlled enough for quick concept options.
-- `L3 deepening ready`: dimensions, openings, door swings, fixed-service constraints, furniture footprints, and operation logs are controlled enough for stable layout deepening.
-- `L4 construction-prep`: professional verification is still required. Treat this as documentation preparation, not construction approval.
+```text
+structure-level consistency + centimeter-level key element accuracy
+```
 
-Quick concept generation starts at `L2`, not `L1`. Stable deepening starts at `L3`.
+Do not require millimeter-level precision for concept work. Do flag errors that could visibly change the scheme, room relationship, opening position, fixed-service layout, or furniture fit.
 
-## Geometry kernel scope
+## Readiness Levels
 
-A lightweight geometry program should support these objects first:
+- `L0 unusable`: exterior outline, room identity, or main wall topology is broken. Do not generate schemes.
+- `L1 readable draft`: spaces are recognizable, but geometry cannot yet support controlled scheme options.
+- `L2 scheme-base ready`: topology, room identity, main walls, main openings, and fixed-service spaces are controlled enough for quick visual concepts.
+- `L3 reference-base ready`: key dimensions, openings, door swings, fixed-service constraints, furniture footprints, and operation logs are controlled enough for visual deepening and reference export.
+- `L4 reference documentation`: outputs may support review or site measurement; do not claim construction readiness.
+
+Quick concept starts at `L2`. Visual deepening/reference export starts at `L3`.
+
+## Accuracy Policy
+
+Use these practical tolerances as guidance, not施工图 promises:
+
+- key individual elements should stay within centimeter-level error where possible
+- visible structure drift, wrong room adjacency, wrong opening host, or major fixed-service drift is not acceptable
+- non-critical decoration and loose furniture can tolerate more visual looseness
+- uncertain dimensions should become confirmation items instead of blocking all quick concept work
+- DWG/DXF/SVG outputs are reference files for review and site measurement
+
+## Geometry Kernel Scope
+
+The lightweight program should support:
 
 - straight wall centerlines with thickness
 - wall junctions: L, T, cross, endpoint touch, overlap, near-miss
@@ -28,31 +46,30 @@ A lightweight geometry program should support these objects first:
 - doors with swing envelopes
 - windows bound to exterior walls
 - rectangular furniture footprints with rotation and clearance envelopes
+- curved partitions after straight-wall reliability is stable
 
-Add curved partitions after the straight-wall system is reliable.
-
-## Required checks
+## Required Checks
 
 Base checks:
 
 - exterior outline is closed or explicitly marked incomplete
 - wall endpoints snap within tolerance or are flagged as near-miss
-- T-junctions and crosses are computed from line intersection, not visual guess
+- T-junctions and crosses are computed from geometry, not visual guess
 - duplicate, overlapping, zero-length, and isolated walls are flagged
 - room polygons do not cross wall segments unless an opening exists
-- every door/window has exactly one host wall
+- every door/window has one plausible host wall
 - room labels map to one room object
-- dimension endpoints map to controlled objects or are marked unresolved
+- key dimensions map to controlled objects or are marked unresolved/local/reference-only
 
 Scheme checks:
 
 - demolished walls are alteration candidates or verified as modifiable
 - new walls have explicit geometry and thickness
-- curved partitions have center, radius, angle range, thickness, and clearance impact
-- furniture does not collide with walls, doors, or fixed fixtures
-- door swing envelopes remain clear
-- circulation width meets the declared concept threshold
-- kitchen islands and cabinets preserve minimum operating clearance or are flagged
+- curved partitions have center/radius/angle or equivalent controlled geometry
+- key furniture does not collide with walls, doors, or fixed fixtures
+- door swing envelopes remain usable
+- circulation width meets the declared scheme threshold
+- kitchen islands and cabinets preserve plausible operating clearance or are flagged
 
 Contamination checks:
 
@@ -61,35 +78,21 @@ Contamination checks:
 - rejected versions are not used as parents
 - generated images are not used as geometry authority
 
-## T-junction logic
+## T-Junction Logic
 
 For two straight wall centerlines:
 
 1. Compute line-segment intersection.
 2. If no intersection, compute minimum endpoint-to-segment distance.
-3. If distance is within snap tolerance, classify as `near_miss` and propose snap; do not silently snap if the tolerance is exceeded.
+3. If distance is within snap tolerance, classify as `near_miss` and propose confirmation or snap.
 4. If one wall endpoint lands on the interior of another segment, classify as `t_junction`.
 5. If both segments cross through interiors, classify as `cross_junction`.
 6. If endpoints meet, classify as `l_or_endpoint_junction` based on angle.
 7. Store a `junction_id`, point, members, angle, tolerance, and validation status.
 
-Example:
+## Curved Partition Logic
 
-```json
-{
-  "id": "J-023",
-  "type": "t_junction",
-  "members": ["W-A", "W-B"],
-  "point": [4200, 3100],
-  "angle": 90,
-  "tolerance_mm": 20,
-  "status": "valid"
-}
-```
-
-## Curved partition logic
-
-Represent curved walls as arcs, not prompt adjectives:
+Represent curved walls as controlled geometry, not prompt adjectives:
 
 ```json
 {
@@ -109,11 +112,11 @@ Represent curved walls as arcs, not prompt adjectives:
 }
 ```
 
-Validate arc endpoints, nearby wall connections, clearance, and whether the arc blocks doors, windows, or required circulation.
+Validate endpoints, nearby wall connections, clearance, and whether the arc blocks openings or circulation.
 
-## Program MVP
+## Program Role
 
-Build the first program as a validator, not as a full CAD engine.
+Build and use validators as risk gates, not as full CAD engines.
 
 Inputs:
 
@@ -127,6 +130,7 @@ Outputs:
 - normalized junction list
 - object warnings
 - readiness recommendation: `L0` through `L4`
+- confirmation items when uncertainty is high-impact
 
 Minimum functions:
 
@@ -139,4 +143,4 @@ Minimum functions:
 - `check_furniture_collisions(furniture, walls, doors, fixtures)`
 - `recommend_readiness(validation_results)`
 
-The first useful version can ignore raster image processing. It should validate object data produced by AI or manually corrected data. Raster-to-object extraction can be a later module.
+Raster-to-object extraction is a separate module. It should produce a controlled scheme-base candidate, not a construction-grade CAD model.

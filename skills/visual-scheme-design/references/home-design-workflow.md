@@ -1,135 +1,204 @@
 # Home Design Workflow
 
-Use this reference first for residential renovation and home-design tasks. It summarizes the working model learned from repeated failures: image generation is useful for expression, but reliable home design requires objectized source data, deterministic validation, version isolation, and controlled rendering.
+Use this reference for residential renovation, whole-home layout, source-plan objectization, client-visible base confirmation, creative case learning, quick visual concepts, option migration, and visual deepening.
 
-## Core conclusion
+## Core Position
 
-The critical path is:
+This skill creates home design scheme drawings, not construction drawings.
+
+Priority order:
 
 ```text
-original client plan
-→ candidate source facts
-→ decomposable base object model
-→ geometry validation and readiness level
-→ quick concept options or stable deepening
-→ rendered drawings and client-facing images
+client-visible base confirmation
+→ structure consistency
+→ centimeter-level key element accuracy
+→ customer needs and hard constraints
+→ creative case strategy
+→ object/version control
+→ deterministic scheme draft
+→ visual scheme output
+→ review/reference export
 ```
 
-The source plan must become sufficiently accurate object data before design options are generated. If this step is weak, later concept images, scheme migration, and deepening will inherit unstable geometry and become frustrating to correct.
+Do not chase millimeter-level CAD accuracy during concept work. Allow small dimension differences when the original structure, room relationships, openings, and major fixed-service areas remain visually and spatially consistent.
 
-## Product-facing modes
+Generated images are visual outputs. They must not become the authority for walls, openings, room areas, dimensions, or option geometry.
 
-Use two user-facing modes, but gate both with data readiness:
+## Base Standard
 
-- `quick concept`: explore several directions quickly after the base reaches `L2 concept-design ready`.
-- `stable deepening`: develop a selected direction after the base reaches `L3 deepening ready`.
+Use a `scheme base`, not a construction base.
 
-Do not offer quick concept generation as a workaround when the base is only `L1 readable draft`. At `L1`, the useful output is an understanding draft, object list, discrepancy report, and the minimum questions needed to improve the base.
+A usable scheme base must preserve:
 
-## Readiness-controlled stages
+- overall apartment outline and room adjacency
+- main walls and major partitions
+- doors, windows, balconies, kitchen, bathrooms, and fixed-service zones
+- room labels and functional identity
+- key furniture or fixture footprints when they affect layout
+- object IDs for walls, rooms, openings, fixed zones, and reusable scheme elements
+
+Accuracy target:
+
+- key single elements should stay within centimeter-level error where possible
+- suspected large errors, wrong room topology, misplaced openings, or fixed-service drift must be flagged
+- DWG/DXF/SVG exports are reference outputs for review or site measurement, not construction-ready files
+
+## Product-Facing Modes
+
+Use two user-facing modes:
+
+- `quick concept`: starts after `L2 scheme-base ready`; produces controlled scheme intents, deterministic scheme drafts, and visual options.
+- `visual deepening`: starts after `L3 reference-base ready`; refines the selected option and may export reference DWG/DXF/SVG for review or site measurement.
+
+At `L1`, do not generate schemes. Output only an understanding draft, uncertainty list, and the minimum confirmation needed to reach `L2`.
+
+## Readiness Levels
+
+- `L0 unusable`: major structure, room identity, or orientation is broken.
+- `L1 readable draft`: spaces are recognizable, but the base is not controlled enough for schemes.
+- `L2 scheme-base ready`: structure, room identity, main walls, main openings, and fixed-service spaces are stable enough for quick visual concepts.
+- `L3 reference-base ready`: key dimensions, openings, fixed-service constraints, major furniture footprints, and operation logs are controlled enough for visual deepening and reference export.
+- `L4 documentation/reference export`: prepare review materials only; do not claim construction readiness.
+
+Mark manually anchored bases clearly when source extraction was not fully automated, for example `L3 manually anchored reference-base candidate`.
+
+## Revised Workflow
 
 1. `Project intake`
-   - Collect the original source plan and optional area, household needs, style preference, and constraints.
-   - Do not ask broad decoration questions before the source plan has a minimum readable base.
+   - Collect the original source plan and only essential needs.
+   - Do not ask broad style questions before the plan is at least `L1`.
 
 2. `Source objectization`
-   - Extract candidate rooms, walls, doors, windows, dimensions, labels, balconies, fixed service points, and uncertainty.
-   - Store them as object data, not only as a cleaned image.
+   - Extract candidate rooms, walls, doors, windows, balconies, fixed-service points, and key dimensions.
+   - Store them as object data with uncertainty, not as a cleaned raster image.
 
-3. `Geometry validation`
-   - Run deterministic checks for wall junctions, opening hosts, room topology, duplicate or isolated walls, dimension traceability, and readiness.
-   - Classify the base as `L0` through `L4`.
+3. `Client-visible base confirmation`
+   - Always show a base review package before scheme generation when a project will continue beyond a quick explanation.
+   - Include: base SVG/review image, coordinate origin, main dimension anchors, room/wall/opening IDs, unresolved questions, and pass/fail summary.
+   - Ask the client to confirm, circle errors, or approve proceeding with listed assumptions.
+   - Do not hide the base SVG as an internal-only artifact.
 
-4. `Quick concept options`
-   - Start only at `L2`.
-   - Generate options from `base_object_model + scheme_intent`, not from visual guessing.
-   - Each option must have independent IDs, intent data, operation logs, and generation reports.
+4. `Needs and constraints intake`
+   - Before options, collect high-impact needs unless the user explicitly asks for blind inspiration.
+   - Minimum questions: residents, must-keep rooms, openness to demolition, open-kitchen attitude, island attitude, storage needs, budget/risk tolerance, style preference, fixed no-change areas.
+   - Separate hard constraints from taste, ideas, and optional wishes.
 
-5. `Selection and migration`
+5. `Creative case learning`
+   - Search or use supplied references only after needs are known.
+   - Learn from cases by extracting strategies, not copying images.
+   - Store each case idea as: inspiration, transferable strategy, current-home placement, risk level, required validation.
+   - Do not let reference images override source geometry.
+
+6. `Differentiated scheme strategy`
+   - Create A/B/C using different risk and creativity levels, not minor furniture swaps.
+   - Recommended default:
+     - `方案 A`: low-risk optimization; little or no demolition, furniture/storage/circulation improvement.
+     - `方案 B`: medium-risk functional upgrade; open kitchen, island, partial partition changes, stronger living-dining-kitchen relationship.
+     - `方案 C`: high-creativity exploration; curved partition, multifunction room, spatial reorganization, bolder alteration candidates.
+   - Each option needs independent IDs, intent data, operation records, risk level, and generation report.
+
+7. `Object operations and validation`
+   - Convert every creative idea into object operations before rendering.
+   - Validate walls, openings, door swings, furniture footprints, fixed-service zones, circulation, and proposal-specific risks.
+   - High-risk changes such as demolition, moving wet zones, curved walls, or major spatial reconfiguration must be marked `requires_verification` unless confirmed.
+
+8. `Deterministic scheme draft`
+   - Before AI visual generation, create a deterministic plan draft when the output is a floor-plan scheme.
+   - The draft should include controlled walls, openings, room names, key furniture, proposal objects, rough dimensions or coordinate grid, and option ID.
+   - The client or operator should be able to compare the draft against the base SVG before visual rendering.
+
+9. `Visual scheme generation`
+   - Use visual generation for material, color, atmosphere, and client-friendly polish.
+   - Do not ask the image model to create authoritative dimensions, small Chinese labels, dense annotations, or construction-grade walls.
+   - Add labels, dimensions, coordinates, legends, and notes later in deterministic layout tools.
+
+10. `Post-generation review`
+   - Every generated image starts as `generated_pending_review`.
+   - Check structure drift, wall continuity/thickness, door/window drift, bathroom/kitchen completeness, furniture logic, circulation, option differentiation, labels/text failures, and watermark/UI artifacts.
+   - Mark the result `reviewed_passed`, `needs_repair`, or `rejected`.
+   - Repair the smallest layer: prompt, scheme intent, deterministic draft, base model, or source extraction.
+
+11. `Selection and migration`
    - Convert user feedback into object operations.
-   - Example: "move scheme A's island into scheme B" means copy the island object intent, validate fit in scheme B, and create `scheme_B_vNext`; it does not mean visually blend two images.
+   - Example: "move scheme A's island into scheme B" means copy the island object intent, validate fit in scheme B, and create `scheme_B_vNext`; do not visually blend two images.
 
-6. `Stable deepening`
-   - Start only at `L3`.
-   - Use the original source facts, validated base object model, selected scheme intent, and operation log.
-   - Do not use a quick scheme image as geometry authority.
+12. `Visual deepening / reference export`
+   - Start only at `L3` plus selected scheme intent, operation log, validation report, and affected-object list.
+   - Use original source facts, controlled base, selected scheme intent, deterministic draft, and operation log.
+   - Reference DWG/DXF/SVG outputs are for review/site measurement and must not be described as施工图.
 
-7. `Repair and rollback`
-   - Fix the smallest affected layer: label, style, furniture, opening, wall, base geometry, or scheme operation.
+13. `Repair and rollback`
+   - Fix the smallest affected layer: base geometry, scheme operation, deterministic draft, visual prompt, labels, style, furniture, or output board.
    - Base changes create a new base version and mark dependent schemes affected.
    - Scheme changes create only a new scheme version.
    - Rejected versions must not become parents.
 
+## Control Checkpoints
 
-## Deterministic control checkpoints
+Before quick concept:
 
-Use these checkpoints to prevent image drift and option contamination:
+- Required: `L2`, client-visible base review, base object model, unresolved blockers listed, needs/constraints brief, and option IDs prepared.
+- If the user has no needs yet, ask whether to proceed with three exploratory directions.
+- Do not proceed from a cleaned raster image alone.
 
-1. `Before quick concept`
-   - Required: `base_object_model`, readiness `L2` or higher, unresolved blockers listed, and option IDs prepared.
-   - Do not proceed from a cleaned raster image alone.
+Before creative case learning:
 
-2. `Before stable deepening`
-   - Required: readiness `L3` or higher, selected scheme intent, active operation log, validation report, and affected-object list.
-   - Do not use a quick concept image as the base for deepening.
+- Required: customer needs or an explicit exploration goal.
+- Output strategy notes, not copied case layouts.
+- Mark ideas as low/medium/high risk before mapping them to the current plan.
 
-3. `Before scheme migration`
-   - Required: source scheme ID, target scheme ID, copied object IDs or design intent, target placement rule, and fit validation.
-   - Example: copying an island from scheme A into scheme B must become an operation record, then a validation pass, then a render.
+Before visual generation:
 
-4. `Before rollback or revision`
-   - Required: parent version, target layer to change, rejected versions list, and unaffected schemes.
-   - Never repair by editing the latest visual image when the requested change belongs to an earlier object version.
+- Required: scheme intent, operation list, risk level, validation plan, and preferably a deterministic scheme draft.
+- For plan images, do not rely on prompt-only control when dimensions, wall continuity, or furniture orientation matter.
 
-5. `Before client delivery`
-   - Required: generation report, validation status, option registry, and a short risk note for unresolved assumptions.
+Before visual deepening/reference export:
 
-## Script and engine intervention points
+- Required: `L3`, selected scheme intent, operation log, deterministic draft, validation report, generation review status, and affected-object list.
+- Do not use a quick concept image as geometry authority.
 
-Use scripts or project-local geometry tools when available instead of re-reasoning from images:
+Before scheme migration:
 
-- Run object/geometry validation after source objectization and after any wall, opening, fixed fixture, or major furniture operation.
-- Use an operation applier for actions such as demolish wall, add wall, move furniture, copy element from another scheme, or create a new scheme version.
-- Use deterministic rendering or layout tools for SVG checks, labels, dimensions, option summaries, and client-board assembly.
-- Use image generation only after the current object state and option intent are clear enough to describe.
+- Required: source scheme ID, target scheme ID, copied object IDs or design intent, target placement rule, and fit validation.
 
-If no script is available in the active project, still follow the same contract manually: write the object state, operation log, validation notes, and generation report before rendering.
+Before client delivery:
 
-## Failure lessons to preserve
+- Required: generation report, validation status, option registry, review notes, and short risk note for unresolved assumptions.
 
-- A visually clean CAD-like image can still contain wrong areas, moved walls, altered doors, or lost geometry.
+## Script Role
+
+Scripts are backend risk controls. Use them to:
+
+- prevent obvious structural drift
+- keep option data isolated
+- detect wrong or uncertain dimensions
+- generate confirmation lists and review diagrams
+- create deterministic scheme drafts
+- support reference SVG/DWG/DXF export
+
+Do not let script checks turn the workflow into施工图 production. If a check is too strict for visual scheme design, report it as a risk or confirmation item instead of blocking all concept work.
+
+## Failure Lessons
+
+- A clean CAD-like image can still contain wrong areas, moved walls, altered doors, or lost geometry.
 - Image models are strong visual renderers, not reliable geometry engines.
 - Repeated image-to-image transformations accumulate drift.
-- Complex quick scheme images are worse geometry inputs than the original source plan because they add furniture, colors, dashed zones, and generated mistakes.
+- Complex quick scheme images are worse geometry inputs than the original source plan.
 - Cross-option contamination happens when option objects are kept only in conversation memory.
-- User rollback fails when the system edits the current image instead of branching from a prior object version.
-- Asking users to notice and describe every visual error is unrealistic; the system must self-check object data and report uncertainty.
+- Asking users to find every visual error is unrealistic; the system must self-check and ask only high-impact questions.
+- Creative references increase option quality only when converted into object operations and validations.
+- Prompt-only control is not enough for wall thickness, door continuity, bathroom fixtures, furniture orientation, or consistent scale.
 
-## Control rules
+## What To Show The User
 
-- Data controls images; images never write back into source facts.
-- Every reusable design element must have an object ID, geometry, version, source, status, and confidence where relevant.
-- Every user request that changes a plan must become an operation log entry before rendering.
-- Every generated output must have a generation report identifying input versions, changed objects, unchanged claims, uncertainty, and validation status.
-- A quick concept image may help the client choose direction; the selected direction must be migrated through object data before deepening.
-
-## What to show the user
-
-Keep the interface light. Show only the current state and next useful action:
+Keep output light but visible:
 
 ```text
-Base: base_v2, L2 concept-design ready
-Scheme: A_v1 / B_v1 / C_v1
-Current layer: furniture layout
-Impact: affects scheme B only, not the base or scheme A
-Next: validate island fit before rendering scheme B_v2
+Base: L3 manually anchored reference-base candidate
+Shown: base SVG, dimension anchors, unresolved assumptions
+Need confirmation: bathroom door position and top local dimension
+Needs brief: open kitchen? island? demolition tolerance? storage priority?
+Next: learn 3-5 relevant cases and create differentiated A/B/C scheme intents
 ```
 
-Use technical terms such as ECF, GCF, WSM, OOM, object model, or junction validation only when they help the current task. Otherwise describe the visible deliverable and the confirmation needed.
-
-## Reference order
-
-- Read `home-object-model.md` for IDs, versions, state isolation, scheme intents, and operation logs.
-- Read `home-geometry-validation.md` for readiness levels, topology checks, wall junctions, opening hosts, curved partitions, and furniture clearance.
-- Read `residential-plan-redraw.md` for rigorous source-plan redraw stages and confirmation gates.
-
+Use technical terms only when they help the current task.
