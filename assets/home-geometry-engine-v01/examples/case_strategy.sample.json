@@ -1,0 +1,19 @@
+{
+  "schema_version": "case_strategy_package_v1",
+  "strategies": [
+    {
+      "id": "CASE-KITCHEN-LINK-01",
+      "transferable_strategy": "Use a semi-open kitchen relationship and test an island only when circulation remains clear.",
+      "risk_level": "medium",
+      "required_validation": ["kitchen_workflow", "island_clearance", "fixed_service_zones"],
+      "allowed_in_options": ["方案 B"]
+    },
+    {
+      "id": "CASE-FLEX-ROOM-01",
+      "transferable_strategy": "Use movable furniture and storage to support study, guest, and family activities without fixing one permanent use.",
+      "risk_level": "low",
+      "required_validation": ["circulation_width", "furniture_fit"],
+      "allowed_in_options": ["方案 C"]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "project_id": "demo_restrictive_needs_v1",
+  "answers": {
+    "household": {"choice": "两人居住"},
+    "must_keep_rooms": {"choice": ["保留现有房间数量"]},
+    "demolition_attitude": {"choice": "avoid"},
+    "kitchen_attitude": {"choice": "closed"},
+    "island_attitude": {"choice": "avoid"},
+    "storage_priority": {"choice": "normal"},
+    "life_focus": {"choice": ["日常起居"]},
+    "style_preference": {"choice": ["简洁耐用"]},
+    "budget_risk": {"choice": "controlled"},
+    "no_change_areas": {"choice": ["厨房不动", "卫生间不动", "承重墙不动"]}
+  }
+}

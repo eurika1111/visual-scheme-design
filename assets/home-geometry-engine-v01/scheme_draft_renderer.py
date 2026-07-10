@@ -83,6 +83,11 @@ def build_report(intent: dict[str, Any], model_path: Path, validation_path: Path
     }
 
 
+def unresolved_placements(intent: dict[str, Any]) -> list[dict[str, Any]]:
+    resolved = {"resolved", "not_required", "accepted_without_object"}
+    return [item for item in intent.get("placement_requests", []) or [] if item.get("status") not in resolved]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("base_model", type=Path)
@@ -95,6 +100,21 @@ def main() -> int:
 
     base = load_json(args.base_model)
     intent = load_json(args.scheme_intent)
+    pending = unresolved_placements(intent)
+    layout_gate = intent.get("layout_gate")
+    if pending or layout_gate not in {None, "ready"}:
+        write_json(args.report_output, {
+            "schema_version": "deterministic_scheme_draft_report_v1",
+            "scheme_id": intent.get("scheme_id"),
+            "scheme_version": intent.get("version"),
+            "status": "blocked_unresolved_placement",
+            "layout_gate": layout_gate,
+            "pending_request_ids": [item.get("id") for item in pending],
+            "next_action": "resolve placement requests into controlled proposal_objects before rendering",
+        })
+        print(f"draft_blocked=pending_placements:{len(pending)}")
+        print(f"report={args.report_output}")
+        return 2
     draft = merge_scheme(base, intent)
 
     write_json(args.output_model, draft)

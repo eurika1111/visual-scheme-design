@@ -17,6 +17,7 @@ $StateReader = Join-Path $EngineDir 'read_project_state.py'
 $Workflow = Join-Path $EngineDir 'home_geometry_workflow.py'
 $BaseHandoffBuilder = Join-Path $EngineDir 'base_handoff_builder.py'
 $NeedsBriefBuilder = Join-Path $EngineDir 'needs_brief_builder.py'
+$SchemeOptionPlanner = Join-Path $EngineDir 'scheme_option_planner.py'
 $SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
@@ -41,6 +42,7 @@ $SourceExtractionPackage = Join-Path $ExamplesDir 'source_extraction_package.sam
 $SourceExtractionProblemPackage = Join-Path $ExamplesDir 'source_extraction_package.problem-sample.json'
 $DimensionAnchorConfirmationResponse = Join-Path $ExamplesDir 'dimension_anchor_confirmation_response.sample.json'
 $NeedsResponse = Join-Path $ExamplesDir 'needs_response.sample.json'
+$CaseStrategy = Join-Path $ExamplesDir 'case_strategy.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -81,6 +83,12 @@ $BaseHandoff = Join-Path $OutputDir 'base_handoff.md'
 $BaseReviewPackageDir = Join-Path $OutputDir 'base_review_package'
 $NeedsBriefJson = Join-Path $OutputDir 'client.needs_brief.json'
 $NeedsBriefMd = Join-Path $OutputDir 'client.needs_brief.md'
+$SchemeOptionsDir = Join-Path $OutputDir 'scheme_options'
+$SchemeOptionPlan = Join-Path $SchemeOptionsDir 'scheme_option_plan.json'
+$SchemeOptionPlanMd = Join-Path $SchemeOptionsDir 'scheme_option_plan.md'
+$PlannedSchemeAIntent = Join-Path $SchemeOptionsDir 'scheme_A_v1_intent.json'
+$BlockedDraftDir = Join-Path $OutputDir 'blocked_draft_check'
+$BlockedDraftReport = Join-Path $BlockedDraftDir 'scheme_A_v1.draft_report.json'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -126,6 +134,7 @@ Invoke-Step 'compile SVG preview renderer' { & $PythonExe -m py_compile $SvgPrev
 Invoke-Step 'compile workflow entrypoint' { & $PythonExe -m py_compile $Workflow }
 Invoke-Step 'compile base handoff builder' { & $PythonExe -m py_compile $BaseHandoffBuilder }
 Invoke-Step 'compile needs brief builder' { & $PythonExe -m py_compile $NeedsBriefBuilder }
+Invoke-Step 'compile scheme option planner' { & $PythonExe -m py_compile $SchemeOptionPlanner }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
@@ -175,13 +184,19 @@ Invoke-Step 'render client base PNG preview' { & $PythonExe $SvgPreviewRenderer 
 Invoke-Step 'build client base handoff with preview' { & $PythonExe $BaseHandoffBuilder --project-root $OutputDir --base-model $BaseModel --review-svg $PlanBaseClient --preview-png $PlanBaseClientPreview --validation $ValidationBase --output $BaseHandoff --title 'Demo Base Review Package' }
 Invoke-Step 'build one-command base review package' { & $PythonExe $Workflow build-base-review --base-model $ExportedBaseModel --validation $ValidationExportedBase --output-dir $BaseReviewPackageDir --project-root $OutputDir --title 'Demo One-Command Base Review' --stem 'base_from_extraction_v1' }
 Invoke-Step 'build needs brief' { & $PythonExe $Workflow build-needs-brief $NeedsResponse --output-dir $OutputDir --stem 'client' }
+Invoke-Step 'plan isolated A/B/C scheme options' { & $PythonExe $Workflow plan-options $ExportedBaseModel $NeedsBriefJson --output-dir $SchemeOptionsDir --case-strategy $CaseStrategy }
+Invoke-Step 'reject draft with unresolved placements' { & $PythonExe $Workflow render-scheme-draft $ExportedBaseModel $PlannedSchemeAIntent --output-dir $BlockedDraftDir --version 'scheme_A_v1' } @(2)
+$blockedDraft = Get-Content -Path $BlockedDraftReport -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($blockedDraft.status -ne 'blocked_unresolved_placement') {
+    throw "Unresolved placement gate did not block the draft"
+}
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }
 Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanProblem $ValidationProblem }
 Invoke-Step 'render door swing SVG' { & $PythonExe $Renderer $DoorSwingModel $PlanDoorSwing $ValidationDoorSwing }
 Invoke-Step 'render island move SVG' { & $PythonExe $Renderer $IslandMoveModel $PlanIslandMove $ValidationIslandMove }
 Invoke-Step 'render arc partition SVG' { & $PythonExe $Renderer $ArcPartitionModel $PlanArcPartition $ValidationArcPartition }
-Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $ExportedBaseModel --base-validation $ValidationExportedBase --base-version base_from_extraction_v1 --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --scheme-a-version scheme_A_v1 --problem-validation $ValidationProblem --base-source-quality $SourceQualityExportedBase --base-source-extraction $SourceExtractionValidation }
+Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $ExportedBaseModel --base-validation $ValidationExportedBase --base-version base_from_extraction_v1 --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --scheme-a-version scheme_A_v1 --problem-validation $ValidationProblem --base-source-quality $SourceQualityExportedBase --base-source-extraction $SourceExtractionValidation --needs-brief $NeedsBriefJson --option-plan $SchemeOptionPlan }
 
 Write-Host '== state gate'
 & $PythonExe $StateReader $ProjectState
@@ -265,6 +280,10 @@ Write-Host $BaseHandoff
 Write-Host $BaseReviewPackageDir
 Write-Host $NeedsBriefJson
 Write-Host $NeedsBriefMd
+Write-Host $SchemeOptionPlan
+Write-Host $SchemeOptionPlanMd
+Write-Host $PlannedSchemeAIntent
+Write-Host $BlockedDraftReport
 Write-Host $PlanExportedBase
 Write-Host $PlanSchemeA
 Write-Host $PlanProblem

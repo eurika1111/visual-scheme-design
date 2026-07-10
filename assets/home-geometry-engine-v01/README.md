@@ -73,6 +73,7 @@ L4：参考资料整理，仍需现场复尺和专业确认
 - `build-handoff`：生成客户可确认的底图交接 Markdown；可传入 `--preview-png`，优先给客户查看 PNG 预览，减少 SVG/浏览器权限问题。
 - `build-base-review`：一键生成客户版底图 SVG、PNG 预览和底图交接 Markdown。
 - `build-needs-brief`：把客户模糊或明确的回答整理成结构化需求 JSON 和 Markdown 摘要。
+- `plan-options`：把受控底图和需求摘要转换成隔离的 A/B/C 方案意图；坐标未解决时保持草图门禁关闭。
 - `render-scheme-draft`：从底图模型和方案意图生成确定性方案草图 SVG。
 - `run-demo`：运行项目内完整示例流程。
 

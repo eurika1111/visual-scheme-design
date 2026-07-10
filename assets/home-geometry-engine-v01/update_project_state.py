@@ -59,6 +59,8 @@ def main() -> int:
     parser.add_argument("--problem-validation", required=True, type=Path)
     parser.add_argument("--base-source-quality", type=Path, help="Optional source quality gate report for the base model")
     parser.add_argument("--base-source-extraction", type=Path, help="Optional source extraction validation report for the base model")
+    parser.add_argument("--needs-brief", type=Path, help="Optional structured client needs brief")
+    parser.add_argument("--option-plan", type=Path, help="Optional A/B/C scheme option strategy plan")
     args = parser.parse_args()
 
     base_report = load_json(args.base_validation)
@@ -66,6 +68,7 @@ def main() -> int:
     problem_report = load_json(args.problem_validation)
     source_quality_report = load_json(args.base_source_quality) if args.base_source_quality else None
     source_extraction_report = load_json(args.base_source_extraction) if args.base_source_extraction else None
+    option_plan = load_json(args.option_plan) if args.option_plan else None
 
     base_status = validation_status(base_report)
     scheme_a_status = validation_status(scheme_a_report)
@@ -109,6 +112,8 @@ def main() -> int:
             "problem_sample_validation_report": str(args.problem_validation),
             "base_source_quality_report": str(args.base_source_quality) if args.base_source_quality else None,
             "base_source_extraction_report": str(args.base_source_extraction) if args.base_source_extraction else None,
+            "needs_brief": str(args.needs_brief) if args.needs_brief else None,
+            "scheme_option_plan": str(args.option_plan) if args.option_plan else None,
         },
         "checks": {
             "base": {
@@ -118,6 +123,11 @@ def main() -> int:
             },
             "base_source_quality": source_quality_report or {},
             "base_source_extraction": source_extraction_report or {},
+            "scheme_option_plan": {
+                "status": option_plan.get("status"),
+                "differentiation_status": (option_plan.get("differentiation_check") or {}).get("status"),
+                "option_count": len(option_plan.get("options", [])),
+            } if option_plan else {},
             "scheme_A": {
                 "readiness": scheme_a_report.get("readiness"),
                 "status": scheme_a_status,

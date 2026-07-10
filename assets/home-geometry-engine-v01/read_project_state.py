@@ -67,6 +67,16 @@ def print_summary(state: dict[str, Any]) -> None:
     print(f"can_quick_concept: {str(gate['can_quick_concept']).lower()}")
     print(f"can_stable_deepening: {str(gate['can_stable_deepening']).lower()}")
 
+    option_plan = (state.get("checks") or {}).get("scheme_option_plan") or {}
+    if option_plan:
+        print(
+            "option_plan: {status}, differentiation={differentiation}, options={count}".format(
+                status=option_plan.get("status", "unknown"),
+                differentiation=option_plan.get("differentiation_status", "unknown"),
+                count=option_plan.get("option_count", 0),
+            )
+        )
+
     registry = state.get("option_registry") or []
     if registry:
         print("options:")
@@ -99,6 +109,7 @@ def main() -> int:
     gate = state_gate(state)
 
     if args.json:
+        option_plan = (state.get("checks") or {}).get("scheme_option_plan") or {}
         output = {
             "validation_status": state.get("validation_status"),
             "level": state.get("level"),
@@ -113,6 +124,7 @@ def main() -> int:
             "phase": state.get("phase"),
             "active_base": state.get("active_base"),
             "active_option": state.get("active_option"),
+            "scheme_option_plan": option_plan,
             **gate,
         }
         print(json.dumps(output, ensure_ascii=False, indent=2))

@@ -176,7 +176,8 @@ def build_base_review(
 
 
 def build_needs_brief(response: Path, output_dir: Path, stem: str) -> None:
-    output_dir = ensure_dir(output_dir)
+    response = response.resolve()
+    output_dir = ensure_dir(output_dir.resolve())
     output_json = output_dir / f"{stem}.needs_brief.json"
     output_md = output_dir / f"{stem}.needs_brief.md"
     run_step(
@@ -193,8 +194,27 @@ def build_needs_brief(response: Path, output_dir: Path, stem: str) -> None:
     print(f"needs_brief_json={output_json}")
     print(f"needs_brief_md={output_md}")
 
+
+def plan_options(base_model: Path, needs_brief: Path, output_dir: Path, case_strategy: Path | None) -> None:
+    base_model = base_model.resolve()
+    needs_brief = needs_brief.resolve()
+    case_strategy = case_strategy.resolve() if case_strategy else None
+    output_dir = ensure_dir(output_dir.resolve())
+    child_args = [
+        "scheme_option_planner.py",
+        str(base_model),
+        str(needs_brief),
+        "--output-dir",
+        str(output_dir),
+    ]
+    if case_strategy:
+        child_args.extend(["--case-strategy", str(case_strategy)])
+    run_step("plan isolated scheme options", child_args)
+
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
-    output_dir = ensure_dir(output_dir)
+    base_model = base_model.resolve()
+    scheme_intent = scheme_intent.resolve()
+    output_dir = ensure_dir(output_dir.resolve())
     stem = version or scheme_intent.stem.replace("_intent", "")
     draft_model = output_dir / f"{stem}.draft_model.json"
     validation = output_dir / f"{stem}.validation.json"
@@ -291,6 +311,12 @@ def build_parser() -> argparse.ArgumentParser:
     needs.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     needs.add_argument("--stem", default="client")
 
+    options = sub.add_parser("plan-options", help="Build isolated A/B/C scheme intents from base and needs brief.")
+    options.add_argument("base_model", type=Path)
+    options.add_argument("needs_brief", type=Path)
+    options.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    options.add_argument("--case-strategy", type=Path)
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -342,6 +368,8 @@ def main() -> int:
         )
     elif args.command == "build-needs-brief":
         build_needs_brief(args.response, args.output_dir, args.stem)
+    elif args.command == "plan-options":
+        plan_options(args.base_model, args.needs_brief, args.output_dir, args.case_strategy)
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":
