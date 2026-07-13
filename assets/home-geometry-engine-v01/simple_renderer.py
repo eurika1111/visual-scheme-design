@@ -250,6 +250,16 @@ def render_opening_symbol(canvas: SvgCanvas, opening: dict[str, Any], walls: dic
             b = offset(gap_end, normal, shift)
             canvas.line(a, b, "#0f172a", 1.6, cap="butt")
         canvas.line(gap_start, gap_end, "#0891b2", 2.0, cap="butt")
+    elif opening.get("mode") == "sliding":
+        slide_offset = max(45.0, thickness * 0.3)
+        canvas.line(gap_start, gap_end, "#2563eb", 2.5, cap="butt")
+        canvas.line(
+            offset(gap_start, normal, slide_offset),
+            offset(gap_end, normal, slide_offset),
+            "#2563eb",
+            1.7,
+            cap="butt",
+        )
     else:
         hinge_side = -1 if opening.get("swing", {}).get("hinge") == "left" else 1
         hinge = gap_start if hinge_side < 0 else gap_end

@@ -1,0 +1,13 @@
+{
+  "schema_version": "home_geometry_operations_v1",
+  "parent_version": "base_130sqm_v1",
+  "new_version": "scheme_B_v5_sliding_door_base",
+  "operations": [
+    {
+      "operation": "set_door_mode",
+      "target_id": "D-BATH-A",
+      "mode": "sliding",
+      "reason": "方案 B 为释放卫生间 A 淋浴区，将内开门调整为移门。"
+    }
+  ]
+}

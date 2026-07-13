@@ -60,6 +60,29 @@ def apply_set_wall_status(model: dict[str, Any], operation: dict[str, Any]) -> N
     append_log(model, operation, "applied", f"Wall status changed: {operation['target_id']}")
 
 
+def apply_set_door_mode(model: dict[str, Any], operation: dict[str, Any]) -> None:
+    require_keys(operation, ["target_id", "mode"], "set_door_mode")
+    door = find_by_id(model.get("openings", []), operation["target_id"])
+    if not door or door.get("type") != "door":
+        append_log(model, operation, "error", f"Door not found: {operation['target_id']}")
+        return
+    mode = operation["mode"]
+    if mode not in {"swing", "sliding"}:
+        append_log(model, operation, "error", f"Unsupported door mode: {mode}")
+        return
+    if mode == "swing" and "swing" not in operation:
+        append_log(model, operation, "error", "Swing door mode requires swing data")
+        return
+    door["mode"] = mode
+    if mode == "sliding":
+        door.pop("swing", None)
+    else:
+        door["swing"] = copy.deepcopy(operation["swing"])
+    door["status"] = "modified"
+    door["version_note"] = operation.get("reason", f"door mode changed to {mode}")
+    append_log(model, operation, "applied", f"Door mode changed: {operation['target_id']} -> {mode}")
+
+
 def apply_add_furniture(model: dict[str, Any], operation: dict[str, Any]) -> None:
     require_keys(operation, ["object"], "add_furniture")
     item = copy.deepcopy(operation["object"])
@@ -139,6 +162,7 @@ def apply_operations(base_model: dict[str, Any], operations_doc: dict[str, Any],
     handlers = {
         "demolish_wall": lambda op: apply_demolish_wall(model, op),
         "set_wall_status": lambda op: apply_set_wall_status(model, op),
+        "set_door_mode": lambda op: apply_set_door_mode(model, op),
         "add_furniture": lambda op: apply_add_furniture(model, op),
         "move_object": lambda op: apply_move_object(model, op),
         "remove_furniture": lambda op: apply_remove_furniture(model, op),

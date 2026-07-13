@@ -153,11 +153,18 @@ def build_markdown(options: list[dict[str, Any]], output_dir: Path, manifest_pat
 """
         )
 
-    return f"""# A/B/C 方案草图复核包
+    single = len(options) == 1
+    title = "选定方案确认包" if single else "A/B/C 方案草图复核包"
+    usage = (
+        "- 当前页面用于确认已选方案的结构、家具、尺寸与待确认事项。"
+        if single
+        else "- 各方案使用同一底图边界、同一比例、同一左下角坐标原点和毫米单位，可直接横向比较。"
+    )
+    return f"""# {title}
 
 ## 使用说明
 
-- 三张图使用同一底图边界、同一比例、同一左下角坐标原点和毫米单位，可直接横向比较。
+{usage}
 - 图中墙体、门窗、房间和家具来自对象数据；AI 图片尚未参与本阶段。
 - 这是方案讨论图，不是施工图。需要施工或深化时仍需现场复尺。
 - 复核清单数据：`{relative(manifest_path, output_dir)}`
@@ -165,7 +172,7 @@ def build_markdown(options: list[dict[str, Any]], output_dir: Path, manifest_pat
 {''.join(sections)}
 ## 请客户确认
 
-1. 哪个方案最接近希望继续深化的方向？
+1. {'当前方案的结构和主要功能是否可以继续深化？' if single else '哪个方案最接近希望继续深化的方向？'}
 2. 是否要把另一方案中的某个已编号对象融合进来？请直接说方案和对象名称即可。
 3. 哪些家具位置、尺寸或朝向明显不合适？
 4. 标为“仍需确认”的拆墙或高风险想法，是否继续研究？
@@ -295,8 +302,8 @@ def main() -> int:
     parser.add_argument("scheme_intents", type=Path, nargs="+")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    if not 2 <= len(args.scheme_intents) <= 3:
-        parser.error("provide two or three isolated scheme intents")
+    if not 1 <= len(args.scheme_intents) <= 3:
+        parser.error("provide one to three isolated scheme intents")
     manifest = build_package(args.base_model, args.scheme_intents, args.output_dir)
     print(f"review_manifest={args.output_dir / 'scheme_review_manifest.json'}")
     print(f"review_status={manifest['status']} options={len(manifest.get('options', []))}")
