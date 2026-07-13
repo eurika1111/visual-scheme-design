@@ -117,6 +117,9 @@ Mark manually anchored bases clearly when source extraction was not fully automa
    - The client or operator should be able to compare each draft against the base SVG and compare A/B/C directly.
 
 10. `Visual scheme generation`
+   - Build a visual-generation handoff only from the active `accepted` scheme version and its matching deterministic review package.
+   - If style remains vague, keep the generation gate closed and offer a few broad directions plus free-form room for partial preferences.
+   - The handoff must separate immutable geometry from allowed visual freedom and list every deferred structural idea as "do not visualize until confirmed".
    - Use visual generation for material, color, atmosphere, and client-friendly polish.
    - Do not ask the image model to create authoritative dimensions, small Chinese labels, dense annotations, or construction-grade walls.
    - Add labels, dimensions, coordinates, legends, and notes later in deterministic layout tools.
@@ -162,7 +165,7 @@ Before creative case learning:
 
 Before visual generation:
 
-- Required: scheme intent, operation list, risk level, resolved blocking placement requests, validation plan, and preferably a deterministic scheme draft.
+- Required: active accepted scheme version, scheme intent, operation list, risk level, resolved blocking placement requests, matching deterministic review package, confirmed or explicitly exploratory style brief, and visual-generation handoff.
 - For plan images, do not rely on prompt-only control when dimensions, wall continuity, or furniture orientation matter.
 
 Before visual deepening/reference export:

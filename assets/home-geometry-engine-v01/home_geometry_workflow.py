@@ -298,6 +298,29 @@ def manage_scheme_history(history: Path, history_args: list[str]) -> None:
     )
 
 
+def build_visual_handoff(
+    base_model: Path,
+    scheme_intent: Path,
+    review_manifest: Path,
+    history: Path,
+    needs_brief: Path,
+    style_brief: Path | None,
+    output_dir: Path,
+) -> None:
+    child_args = [
+        "visual_generation_handoff_builder.py",
+        "--base-model", str(base_model.resolve()),
+        "--scheme-intent", str(scheme_intent.resolve()),
+        "--review-manifest", str(review_manifest.resolve()),
+        "--history", str(history.resolve()),
+        "--needs-brief", str(needs_brief.resolve()),
+        "--output-dir", str(output_dir.resolve()),
+    ]
+    if style_brief:
+        child_args.extend(["--style-brief", str(style_brief.resolve())])
+    run_step("build visual generation handoff", child_args)
+
+
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
     base_model = base_model.resolve()
     scheme_intent = scheme_intent.resolve()
@@ -426,6 +449,15 @@ def build_parser() -> argparse.ArgumentParser:
     history.add_argument("history", type=Path)
     history.add_argument("history_args", nargs=argparse.REMAINDER)
 
+    visual_handoff = sub.add_parser("build-visual-handoff", help="Build a gated visual-generation package from the active accepted scheme.")
+    visual_handoff.add_argument("--base-model", type=Path, required=True)
+    visual_handoff.add_argument("--scheme-intent", type=Path, required=True)
+    visual_handoff.add_argument("--review-manifest", type=Path, required=True)
+    visual_handoff.add_argument("--history", type=Path, required=True)
+    visual_handoff.add_argument("--needs-brief", type=Path, required=True)
+    visual_handoff.add_argument("--style-brief", type=Path)
+    visual_handoff.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -487,6 +519,16 @@ def main() -> int:
         apply_scheme_feedback(args.base_model, args.source_intent, args.target_intent, args.feedback, args.output_dir)
     elif args.command == "scheme-history":
         manage_scheme_history(args.history, args.history_args)
+    elif args.command == "build-visual-handoff":
+        build_visual_handoff(
+            args.base_model,
+            args.scheme_intent,
+            args.review_manifest,
+            args.history,
+            args.needs_brief,
+            args.style_brief,
+            args.output_dir,
+        )
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":

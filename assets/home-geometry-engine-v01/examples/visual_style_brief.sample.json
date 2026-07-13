@@ -1,0 +1,11 @@
+{
+  "schema_version": "visual_style_brief_v1",
+  "status": "confirmed",
+  "direction": "温暖克制的现代居住感，干净但不冰冷，避免过度网红化",
+  "palette": ["暖白", "浅木色", "低饱和灰绿"],
+  "materials": ["浅色木饰面", "哑光浅灰石材", "米白织物"],
+  "atmosphere": "自然采光感，柔和均匀，具有真实家庭居住气息",
+  "furniture_language": "简洁、圆角适度、尺度实用，不做夸张造型",
+  "budget_expression": "中等可控预算，优先常见可落地材料",
+  "avoid": ["大面积深色", "高饱和金色", "复杂背景墙", "网红民宿感"]
+}

@@ -22,6 +22,7 @@ $SchemePlacementResolver = Join-Path $EngineDir 'scheme_placement_resolver.py'
 $SchemeReviewBuilder = Join-Path $EngineDir 'scheme_review_package_builder.py'
 $SchemeFeedbackMigrator = Join-Path $EngineDir 'scheme_feedback_migrator.py'
 $SchemeHistoryManager = Join-Path $EngineDir 'scheme_history_manager.py'
+$VisualHandoffBuilder = Join-Path $EngineDir 'visual_generation_handoff_builder.py'
 $SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
@@ -55,6 +56,7 @@ $MoveFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.move-object.sample
 $RotateFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.rotate-object.sample.json'
 $RemoveFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.remove-object.sample.json'
 $ReplaceFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.replace-object.sample.json'
+$VisualStyleBrief = Join-Path $ExamplesDir 'visual_style_brief.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -120,6 +122,11 @@ $MovedSchemeB = Join-Path $FeedbackDemoDir 'scheme_feedback.move-object.sample.m
 $SchemeHistory = Join-Path $OutputDir 'scheme_history.json'
 $SchemeHistoryBranch = Join-Path $OutputDir 'scheme_B_alt_branch.intent.json'
 $RejectedHistoryChild = Join-Path $OutputDir 'rejected_history_child.intent.json'
+$VisualHandoffNeedsStyleDir = Join-Path $OutputDir 'visual_handoff_needs_style'
+$VisualHandoffReadyDir = Join-Path $OutputDir 'visual_handoff_ready'
+$VisualHandoffNeedsStyle = Join-Path $VisualHandoffNeedsStyleDir 'visual_generation_handoff.json'
+$VisualHandoffReady = Join-Path $VisualHandoffReadyDir 'visual_generation_handoff.json'
+$VisualGenerationPrompt = Join-Path $VisualHandoffReadyDir 'generation_prompt.txt'
 $UpdatedSchemeReviewDir = Join-Path $OutputDir 'scheme_review_after_feedback'
 $UpdatedSchemeReviewManifest = Join-Path $UpdatedSchemeReviewDir 'scheme_review_manifest.json'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
@@ -172,6 +179,7 @@ Invoke-Step 'compile scheme placement resolver' { & $PythonExe -m py_compile $Sc
 Invoke-Step 'compile scheme review package builder' { & $PythonExe -m py_compile $SchemeReviewBuilder }
 Invoke-Step 'compile scheme feedback migrator' { & $PythonExe -m py_compile $SchemeFeedbackMigrator }
 Invoke-Step 'compile scheme history manager' { & $PythonExe -m py_compile $SchemeHistoryManager }
+Invoke-Step 'compile visual generation handoff builder' { & $PythonExe -m py_compile $VisualHandoffBuilder }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
@@ -270,6 +278,16 @@ Invoke-Step 'block branch from rejected version' { & $PythonExe $Workflow scheme
 $historyData = Get-Content -Path $SchemeHistory -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($historyData.active_versions.'方案 B' -ne 'placement_sample_b_layout_v1' -or (Test-Path $RejectedHistoryChild)) {
     throw "Scheme history rollback or rejected-parent gate failed"
+}
+Invoke-Step 'build visual handoff pending style' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --scheme-intent $ResolvedPlacementIntentB --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --output-dir $VisualHandoffNeedsStyleDir }
+$handoffNeedsStyle = Get-Content -Path $VisualHandoffNeedsStyle -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($handoffNeedsStyle.status -ne 'needs_style_confirmation' -or $handoffNeedsStyle.generation_gate -ne 'closed') {
+    throw "Visual handoff did not close the gate for missing style confirmation"
+}
+Invoke-Step 'build ready visual handoff' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --scheme-intent $ResolvedPlacementIntentB --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffReadyDir }
+$handoffReady = Get-Content -Path $VisualHandoffReady -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($handoffReady.status -ne 'ready' -or $handoffReady.generation_gate -ne 'open' -or -not (Test-Path $VisualGenerationPrompt)) {
+    throw "Visual handoff did not open after style confirmation"
 }
 Invoke-Step 'build review package after feedback' { & $PythonExe $Workflow build-scheme-review $BaseModel $ResolvedPlacementIntent $MigratedSchemeB $ResolvedPlacementIntentC --output-dir $UpdatedSchemeReviewDir }
 $updatedReview = Get-Content -Path $UpdatedSchemeReviewManifest -Raw -Encoding UTF8 | ConvertFrom-Json

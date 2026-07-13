@@ -342,6 +342,8 @@ Do not use AI-generated concept images as the geometry source.
 
 Use only after base confirmation, needs brief, scheme intent, and preferably deterministic draft exist.
 
+Prefer a generated `visual_generation_handoff` over reconstructing the prompt from chat history. The handoff's structure lock and active accepted version are authoritative; style fields control only visual treatment.
+
 ```text
 Purpose: Generate one client-facing top-down residential visual concept for [Option ID and short name].
 
