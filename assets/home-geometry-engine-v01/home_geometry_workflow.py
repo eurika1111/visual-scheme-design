@@ -211,6 +211,28 @@ def plan_options(base_model: Path, needs_brief: Path, output_dir: Path, case_str
         child_args.extend(["--case-strategy", str(case_strategy)])
     run_step("plan isolated scheme options", child_args)
 
+
+def resolve_layout(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
+    base_model = base_model.resolve()
+    scheme_intent = scheme_intent.resolve()
+    output_dir = ensure_dir(output_dir.resolve())
+    stem = version or scheme_intent.stem.replace("_intent", "")
+    resolved_intent = output_dir / f"{stem}.layout_intent.json"
+    report = output_dir / f"{stem}.placement_report.json"
+    child_args = [
+        "scheme_placement_resolver.py",
+        str(base_model),
+        str(scheme_intent),
+        "--output-intent",
+        str(resolved_intent),
+        "--report-output",
+        str(report),
+    ]
+    if version:
+        child_args.extend(["--version", f"{version}_layout_v1"])
+    run_step("resolve scheme placements", child_args)
+
+
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
     base_model = base_model.resolve()
     scheme_intent = scheme_intent.resolve()
@@ -317,6 +339,12 @@ def build_parser() -> argparse.ArgumentParser:
     options.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     options.add_argument("--case-strategy", type=Path)
 
+    placement = sub.add_parser("resolve-layout", help="Resolve placement requests into validated furniture coordinates.")
+    placement.add_argument("base_model", type=Path)
+    placement.add_argument("scheme_intent", type=Path)
+    placement.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    placement.add_argument("--version")
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -370,6 +398,8 @@ def main() -> int:
         build_needs_brief(args.response, args.output_dir, args.stem)
     elif args.command == "plan-options":
         plan_options(args.base_model, args.needs_brief, args.output_dir, args.case_strategy)
+    elif args.command == "resolve-layout":
+        resolve_layout(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":

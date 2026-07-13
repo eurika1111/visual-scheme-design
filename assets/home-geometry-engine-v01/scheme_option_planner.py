@@ -196,7 +196,7 @@ def build_option(
         if island_interest:
             requests.append(request("B-PLACE-ISLAND-01", "kitchen_island", targets, "验证岛台或餐岛是否适配。", preferred_size_mm=[1600, 800], required_clearance_mm=900))
         if kitchen_interest or (brief.get("risk_profile") or {}).get("open_kitchen") == "unclear":
-            requests.append(request("B-SELECT-KITCHEN-WALL-01", "wall_change_candidate", targets, "选择可讨论的局部隔墙，不自动拆墙。", status="wall_selection_required", requires_verification=True))
+            requests.append(request("B-SELECT-KITCHEN-WALL-01", "wall_change_candidate", targets, "选择可讨论的局部隔墙，不自动拆墙。", status="wall_selection_required", requires_verification=True, blocking=False))
         summary = "在不触碰硬约束的前提下，重点比较客餐厨关系、局部开放和岛台可行性。"
         differentiation = {"alteration_scope": "local_candidate", "primary_goal": "kitchen_living_relation", "spatial_character": "connected"}
         validation = ["check_kitchen_workflow", "check_island_clearance", "check_fixed_service_zones", "check_circulation_width"]

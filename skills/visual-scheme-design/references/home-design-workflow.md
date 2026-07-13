@@ -102,32 +102,39 @@ Mark manually anchored bases clearly when source extraction was not fully automa
    - Validate walls, openings, door swings, furniture footprints, fixed-service zones, circulation, and proposal-specific risks.
    - High-risk changes such as demolition, moving wet zones, curved walls, or major spatial reconfiguration must be marked `requires_verification` unless confirmed.
 
-8. `Deterministic scheme draft`
+8. `Controlled placement resolution`
+   - Convert placement requests into proposal objects with stable IDs, room targets, dimensions, coordinates, rotation, and source request IDs.
+   - Search a finite set of candidates and reuse geometry checks for room containment, wall/furniture collision, door swing, fixed fixtures, and circulation.
+   - Allow recorded compact furniture fallbacks when standard sizes do not fit; do not silently shrink objects.
+   - Keep demolition and other high-risk structure changes as confirmation items instead of applying them automatically.
+   - Keep `layout_gate=placement_required` when a blocking request has no valid candidate.
+
+9. `Deterministic scheme draft`
    - Before AI visual generation, create a deterministic plan draft when the output is a floor-plan scheme.
    - The draft should include controlled walls, openings, room names, key furniture, proposal objects, rough dimensions or coordinate grid, and option ID.
    - The client or operator should be able to compare the draft against the base SVG before visual rendering.
 
-9. `Visual scheme generation`
+10. `Visual scheme generation`
    - Use visual generation for material, color, atmosphere, and client-friendly polish.
    - Do not ask the image model to create authoritative dimensions, small Chinese labels, dense annotations, or construction-grade walls.
    - Add labels, dimensions, coordinates, legends, and notes later in deterministic layout tools.
 
-10. `Post-generation review`
+11. `Post-generation review`
    - Every generated image starts as `generated_pending_review`.
    - Check structure drift, wall continuity/thickness, door/window drift, bathroom/kitchen completeness, furniture logic, circulation, option differentiation, labels/text failures, and watermark/UI artifacts.
    - Mark the result `reviewed_passed`, `needs_repair`, or `rejected`.
    - Repair the smallest layer: prompt, scheme intent, deterministic draft, base model, or source extraction.
 
-11. `Selection and migration`
+12. `Selection and migration`
    - Convert user feedback into object operations.
    - Example: "move scheme A's island into scheme B" means copy the island object intent, validate fit in scheme B, and create `scheme_B_vNext`; do not visually blend two images.
 
-12. `Visual deepening / reference export`
+13. `Visual deepening / reference export`
    - Start only at `L3` plus selected scheme intent, operation log, validation report, and affected-object list.
    - Use original source facts, controlled base, selected scheme intent, deterministic draft, and operation log.
    - Reference DWG/DXF/SVG outputs are for review/site measurement and must not be described as施工图.
 
-13. `Repair and rollback`
+14. `Repair and rollback`
    - Fix the smallest affected layer: base geometry, scheme operation, deterministic draft, visual prompt, labels, style, furniture, or output board.
    - Base changes create a new base version and mark dependent schemes affected.
    - Scheme changes create only a new scheme version.
@@ -149,7 +156,7 @@ Before creative case learning:
 
 Before visual generation:
 
-- Required: scheme intent, operation list, risk level, validation plan, and preferably a deterministic scheme draft.
+- Required: scheme intent, operation list, risk level, resolved blocking placement requests, validation plan, and preferably a deterministic scheme draft.
 - For plan images, do not rely on prompt-only control when dimensions, wall continuity, or furniture orientation matter.
 
 Before visual deepening/reference export:

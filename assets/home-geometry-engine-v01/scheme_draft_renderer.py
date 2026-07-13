@@ -85,7 +85,10 @@ def build_report(intent: dict[str, Any], model_path: Path, validation_path: Path
 
 def unresolved_placements(intent: dict[str, Any]) -> list[dict[str, Any]]:
     resolved = {"resolved", "not_required", "accepted_without_object"}
-    return [item for item in intent.get("placement_requests", []) or [] if item.get("status") not in resolved]
+    return [
+        item for item in intent.get("placement_requests", []) or []
+        if item.get("blocking", True) and item.get("status") not in resolved
+    ]
 
 
 def main() -> int:
@@ -97,6 +100,11 @@ def main() -> int:
     parser.add_argument("--svg-output", type=Path, required=True)
     parser.add_argument("--report-output", type=Path, required=True)
     args = parser.parse_args()
+
+    args.output_model = args.output_model.resolve()
+    args.validation_output = args.validation_output.resolve()
+    args.svg_output = args.svg_output.resolve()
+    args.report_output = args.report_output.resolve()
 
     base = load_json(args.base_model)
     intent = load_json(args.scheme_intent)
