@@ -278,6 +278,26 @@ def apply_scheme_feedback(
     )
 
 
+def manage_scheme_history(history: Path, history_args: list[str]) -> None:
+    if not history_args:
+        raise SystemExit("scheme-history requires an action such as register, activate, set-status, branch, or show")
+    history_args = list(history_args)
+    if history_args[0] == "register" and len(history_args) > 1:
+        history_args[1] = str(Path(history_args[1]).resolve())
+        for flag in ("--validation", "--review"):
+            if flag in history_args and history_args.index(flag) + 1 < len(history_args):
+                index = history_args.index(flag) + 1
+                history_args[index] = str(Path(history_args[index]).resolve())
+    if history_args[0] == "branch" and "--output-intent" in history_args:
+        index = history_args.index("--output-intent") + 1
+        if index < len(history_args):
+            history_args[index] = str(Path(history_args[index]).resolve())
+    run_step(
+        "manage scheme version history",
+        ["scheme_history_manager.py", str(history.resolve()), *history_args],
+    )
+
+
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
     base_model = base_model.resolve()
     scheme_intent = scheme_intent.resolve()
@@ -402,6 +422,10 @@ def build_parser() -> argparse.ArgumentParser:
     feedback.add_argument("feedback", type=Path)
     feedback.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
 
+    history = sub.add_parser("scheme-history", help="Register, activate, reject, show, or branch immutable scheme versions.")
+    history.add_argument("history", type=Path)
+    history.add_argument("history_args", nargs=argparse.REMAINDER)
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -461,6 +485,8 @@ def main() -> int:
         build_scheme_review(args.base_model, args.scheme_intents, args.output_dir)
     elif args.command == "apply-scheme-feedback":
         apply_scheme_feedback(args.base_model, args.source_intent, args.target_intent, args.feedback, args.output_dir)
+    elif args.command == "scheme-history":
+        manage_scheme_history(args.history, args.history_args)
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":

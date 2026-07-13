@@ -77,6 +77,10 @@ Keep base readiness separate from the active scheme option:
 - Do not mark `validation_status` as `passed` without a validation report or explicit manual check.
 - If a base version changes, mark dependent schemes affected instead of silently carrying them forward.
 - If an option is rejected, do not use it as a parent for later versions.
+- Treat rollback as an active-version pointer change to an already accepted version; never overwrite or delete later files.
+- Only `accepted` versions may become active or create branches. `candidate` versions require review, and `rejected` versions are terminal.
+- Register a content hash for each version. Reusing one version ID with different content is a contamination error.
+- A branch copies one accepted intent into a new candidate version with an explicit `parent_intent`; it does not inherit chat context or generated-image geometry.
 - If no state file exists and the task is small, keep a compact inline state in the response instead of creating files.
 
 ## Runtime pattern

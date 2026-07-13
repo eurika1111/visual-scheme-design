@@ -223,6 +223,7 @@ Generated images cannot upgrade a scheme's geometry level. Only validated object
 - Changing labels does not alter source facts, base geometry, or scheme operations.
 - Failed renderings or failed validations are marked `rejected` and must not become parents.
 - Migration between schemes must be explicit in `operation_log`.
+- Rollback selects an earlier accepted version without changing its file. Branching creates a new candidate with an accepted `parent_intent`; do not clone rejected or unreviewed candidates.
 
 ## Rendering contract
 

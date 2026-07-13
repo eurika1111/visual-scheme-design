@@ -21,6 +21,7 @@ $SchemeOptionPlanner = Join-Path $EngineDir 'scheme_option_planner.py'
 $SchemePlacementResolver = Join-Path $EngineDir 'scheme_placement_resolver.py'
 $SchemeReviewBuilder = Join-Path $EngineDir 'scheme_review_package_builder.py'
 $SchemeFeedbackMigrator = Join-Path $EngineDir 'scheme_feedback_migrator.py'
+$SchemeHistoryManager = Join-Path $EngineDir 'scheme_history_manager.py'
 $SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
@@ -115,6 +116,10 @@ $MoveFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.move-object.sa
 $RotateFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.rotate-object.sample.migration_report.json'
 $RemoveFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.remove-object.sample.migration_report.json'
 $ReplaceFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.replace-object.sample.migration_report.json'
+$MovedSchemeB = Join-Path $FeedbackDemoDir 'scheme_feedback.move-object.sample.migrated_intent.json'
+$SchemeHistory = Join-Path $OutputDir 'scheme_history.json'
+$SchemeHistoryBranch = Join-Path $OutputDir 'scheme_B_alt_branch.intent.json'
+$RejectedHistoryChild = Join-Path $OutputDir 'rejected_history_child.intent.json'
 $UpdatedSchemeReviewDir = Join-Path $OutputDir 'scheme_review_after_feedback'
 $UpdatedSchemeReviewManifest = Join-Path $UpdatedSchemeReviewDir 'scheme_review_manifest.json'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
@@ -166,6 +171,7 @@ Invoke-Step 'compile scheme option planner' { & $PythonExe -m py_compile $Scheme
 Invoke-Step 'compile scheme placement resolver' { & $PythonExe -m py_compile $SchemePlacementResolver }
 Invoke-Step 'compile scheme review package builder' { & $PythonExe -m py_compile $SchemeReviewBuilder }
 Invoke-Step 'compile scheme feedback migrator' { & $PythonExe -m py_compile $SchemeFeedbackMigrator }
+Invoke-Step 'compile scheme history manager' { & $PythonExe -m py_compile $SchemeHistoryManager }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
@@ -252,6 +258,18 @@ foreach ($reportPath in @($MoveFeedbackReport, $RotateFeedbackReport, $RemoveFee
     if ($editReport.status -ne 'applied') {
         throw "Furniture feedback action failed: $reportPath"
     }
+}
+Invoke-Step 'register accepted scheme B version' { & $PythonExe $Workflow scheme-history $SchemeHistory register $ResolvedPlacementIntentB --status accepted }
+Invoke-Step 'register accepted migrated scheme B version' { & $PythonExe $Workflow scheme-history $SchemeHistory register $MigratedSchemeB --status accepted }
+Invoke-Step 'register candidate moved scheme B version' { & $PythonExe $Workflow scheme-history $SchemeHistory register $MovedSchemeB --status candidate }
+Invoke-Step 'activate migrated scheme B version' { & $PythonExe $Workflow scheme-history $SchemeHistory activate 'sample_b_v2_layout_v1' }
+Invoke-Step 'rollback active scheme B version' { & $PythonExe $Workflow scheme-history $SchemeHistory activate 'placement_sample_b_layout_v1' }
+Invoke-Step 'branch from accepted scheme B version' { & $PythonExe $Workflow scheme-history $SchemeHistory branch 'sample_b_v2_layout_v1' 'sample_b_alt_v1' --output-intent $SchemeHistoryBranch }
+Invoke-Step 'reject moved scheme B version' { & $PythonExe $Workflow scheme-history $SchemeHistory set-status 'sample_b_move_v2_layout_v1' rejected }
+Invoke-Step 'block branch from rejected version' { & $PythonExe $Workflow scheme-history $SchemeHistory branch 'sample_b_move_v2_layout_v1' 'sample_b_rejected_child_v1' --output-intent $RejectedHistoryChild } @(2)
+$historyData = Get-Content -Path $SchemeHistory -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($historyData.active_versions.'方案 B' -ne 'placement_sample_b_layout_v1' -or (Test-Path $RejectedHistoryChild)) {
+    throw "Scheme history rollback or rejected-parent gate failed"
 }
 Invoke-Step 'build review package after feedback' { & $PythonExe $Workflow build-scheme-review $BaseModel $ResolvedPlacementIntent $MigratedSchemeB $ResolvedPlacementIntentC --output-dir $UpdatedSchemeReviewDir }
 $updatedReview = Get-Content -Path $UpdatedSchemeReviewManifest -Raw -Encoding UTF8 | ConvertFrom-Json

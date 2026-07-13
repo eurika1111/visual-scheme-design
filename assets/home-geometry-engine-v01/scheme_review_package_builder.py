@@ -126,6 +126,7 @@ def build_markdown(options: list[dict[str, Any]], output_dir: Path, manifest_pat
 ![{intent.get('scheme_id')}](<{relative(option['svg'], output_dir)}>)
 
 - 方向：{intent.get('intent_summary', '未填写')}
+- 版本：`{intent.get('version', 'unknown')}`，父版本 `{intent.get('parent_intent', 'root')}`
 - 风险等级：`{intent.get('risk_level', 'unknown')}`
 - 校验：`{report.get('readiness', 'unknown')}`，错误 {len(report.get('errors', []) or [])}，提醒 {len(report.get('warnings', []) or [])}
 - 统一坐标：左下角 `(0,0)`，单位 `mm`
