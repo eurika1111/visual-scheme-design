@@ -20,6 +20,7 @@ $NeedsBriefBuilder = Join-Path $EngineDir 'needs_brief_builder.py'
 $SchemeOptionPlanner = Join-Path $EngineDir 'scheme_option_planner.py'
 $SchemePlacementResolver = Join-Path $EngineDir 'scheme_placement_resolver.py'
 $SchemeReviewBuilder = Join-Path $EngineDir 'scheme_review_package_builder.py'
+$SchemeFeedbackMigrator = Join-Path $EngineDir 'scheme_feedback_migrator.py'
 $SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
@@ -48,6 +49,7 @@ $CaseStrategy = Join-Path $ExamplesDir 'case_strategy.sample.json'
 $PlacementSampleIntent = Join-Path $ExamplesDir 'scheme_intent.placement-sample.json'
 $PlacementSampleIntentB = Join-Path $ExamplesDir 'scheme_intent.placement-sample-b.json'
 $PlacementSampleIntentC = Join-Path $ExamplesDir 'scheme_intent.placement-sample-c.json'
+$SchemeFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.copy-object.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -102,6 +104,11 @@ $PlacementReport = Join-Path $PlacementDemoDir 'placement_sample.placement_repor
 $PlacementDraftReport = Join-Path $PlacementDemoDir 'placement_sample.draft_report.json'
 $SchemeReviewDir = Join-Path $OutputDir 'scheme_review_package'
 $SchemeReviewManifest = Join-Path $SchemeReviewDir 'scheme_review_manifest.json'
+$FeedbackDemoDir = Join-Path $OutputDir 'feedback_demo'
+$MigratedSchemeB = Join-Path $FeedbackDemoDir 'scheme_feedback.copy-object.sample.migrated_intent.json'
+$FeedbackMigrationReport = Join-Path $FeedbackDemoDir 'scheme_feedback.copy-object.sample.migration_report.json'
+$UpdatedSchemeReviewDir = Join-Path $OutputDir 'scheme_review_after_feedback'
+$UpdatedSchemeReviewManifest = Join-Path $UpdatedSchemeReviewDir 'scheme_review_manifest.json'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -150,6 +157,7 @@ Invoke-Step 'compile needs brief builder' { & $PythonExe -m py_compile $NeedsBri
 Invoke-Step 'compile scheme option planner' { & $PythonExe -m py_compile $SchemeOptionPlanner }
 Invoke-Step 'compile scheme placement resolver' { & $PythonExe -m py_compile $SchemePlacementResolver }
 Invoke-Step 'compile scheme review package builder' { & $PythonExe -m py_compile $SchemeReviewBuilder }
+Invoke-Step 'compile scheme feedback migrator' { & $PythonExe -m py_compile $SchemeFeedbackMigrator }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
@@ -221,6 +229,16 @@ Invoke-Step 'build same-scale scheme review package' { & $PythonExe $Workflow bu
 $schemeReview = Get-Content -Path $SchemeReviewManifest -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($schemeReview.status -ne 'ready' -or $schemeReview.options.Count -ne 3 -or -not $schemeReview.same_scale) {
     throw "Scheme review package did not pass shared-scale checks"
+}
+Invoke-Step 'apply cross-scheme client feedback' { & $PythonExe $Workflow apply-scheme-feedback $BaseModel $ResolvedPlacementIntent $ResolvedPlacementIntentB $SchemeFeedbackSample --output-dir $FeedbackDemoDir }
+$feedbackMigration = Get-Content -Path $FeedbackMigrationReport -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($feedbackMigration.status -ne 'applied' -or -not $feedbackMigration.new_object_id) {
+    throw "Cross-scheme feedback migration did not produce a validated object"
+}
+Invoke-Step 'build review package after feedback' { & $PythonExe $Workflow build-scheme-review $BaseModel $ResolvedPlacementIntent $MigratedSchemeB $ResolvedPlacementIntentC --output-dir $UpdatedSchemeReviewDir }
+$updatedReview = Get-Content -Path $UpdatedSchemeReviewManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($updatedReview.status -ne 'ready' -or $updatedReview.options.Count -ne 3) {
+    throw "Updated scheme review package did not pass"
 }
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }

@@ -128,8 +128,11 @@ Mark manually anchored bases clearly when source extraction was not fully automa
    - Repair the smallest layer: prompt, scheme intent, deterministic draft, base model, or source extraction.
 
 12. `Selection and migration`
-   - Convert user feedback into object operations.
+   - First convert natural-language feedback into a short record containing feedback ID, action, source scheme, source object ID, target scheme, target spaces, and optional replacement object ID.
    - Example: "move scheme A's island into scheme B" means copy the island object intent, validate fit in scheme B, and create `scheme_B_vNext`; do not visually blend two images.
+   - Re-place the copied object against the target option's objects and constraints; do not reuse the source coordinates blindly.
+   - If the target room is unclear or already contains the same object category, ask for confirmation instead of guessing.
+   - Preserve the source option and target parent unchanged; only the new target version receives the feedback operation.
 
 13. `Visual deepening / reference export`
    - Start only at `L3` plus selected scheme intent, operation log, validation report, and affected-object list.

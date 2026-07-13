@@ -158,6 +158,8 @@ A/B/C must differ by more than furniture swaps. At least two meaningful dimensio
 
 Convert user feedback and creative ideas into operation records before rendering.
 
+For client feedback, retain both the original sentence and its controlled interpretation. Minimum fields are `feedback_id`, `action`, `source_scheme`, `source_object_id`, `target_scheme`, `target_spaces`, and optional `replace_target_object_id`. Missing source or target identity is a confirmation request, not permission to infer from images.
+
 Example: copying an island from scheme A into scheme B:
 
 ```json

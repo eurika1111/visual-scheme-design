@@ -1,0 +1,11 @@
+{
+  "schema_version": "scheme_feedback_v1",
+  "feedback_id": "FB-COPY-A-DESK-TO-B-01",
+  "raw_feedback": "把方案 A 的书桌融合到方案 B。",
+  "action": "copy_object",
+  "source_scheme": "方案 A",
+  "source_object_id": "A-F-DESK-ROOM-WEST-01",
+  "target_scheme": "方案 B",
+  "target_spaces": ["ROOM-WEST"],
+  "new_version": "sample_b_v2_layout_v1"
+}

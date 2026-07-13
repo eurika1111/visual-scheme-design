@@ -87,6 +87,14 @@ def deferred_lines(intent: dict[str, Any]) -> list[str]:
     ]
 
 
+def feedback_lines(intent: dict[str, Any]) -> list[str]:
+    return [
+        f"`{item.get('feedback_id')}`：从 `{item.get('source_scheme')}` 复制对象 "
+        f"`{item.get('source_object_id')}`，生成 `{item.get('new_object_id')}`"
+        for item in intent.get("feedback_operations", []) or []
+    ]
+
+
 def markdown_list(items: list[str], empty: str = "无") -> str:
     return "\n".join(f"- {item}" for item in items) if items else f"- {empty}"
 
@@ -110,6 +118,10 @@ def build_markdown(options: list[dict[str, Any]], output_dir: Path, manifest_pat
 主要变化：
 
 {markdown_list(operations)}
+
+客户反馈操作：
+
+{markdown_list(feedback_lines(intent))}
 
 已落位对象：
 

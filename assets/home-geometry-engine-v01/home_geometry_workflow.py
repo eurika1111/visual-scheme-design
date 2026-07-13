@@ -249,6 +249,35 @@ def build_scheme_review(base_model: Path, scheme_intents: list[Path], output_dir
     )
 
 
+def apply_scheme_feedback(
+    base_model: Path,
+    source_intent: Path,
+    target_intent: Path,
+    feedback: Path,
+    output_dir: Path,
+) -> None:
+    base_model = base_model.resolve()
+    source_intent = source_intent.resolve()
+    target_intent = target_intent.resolve()
+    feedback = feedback.resolve()
+    output_dir = ensure_dir(output_dir.resolve())
+    stem = feedback.stem
+    run_step(
+        "apply controlled scheme feedback",
+        [
+            "scheme_feedback_migrator.py",
+            str(base_model),
+            str(source_intent),
+            str(target_intent),
+            str(feedback),
+            "--output-intent",
+            str(output_dir / f"{stem}.migrated_intent.json"),
+            "--report-output",
+            str(output_dir / f"{stem}.migration_report.json"),
+        ],
+    )
+
+
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
     base_model = base_model.resolve()
     scheme_intent = scheme_intent.resolve()
@@ -366,6 +395,13 @@ def build_parser() -> argparse.ArgumentParser:
     scheme_review.add_argument("scheme_intents", type=Path, nargs="+")
     scheme_review.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
 
+    feedback = sub.add_parser("apply-scheme-feedback", help="Copy a referenced object into a new target-scheme version and revalidate.")
+    feedback.add_argument("base_model", type=Path)
+    feedback.add_argument("source_intent", type=Path)
+    feedback.add_argument("target_intent", type=Path)
+    feedback.add_argument("feedback", type=Path)
+    feedback.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -423,6 +459,8 @@ def main() -> int:
         resolve_layout(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "build-scheme-review":
         build_scheme_review(args.base_model, args.scheme_intents, args.output_dir)
+    elif args.command == "apply-scheme-feedback":
+        apply_scheme_feedback(args.base_model, args.source_intent, args.target_intent, args.feedback, args.output_dir)
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":
