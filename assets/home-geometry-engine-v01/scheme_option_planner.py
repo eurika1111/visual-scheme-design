@@ -175,11 +175,24 @@ def build_option(
     requests: list[dict[str, Any]] = []
     operations: list[dict[str, Any]] = []
     blockers: list[str] = []
+    option_code = option_id[-1]
+    essential_targets = roles["living"] + roles["bedroom"]
+    requests.append(request(
+        f"{option_code}-PLACE-ESSENTIAL-FURNITURE-01",
+        "furniture_layout",
+        essential_targets,
+        "补齐每套方案共有的客厅坐席和卧室睡眠功能。",
+    ))
+    requests.append(request(
+        f"{option_code}-PLACE-BATHROOM-FIXTURES-01",
+        "bathroom_fixtures",
+        roles["bathroom"],
+        "补齐卫生间淋浴和洗手盆，保留底图已有马桶。",
+    ))
 
     if option_id == "方案 A":
         targets = roles["living"] + roles["bedroom"] + roles["passage"]
         operations.append({"id": "A-OP-01", "type": "layout_refine", "target_spaces": targets, "description": "保留主要结构，优化家具、收纳和通行。"})
-        requests.append(request("A-PLACE-LAYOUT-01", "furniture_layout", targets, "形成低改动的完整家具布局。"))
         if storage_high:
             requests.append(request("A-PLACE-STORAGE-01", "storage", roles["entry"] + roles["passage"] + roles["bedroom"], "增加收纳但不压缩主通道。", depth_range_mm=[350, 600]))
         if work_focus:
@@ -190,11 +203,12 @@ def build_option(
     elif option_id == "方案 B":
         targets = roles["kitchen"] + roles["living"]
         operations.append({"id": "B-OP-01", "type": "relationship_upgrade", "target_spaces": targets, "description": "测试厨房、餐区和客厅之间更紧密的关系。"})
-        requests.append(request("B-PLACE-DINING-01", "dining_layout", targets, "即使保持封闭厨房，也要明确餐区与客厅的家具关系。"))
         if not roles["kitchen"]:
             blockers.append("missing_kitchen_room_mapping")
         if island_interest:
             requests.append(request("B-PLACE-ISLAND-01", "kitchen_island", targets, "验证岛台或餐岛是否适配。", preferred_size_mm=[1600, 800], required_clearance_mm=900))
+        else:
+            requests.append(request("B-PLACE-DINING-01", "dining_layout", targets, "即使保持封闭厨房，也要明确餐区与客厅的家具关系。"))
         if kitchen_interest or (brief.get("risk_profile") or {}).get("open_kitchen") == "unclear":
             requests.append(request("B-SELECT-KITCHEN-WALL-01", "wall_change_candidate", targets, "选择可讨论的局部隔墙，不自动拆墙。", status="wall_selection_required", requires_verification=True, blocking=False))
         summary = "在不触碰硬约束的前提下，重点比较客餐厨关系、局部开放和岛台可行性。"

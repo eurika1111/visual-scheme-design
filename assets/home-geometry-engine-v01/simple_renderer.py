@@ -86,7 +86,7 @@ def collect_points(model: dict[str, Any], report: dict[str, Any] | None) -> list
         points.extend(as_point(p) for p in room.get("polygon", []))
     for opening in model.get("openings", []):
         points.append(as_point(opening["position"]))
-    for item in model.get("furniture", []):
+    for item in (model.get("furniture", []) or []) + (model.get("fixed_fixtures", []) or []) + (model.get("fixtures", []) or []):
         geom = item.get("geometry", {})
         if geom.get("kind") == "rect":
             points.extend(rect_corners(as_point(geom["center"]), as_point(geom["size"]), float(geom.get("rotation", 0))))
@@ -355,12 +355,23 @@ def render_model(
     for opening in model.get("openings", []):
         render_opening_symbol(canvas, opening, walls, mode)
 
-    for item in model.get("furniture", []):
+    fixed_ids = {
+        item.get("id") for key in ("fixed_fixtures", "fixtures") for item in model.get(key, []) or []
+    }
+    render_items = (model.get("furniture", []) or []) + (model.get("fixed_fixtures", []) or []) + (model.get("fixtures", []) or [])
+    for item in render_items:
         geom = item.get("geometry", {})
         if geom.get("kind") != "rect":
             continue
         corners = rect_corners(as_point(geom["center"]), as_point(geom["size"]), float(geom.get("rotation", 0)))
-        canvas.polygon(corners, "#f9d38c", "#b45309", 2.0, opacity=0.75)
+        is_fixed = item.get("id") in fixed_ids
+        canvas.polygon(
+            corners,
+            "#dbeafe" if is_fixed else "#f9d38c",
+            "#1d4ed8" if is_fixed else "#b45309",
+            2.0,
+            opacity=0.75,
+        )
         label = item.get("id", "furniture") if mode == "debug" else item.get("name", item.get("type", "furniture"))
         canvas.text(as_point(geom["center"]), label, size=15, fill="#7c2d12")
 

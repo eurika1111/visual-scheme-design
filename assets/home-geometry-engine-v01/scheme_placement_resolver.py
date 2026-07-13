@@ -24,6 +24,8 @@ TEMPLATES = {
     "kitchen_island": {"name": "厨房餐岛", "size": [1600, 800], "clearance_mm": 900, "centered": True},
     "sofa_bed": {"name": "弹性沙发床", "size": [1900, 900], "clearance_mm": 550, "centered": False},
     "flex_table": {"name": "弹性工作桌", "size": [1200, 700], "clearance_mm": 600, "centered": True},
+    "shower": {"name": "淋浴区", "size": [900, 900], "clearance_mm": 60, "margin_mm": 30, "centered": False},
+    "basin": {"name": "洗手盆", "size": [600, 450], "clearance_mm": 180, "margin_mm": 60, "centered": False},
 }
 
 RESOLVED_STATUSES = {"resolved", "not_required", "accepted_without_object"}
@@ -82,7 +84,7 @@ def ordered_targets(kind: str, targets: list[str], roles: dict[str, list[str]]) 
     return ordered
 
 
-def candidate_centers(room: dict[str, Any], size: list[float], centered: bool) -> list[tuple[list[float], float]]:
+def candidate_centers(room: dict[str, Any], size: list[float], centered: bool, margin: float = 180.0) -> list[tuple[list[float], float]]:
     polygon = [(float(p[0]), float(p[1])) for p in room.get("polygon", []) or []]
     if len(polygon) < 3:
         return []
@@ -90,7 +92,6 @@ def candidate_centers(room: dict[str, Any], size: list[float], centered: bool) -
     max_x = max(p[0] for p in polygon)
     min_y = min(p[1] for p in polygon)
     max_y = max(p[1] for p in polygon)
-    margin = 180.0
     results: list[tuple[list[float], float]] = []
     for rotation in (0.0, 90.0):
         width, depth = (size if rotation == 0 else [size[1], size[0]])
@@ -165,6 +166,10 @@ def try_place(
     sizes = [[float(v) for v in (size_override or template["size"])]]
     if category == "bed" and not size_override:
         sizes.extend(([1500.0, 2000.0], [1350.0, 1900.0]))
+    if category == "shower" and not size_override:
+        sizes.extend(([800.0, 800.0], [700.0, 800.0]))
+    if category == "basin" and not size_override:
+        sizes.append([500.0, 400.0])
     attempts = 0
     all_items = (base.get("furniture", []) or []) + proposals
     for room_id in target_ids:
@@ -175,7 +180,9 @@ def try_place(
         if existing_id:
             return existing_id, attempts, "existing_object"
         for variant_index, size in enumerate(sizes):
-            for center, rotation in candidate_centers(room, size, bool(template["centered"])):
+            for center, rotation in candidate_centers(
+                room, size, bool(template["centered"]), float(template.get("margin_mm", 180.0))
+            ):
                 attempts += 1
                 if not rectangle_inside_room(center, size, rotation, room):
                     continue
@@ -220,7 +227,13 @@ def request_specs(request: dict[str, Any], roles: dict[str, list[str]]) -> list[
         return [("kitchen_island", ordered_targets(kind, targets, roles), request.get("preferred_size_mm"))]
     if kind == "multifunction_layout":
         ordered = ordered_targets(kind, targets, roles)
-        return [("sofa_bed", ordered, None), ("flex_table", ordered, None)]
+        return [("flex_table", ordered, None)]
+    if kind == "bathroom_fixtures":
+        specs = []
+        for room_id in roles["bathroom"]:
+            if room_id in targets:
+                specs.extend((("shower", [room_id], None), ("basin", [room_id], None)))
+        return specs
     return []
 
 
@@ -263,7 +276,7 @@ def resolve(base: dict[str, Any], source_intent: dict[str, Any], version: str | 
             if object_id:
                 object_ids.append(object_id)
             else:
-                failures.append(f"no_valid_candidate:{category}")
+                failures.append(f"no_valid_candidate:{category}:{','.join(target_ids)}")
 
         if failures:
             item["status"] = "placement_failed"
@@ -308,6 +321,20 @@ def resolve(base: dict[str, Any], source_intent: dict[str, Any], version: str | 
         "request_reports": request_reports,
         "unresolved_request_ids": [item.get("id") for item in unresolved],
         "deferred_request_ids": [item.get("id") for item in updated_requests if item.get("status") == "deferred_confirmation"],
+        "confirmation_items": [
+            {
+                "request_id": item.get("id"),
+                "kind": item.get("kind"),
+                "target_spaces": item.get("target_spaces", []),
+                "failures": item.get("failures", []),
+                "question": (
+                    "卫浴设施与当前房间或门扇冲突，请确认是否允许调整门向、改用移门或人工指定湿区。"
+                    if item.get("kind") == "bathroom_fixtures"
+                    else "自动落位未找到合法位置，请确认目标房间或人工指定位置。"
+                ),
+            }
+            for item in unresolved
+        ],
         "validation_readiness": final_validation.get("readiness"),
         "validation_error_count": final_validation.get("summary", {}).get("error_count"),
         "validation_warning_count": final_validation.get("summary", {}).get("warning_count"),

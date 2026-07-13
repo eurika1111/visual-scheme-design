@@ -166,6 +166,8 @@ Before creative case learning:
 Before visual generation:
 
 - Required: active accepted scheme version, scheme intent, operation list, risk level, resolved blocking placement requests, matching deterministic review package, confirmed or explicitly exploratory style brief, and visual-generation handoff.
+- Every bedroom needs a controlled sleeping function, the living room needs seating, the kitchen needs a worktop, and every bathroom needs a toilet, basin, and bathing function before a full-home visual can proceed.
+- If fixture completion conflicts with a door swing or room boundary, return a visible confirmation item; do not ask the image model to invent a solution.
 - For plan images, do not rely on prompt-only control when dimensions, wall continuity, or furniture orientation matter.
 
 Before visual deepening/reference export:

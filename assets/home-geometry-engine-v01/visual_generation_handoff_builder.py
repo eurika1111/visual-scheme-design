@@ -8,6 +8,9 @@ import json
 from pathlib import Path
 from typing import Any
 
+from scheme_option_planner import infer_room_roles
+from scheme_placement_resolver import room_for_point, room_index
+
 
 def load_json(path: Path | None) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8-sig")) if path else {}
@@ -28,6 +31,44 @@ def history_entry(history: dict[str, Any], version: str) -> dict[str, Any] | Non
 
 def style_ready(style: dict[str, Any]) -> bool:
     return style.get("status") == "confirmed" and bool(style.get("direction"))
+
+
+def functional_completeness(base: dict[str, Any], intent: dict[str, Any]) -> dict[str, Any]:
+    roles = infer_room_roles(base)
+    rooms = room_index(base)
+    categories: dict[str, set[str]] = {room_id: set() for room_id in rooms}
+    for item in (base.get("furniture", []) or []) + (intent.get("proposal_objects", []) or []):
+        room_id = item.get("target_space_id")
+        center = (item.get("geometry") or {}).get("center")
+        if not room_id and center:
+            room_id = room_for_point(center, rooms)
+        if room_id in categories:
+            categories[room_id].add(str(item.get("category") or item.get("type") or "unknown"))
+    for key in ("fixed_fixtures", "fixtures"):
+        for item in base.get(key, []) or []:
+            room_id = item.get("room_id") or item.get("target_space_id")
+            if room_id in categories:
+                categories[room_id].add(str(item.get("category") or item.get("type") or "unknown"))
+
+    missing = []
+    for room_id in roles["bedroom"]:
+        if not categories[room_id].intersection({"bed", "sofa_bed"}):
+            missing.append({"room_id": room_id, "required": "sleeping_function", "allowed": ["bed", "sofa_bed"]})
+    for room_id in roles["living"]:
+        if "sofa" not in categories[room_id]:
+            missing.append({"room_id": room_id, "required": "living_seating", "allowed": ["sofa"]})
+    for room_id in roles["bathroom"]:
+        for required in ("toilet", "shower", "basin"):
+            if required not in categories[room_id]:
+                missing.append({"room_id": room_id, "required": required, "allowed": [required]})
+    for room_id in roles["kitchen"]:
+        if not categories[room_id].intersection({"kitchen_counter", "countertop", "base_cabinet", "sink_cabinet"}):
+            missing.append({"room_id": room_id, "required": "kitchen_worktop", "allowed": ["kitchen_counter"]})
+    return {
+        "status": "passed" if not missing else "incomplete",
+        "room_categories": {room_id: sorted(items) for room_id, items in categories.items()},
+        "missing": missing,
+    }
 
 
 def values(items: list[dict[str, Any]], key: str = "value") -> list[str]:
@@ -172,6 +213,9 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
     validation = load_json(Path(selected["validation"])) if selected.get("validation") else {}
     if len(validation.get("errors", []) or []) > 0:
         blockers.append("selected deterministic draft has geometry errors")
+    completeness = functional_completeness(base, intent)
+    if completeness["status"] != "passed":
+        blockers.append("selected scheme is missing essential room functions")
 
     unresolved = selected.get("deferred_request_ids", []) or []
     status = "blocked" if blockers else ("ready" if style_ready(style) else "needs_style_confirmation")
@@ -190,6 +234,7 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
         "style_status": style.get("status", "not_provided"),
         "style_brief": style,
         "structure_lock": structure_lock(base, intent, manifest),
+        "functional_completeness": completeness,
         "visual_freedom": ["materials", "palette", "lighting", "textures", "soft_furnishing_mood", "small_nonstructural_decor"],
         "blockers": blockers,
         "references": {
