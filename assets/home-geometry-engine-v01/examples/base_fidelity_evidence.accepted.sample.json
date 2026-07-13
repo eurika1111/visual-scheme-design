@@ -1,0 +1,9 @@
+{
+  "schema_version": "base_fidelity_evidence_v1",
+  "base_version": "base_from_extraction_v1",
+  "source_image": "demo_source_plan.png",
+  "review_image": "demo_base_review.png",
+  "review_status": "accepted",
+  "confirmed_by": "demo_human_review",
+  "room_area_anchors": []
+}

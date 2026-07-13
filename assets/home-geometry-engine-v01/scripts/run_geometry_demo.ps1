@@ -28,6 +28,7 @@ $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
 $ConfirmRepair = Join-Path $EngineDir 'confirm_repair_draft.py'
 $SourceQualityGate = Join-Path $EngineDir 'source_quality_gate.py'
+$BaseFidelityGate = Join-Path $EngineDir 'base_fidelity_gate.py'
 $SourceExtractionValidator = Join-Path $EngineDir 'validate_source_extraction.py'
 $BaseModelExporter = Join-Path $EngineDir 'export_base_model_from_extraction.py'
 $DimensionChainAudit = Join-Path $EngineDir 'dimension_chain_audit.py'
@@ -57,6 +58,7 @@ $RotateFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.rotate-object.sa
 $RemoveFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.remove-object.sample.json'
 $ReplaceFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.replace-object.sample.json'
 $VisualStyleBrief = Join-Path $ExamplesDir 'visual_style_brief.sample.json'
+$AcceptedBaseFidelityEvidence = Join-Path $ExamplesDir 'base_fidelity_evidence.accepted.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -136,6 +138,7 @@ $PlanDoorSwing = Join-Path $OutputDir 'plan.door_swing_sample.svg'
 $PlanIslandMove = Join-Path $OutputDir 'plan.island_move_sample.svg'
 $PlanArcPartition = Join-Path $OutputDir 'plan.arc_partition_sample.svg'
 $ProjectState = Join-Path $OutputDir 'project_state.json'
+$BaseFidelityReport = Join-Path $OutputDir 'base_fidelity.accepted.report.json'
 
 function Invoke-Step {
     param(
@@ -185,6 +188,7 @@ Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
 Invoke-Step 'compile confirm repair' { & $PythonExe -m py_compile $ConfirmRepair }
 Invoke-Step 'compile source quality gate' { & $PythonExe -m py_compile $SourceQualityGate }
+Invoke-Step 'compile base fidelity gate' { & $PythonExe -m py_compile $BaseFidelityGate }
 Invoke-Step 'compile source extraction validator' { & $PythonExe -m py_compile $SourceExtractionValidator }
 Invoke-Step 'compile base model exporter' { & $PythonExe -m py_compile $BaseModelExporter }
 Invoke-Step 'compile dimension chain audit' { & $PythonExe -m py_compile $DimensionChainAudit }
@@ -221,6 +225,7 @@ Invoke-Step 'export base model from extraction package' { & $PythonExe $BaseMode
 Invoke-Step 'reject bad source extraction export' { & $PythonExe $BaseModelExporter $SourceExtractionProblemPackage $FailedBaseExport --validation-output $FailedBaseExportValidation --minimum-level L2 --allow-warning --version base_problem_v1 } @(0, 1)
 Invoke-Step 'validate exported base model' { & $PythonExe $Validator $ExportedBaseModel $ValidationExportedBase }
 Invoke-Step 'source quality exported base' { & $PythonExe $SourceQualityGate $ExportedBaseModel $SourceQualityExportedBase --validation $ValidationExportedBase }
+Invoke-Step 'accept reviewed base fidelity' { & $PythonExe $BaseFidelityGate $ExportedBaseModel $AcceptedBaseFidelityEvidence $BaseFidelityReport }
 Invoke-Step 'rebuild scheme A from exported base' { & $PythonExe $Applier $ExportedBaseModel $Operations $SchemeA }
 Invoke-Step 'validate scheme A from exported base' { & $PythonExe $Validator $SchemeA $ValidationSchemeA }
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
@@ -229,7 +234,7 @@ Invoke-Step 'render client base PNG preview' { & $PythonExe $SvgPreviewRenderer 
 Invoke-Step 'build client base handoff with preview' { & $PythonExe $BaseHandoffBuilder --project-root $OutputDir --base-model $BaseModel --review-svg $PlanBaseClient --preview-png $PlanBaseClientPreview --validation $ValidationBase --output $BaseHandoff --title 'Demo Base Review Package' }
 Invoke-Step 'build one-command base review package' { & $PythonExe $Workflow build-base-review --base-model $ExportedBaseModel --validation $ValidationExportedBase --output-dir $BaseReviewPackageDir --project-root $OutputDir --title 'Demo One-Command Base Review' --stem 'base_from_extraction_v1' }
 Invoke-Step 'build needs brief' { & $PythonExe $Workflow build-needs-brief $NeedsResponse --output-dir $OutputDir --stem 'client' }
-Invoke-Step 'plan isolated A/B/C scheme options' { & $PythonExe $Workflow plan-options $ExportedBaseModel $NeedsBriefJson --output-dir $SchemeOptionsDir --case-strategy $CaseStrategy }
+Invoke-Step 'plan isolated A/B/C scheme options' { & $PythonExe $Workflow plan-options $ExportedBaseModel $NeedsBriefJson --output-dir $SchemeOptionsDir --case-strategy $CaseStrategy --base-fidelity-report $BaseFidelityReport }
 Invoke-Step 'reject draft with unresolved placements' { & $PythonExe $Workflow render-scheme-draft $ExportedBaseModel $PlannedSchemeAIntent --output-dir $BlockedDraftDir --version 'scheme_A_v1' } @(2)
 $blockedDraft = Get-Content -Path $BlockedDraftReport -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($blockedDraft.status -ne 'blocked_unresolved_placement') {

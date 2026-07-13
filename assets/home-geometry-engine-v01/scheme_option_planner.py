@@ -309,10 +309,15 @@ def main() -> int:
     parser.add_argument("needs_brief", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--case-strategy", type=Path)
+    parser.add_argument("--base-fidelity-report", type=Path, required=True)
     args = parser.parse_args()
 
     base = load_json(args.base_model)
     brief = load_json(args.needs_brief)
+    fidelity = load_json(args.base_fidelity_report)
+    effective_base_version = base.get("version") or (base.get("base_inference") or {}).get("version") or "base_v1"
+    if fidelity.get("base_version") != effective_base_version or not fidelity.get("can_plan_schemes"):
+        raise SystemExit("base fidelity gate must be open for this exact base version")
     if (base.get("coordinate_system") or {}).get("origin") != "lower_left":
         raise SystemExit("base model must use lower_left origin")
     if (base.get("coordinate_system") or {}).get("unit") != "mm":

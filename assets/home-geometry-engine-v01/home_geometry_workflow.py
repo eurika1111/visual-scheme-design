@@ -195,7 +195,13 @@ def build_needs_brief(response: Path, output_dir: Path, stem: str) -> None:
     print(f"needs_brief_md={output_md}")
 
 
-def plan_options(base_model: Path, needs_brief: Path, output_dir: Path, case_strategy: Path | None) -> None:
+def plan_options(
+    base_model: Path,
+    needs_brief: Path,
+    output_dir: Path,
+    case_strategy: Path | None,
+    base_fidelity_report: Path,
+) -> None:
     base_model = base_model.resolve()
     needs_brief = needs_brief.resolve()
     case_strategy = case_strategy.resolve() if case_strategy else None
@@ -206,6 +212,8 @@ def plan_options(base_model: Path, needs_brief: Path, output_dir: Path, case_str
         str(needs_brief),
         "--output-dir",
         str(output_dir),
+        "--base-fidelity-report",
+        str(base_fidelity_report.resolve()),
     ]
     if case_strategy:
         child_args.extend(["--case-strategy", str(case_strategy)])
@@ -426,6 +434,7 @@ def build_parser() -> argparse.ArgumentParser:
     options.add_argument("needs_brief", type=Path)
     options.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     options.add_argument("--case-strategy", type=Path)
+    options.add_argument("--base-fidelity-report", type=Path, required=True)
 
     placement = sub.add_parser("resolve-layout", help="Resolve placement requests into validated furniture coordinates.")
     placement.add_argument("base_model", type=Path)
@@ -510,7 +519,7 @@ def main() -> int:
     elif args.command == "build-needs-brief":
         build_needs_brief(args.response, args.output_dir, args.stem)
     elif args.command == "plan-options":
-        plan_options(args.base_model, args.needs_brief, args.output_dir, args.case_strategy)
+        plan_options(args.base_model, args.needs_brief, args.output_dir, args.case_strategy, args.base_fidelity_report)
     elif args.command == "resolve-layout":
         resolve_layout(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "build-scheme-review":

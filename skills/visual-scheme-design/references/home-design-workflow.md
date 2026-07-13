@@ -62,6 +62,8 @@ At `L1`, do not generate schemes. Output only an understanding draft, uncertaint
 
 Mark manually anchored bases clearly when source extraction was not fully automated, for example `L3 manually anchored reference-base candidate`.
 
+Geometry readiness and source fidelity are separate gates. A geometrically closed model is not `L2` until its source-to-base review is explicitly accepted.
+
 ## Revised Workflow
 
 1. `Project intake`
@@ -77,6 +79,9 @@ Mark manually anchored bases clearly when source extraction was not fully automa
    - Include: base SVG/review image, coordinate origin, main dimension anchors, room/wall/opening IDs, unresolved questions, and pass/fail summary.
    - Ask the client to confirm, circle errors, or approve proceeding with listed assumptions.
    - Do not hide the base SVG as an internal-only artifact.
+   - Compare visible room areas and major outline anchors with the source plan; record large deviations instead of explaining them away as simplification.
+   - Produce a machine-readable base-fidelity report. Scheme planning remains blocked unless it matches the exact base version and has `can_plan_schemes=true`.
+   - A rejected base invalidates every dependent scheme and returns the project to base reconstruction.
 
 4. `Needs and constraints intake`
    - Before options, collect high-impact needs unless the user explicitly asks for blind inspiration.
@@ -153,7 +158,7 @@ Mark manually anchored bases clearly when source extraction was not fully automa
 
 Before quick concept:
 
-- Required: `L2`, client-visible base review, base object model, unresolved blockers listed, needs/constraints brief, and option IDs prepared.
+- Required: `L2`, client-visible base review, an explicitly accepted base-fidelity report for the exact base version, base object model, unresolved blockers listed, needs/constraints brief, and option IDs prepared.
 - If the user has no needs yet, ask whether to proceed with three exploratory directions.
 - Do not proceed from a cleaned raster image alone.
 

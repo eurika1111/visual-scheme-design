@@ -74,6 +74,7 @@ L4：参考资料整理，仍需现场复尺和专业确认
 - `build-base-review`：一键生成客户版底图 SVG、PNG 预览和底图交接 Markdown。
 - `build-needs-brief`：把客户模糊或明确的回答整理成结构化需求 JSON 和 Markdown 摘要。
 - `plan-options`：把受控底图和需求摘要转换成隔离的 A/B/C 方案意图；坐标未解决时保持草图门禁关闭。
+- `base_fidelity_gate.py`：把原图面积锚点、底图复核图和用户确认状态合并为独立的一致性门禁；未通过时禁止 `plan-options`。
 - `resolve-layout`：把方案中的家具落位请求转换成有编号、尺寸和坐标的对象；候选必须通过房间边界、门扇、碰撞和通行校验。
 - `build-scheme-review`：把两到三套已落位方案生成同一边界、比例、坐标系和标注规则的客户复核包。
 - `apply-scheme-feedback`：把家具复制、替换、移动、旋转或删除反馈应用到目标方案的新版本，并重新校验和记录来源。
@@ -462,6 +463,8 @@ can_quick_concept=true can_stable_deepening=true
 ```
 
 如果输出 `failed/L0` 或 `failed/L1`，不要继续出家装方案；应该先回到底图对象数据，修墙体、房间、门窗、坐标或低置信度对象。缺少 `source_facts`、`dimension_chains`、`source_images` 等追溯信息时，质量门最多只放到 L2，不直接进入稳妥深化。
+
+几何校验通过只代表对象模型内部自洽，不代表它忠于原始户型图。进入 `plan-options` 前还必须运行 `base_fidelity_gate.py`，并提供同一底图版本的 `base_fidelity_report_v1`。房间面积明显偏离、用户尚未确认或已拒绝时，`can_plan_schemes=false`，所有派生方案都应停止使用。
 
 ## 校验问题摘要
 
