@@ -1,0 +1,12 @@
+{
+  "schema_version": "scheme_feedback_v1",
+  "feedback_id": "FB-REPLACE-B-DESK-01",
+  "raw_feedback": "用方案 A 的书桌替换方案 B 原来的书桌。",
+  "action": "replace_object",
+  "source_scheme": "方案 A",
+  "source_object_id": "A-F-DESK-ROOM-WEST-01",
+  "target_scheme": "方案 B",
+  "replace_target_object_id": "B-F-DESK-ROOM-EAST-S-01",
+  "target_spaces": ["ROOM-EAST-S"],
+  "new_version": "sample_b_replace_v2_layout_v1"
+}

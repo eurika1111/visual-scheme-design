@@ -50,6 +50,10 @@ $PlacementSampleIntent = Join-Path $ExamplesDir 'scheme_intent.placement-sample.
 $PlacementSampleIntentB = Join-Path $ExamplesDir 'scheme_intent.placement-sample-b.json'
 $PlacementSampleIntentC = Join-Path $ExamplesDir 'scheme_intent.placement-sample-c.json'
 $SchemeFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.copy-object.sample.json'
+$MoveFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.move-object.sample.json'
+$RotateFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.rotate-object.sample.json'
+$RemoveFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.remove-object.sample.json'
+$ReplaceFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.replace-object.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -107,6 +111,10 @@ $SchemeReviewManifest = Join-Path $SchemeReviewDir 'scheme_review_manifest.json'
 $FeedbackDemoDir = Join-Path $OutputDir 'feedback_demo'
 $MigratedSchemeB = Join-Path $FeedbackDemoDir 'scheme_feedback.copy-object.sample.migrated_intent.json'
 $FeedbackMigrationReport = Join-Path $FeedbackDemoDir 'scheme_feedback.copy-object.sample.migration_report.json'
+$MoveFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.move-object.sample.migration_report.json'
+$RotateFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.rotate-object.sample.migration_report.json'
+$RemoveFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.remove-object.sample.migration_report.json'
+$ReplaceFeedbackReport = Join-Path $FeedbackDemoDir 'scheme_feedback.replace-object.sample.migration_report.json'
 $UpdatedSchemeReviewDir = Join-Path $OutputDir 'scheme_review_after_feedback'
 $UpdatedSchemeReviewManifest = Join-Path $UpdatedSchemeReviewDir 'scheme_review_manifest.json'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
@@ -234,6 +242,16 @@ Invoke-Step 'apply cross-scheme client feedback' { & $PythonExe $Workflow apply-
 $feedbackMigration = Get-Content -Path $FeedbackMigrationReport -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($feedbackMigration.status -ne 'applied' -or -not $feedbackMigration.new_object_id) {
     throw "Cross-scheme feedback migration did not produce a validated object"
+}
+Invoke-Step 'apply move-object feedback' { & $PythonExe $Workflow apply-scheme-feedback $BaseModel $ResolvedPlacementIntentB $ResolvedPlacementIntentB $MoveFeedbackSample --output-dir $FeedbackDemoDir }
+Invoke-Step 'apply rotate-object feedback' { & $PythonExe $Workflow apply-scheme-feedback $BaseModel $ResolvedPlacementIntent $ResolvedPlacementIntent $RotateFeedbackSample --output-dir $FeedbackDemoDir }
+Invoke-Step 'apply remove-object feedback' { & $PythonExe $Workflow apply-scheme-feedback $BaseModel $ResolvedPlacementIntentC $ResolvedPlacementIntentC $RemoveFeedbackSample --output-dir $FeedbackDemoDir }
+Invoke-Step 'apply replace-object feedback' { & $PythonExe $Workflow apply-scheme-feedback $BaseModel $ResolvedPlacementIntent $ResolvedPlacementIntentB $ReplaceFeedbackSample --output-dir $FeedbackDemoDir }
+foreach ($reportPath in @($MoveFeedbackReport, $RotateFeedbackReport, $RemoveFeedbackReport, $ReplaceFeedbackReport)) {
+    $editReport = Get-Content -Path $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($editReport.status -ne 'applied') {
+        throw "Furniture feedback action failed: $reportPath"
+    }
 }
 Invoke-Step 'build review package after feedback' { & $PythonExe $Workflow build-scheme-review $BaseModel $ResolvedPlacementIntent $MigratedSchemeB $ResolvedPlacementIntentC --output-dir $UpdatedSchemeReviewDir }
 $updatedReview = Get-Content -Path $UpdatedSchemeReviewManifest -Raw -Encoding UTF8 | ConvertFrom-Json

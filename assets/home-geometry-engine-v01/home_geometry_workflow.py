@@ -395,7 +395,7 @@ def build_parser() -> argparse.ArgumentParser:
     scheme_review.add_argument("scheme_intents", type=Path, nargs="+")
     scheme_review.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
 
-    feedback = sub.add_parser("apply-scheme-feedback", help="Copy a referenced object into a new target-scheme version and revalidate.")
+    feedback = sub.add_parser("apply-scheme-feedback", help="Apply controlled furniture feedback to a new scheme version and revalidate.")
     feedback.add_argument("base_model", type=Path)
     feedback.add_argument("source_intent", type=Path)
     feedback.add_argument("target_intent", type=Path)

@@ -1,0 +1,10 @@
+{
+  "schema_version": "scheme_feedback_v1",
+  "feedback_id": "FB-ROTATE-A-DESK-01",
+  "raw_feedback": "把方案 A 的书桌旋转 90 度。",
+  "action": "rotate_object",
+  "target_scheme": "方案 A",
+  "target_object_id": "A-F-DESK-ROOM-WEST-01",
+  "rotation": 90,
+  "new_version": "sample_a_rotate_v2_layout_v1"
+}

@@ -88,11 +88,26 @@ def deferred_lines(intent: dict[str, Any]) -> list[str]:
 
 
 def feedback_lines(intent: dict[str, Any]) -> list[str]:
-    return [
-        f"`{item.get('feedback_id')}`：从 `{item.get('source_scheme')}` 复制对象 "
-        f"`{item.get('source_object_id')}`，生成 `{item.get('new_object_id')}`"
-        for item in intent.get("feedback_operations", []) or []
-    ]
+    lines = []
+    for item in intent.get("feedback_operations", []) or []:
+        prefix = f"`{item.get('feedback_id')}`："
+        if item.get("action") in {"copy_object", "replace_object"}:
+            detail = (
+                f"从 `{item.get('source_scheme')}` 复制对象 `{item.get('source_object_id')}`，"
+                f"生成 `{item.get('new_object_id')}`"
+            )
+            if item.get("replace_target_object_id"):
+                detail += f"，替换 `{item.get('replace_target_object_id')}`"
+        elif item.get("action") == "move_object":
+            detail = f"移动对象 `{item.get('target_object_id')}` 到 `{', '.join(item.get('target_spaces', []))}`"
+        elif item.get("action") == "rotate_object":
+            detail = f"将对象 `{item.get('target_object_id')}` 旋转到 {item.get('rotation')} 度"
+        elif item.get("action") == "remove_object":
+            detail = f"删除方案对象 `{item.get('target_object_id')}`"
+        else:
+            detail = f"执行 `{item.get('action')}`"
+        lines.append(prefix + detail)
+    return lines
 
 
 def markdown_list(items: list[str], empty: str = "无") -> str:

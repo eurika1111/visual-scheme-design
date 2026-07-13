@@ -1,0 +1,10 @@
+{
+  "schema_version": "scheme_feedback_v1",
+  "feedback_id": "FB-MOVE-B-DESK-01",
+  "raw_feedback": "把方案 B 的书桌移到西侧房间。",
+  "action": "move_object",
+  "target_scheme": "方案 B",
+  "target_object_id": "B-F-DESK-ROOM-EAST-S-01",
+  "target_spaces": ["ROOM-WEST"],
+  "new_version": "sample_b_move_v2_layout_v1"
+}

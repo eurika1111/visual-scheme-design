@@ -1,0 +1,9 @@
+{
+  "schema_version": "scheme_feedback_v1",
+  "feedback_id": "FB-REMOVE-C-STORAGE-01",
+  "raw_feedback": "方案 C 不要这个收纳柜。",
+  "action": "remove_object",
+  "target_scheme": "方案 C",
+  "target_object_id": "C-F-STORAGE-ROOM-EAST-N-01",
+  "new_version": "sample_c_remove_v2_layout_v1"
+}

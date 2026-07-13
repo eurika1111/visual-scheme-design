@@ -160,6 +160,8 @@ Convert user feedback and creative ideas into operation records before rendering
 
 For client feedback, retain both the original sentence and its controlled interpretation. Minimum fields are `feedback_id`, `action`, `source_scheme`, `source_object_id`, `target_scheme`, `target_spaces`, and optional `replace_target_object_id`. Missing source or target identity is a confirmation request, not permission to infer from images.
 
+Furniture feedback actions are `copy_object`, `replace_object`, `move_object`, `rotate_object`, and `remove_object`. Move/rotate/remove must target proposal furniture by ID and create a new option version. Do not expose walls, openings, fixed fixtures, or wet zones to this low-risk action set.
+
 Example: copying an island from scheme A into scheme B:
 
 ```json

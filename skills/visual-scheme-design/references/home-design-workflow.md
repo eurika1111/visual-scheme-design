@@ -133,6 +133,7 @@ Mark manually anchored bases clearly when source extraction was not fully automa
    - Re-place the copied object against the target option's objects and constraints; do not reuse the source coordinates blindly.
    - If the target room is unclear or already contains the same object category, ask for confirmation instead of guessing.
    - Preserve the source option and target parent unchanged; only the new target version receives the feedback operation.
+   - Low-risk automated feedback may copy, replace, move, rotate, or remove proposal furniture. Structural walls, openings, fixed fixtures, and wet zones remain outside this automatic path.
 
 13. `Visual deepening / reference export`
    - Start only at `L3` plus selected scheme intent, operation log, validation report, and affected-object list.
