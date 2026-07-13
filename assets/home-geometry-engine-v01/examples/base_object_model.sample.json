@@ -1,5 +1,6 @@
 {
   "schema_version": "home_geometry_v1",
+  "version": "base_sample_v1",
   "coordinate_system": {
     "origin": "lower_left",
     "x_axis": "right",

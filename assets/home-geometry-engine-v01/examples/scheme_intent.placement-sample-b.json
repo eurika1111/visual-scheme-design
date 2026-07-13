@@ -1,0 +1,25 @@
+{
+  "schema_version": "scheme_intent_v1",
+  "scheme_id": "方案 B",
+  "version": "scheme_B_placement_sample_v1",
+  "name": "东侧办公样例",
+  "parent_base": "base_sample_v1",
+  "status": "strategy_ready",
+  "risk_level": "medium",
+  "intent_summary": "在东南侧房间安排办公桌，用于验证独立方案与统一比例复核。",
+  "proposal_objects": [],
+  "placement_requests": [
+    {
+      "id": "B-PLACE-WORK-SAMPLE-01",
+      "kind": "work_area",
+      "target_spaces": ["ROOM-EAST-S"],
+      "purpose": "在东南侧房间安排办公桌。",
+      "status": "placement_required",
+      "preferred_size_mm": [1000, 600]
+    }
+  ],
+  "operations": [],
+  "validation_plan": ["check_furniture_footprints", "check_door_swing_clearance"],
+  "layout_gate": "placement_required",
+  "generation_report": {"status": "not_rendered", "image_authority": false}
+}

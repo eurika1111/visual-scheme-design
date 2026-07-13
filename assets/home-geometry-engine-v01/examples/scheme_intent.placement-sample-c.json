@@ -1,0 +1,24 @@
+{
+  "schema_version": "scheme_intent_v1",
+  "scheme_id": "方案 C",
+  "version": "scheme_C_placement_sample_v1",
+  "name": "北侧收纳样例",
+  "parent_base": "base_sample_v1",
+  "status": "strategy_ready",
+  "risk_level": "medium_high",
+  "intent_summary": "在东北侧房间增加收纳，用于验证第三套独立方案。",
+  "proposal_objects": [],
+  "placement_requests": [
+    {
+      "id": "C-PLACE-STORAGE-SAMPLE-01",
+      "kind": "storage",
+      "target_spaces": ["ROOM-EAST-N"],
+      "purpose": "在东北侧房间增加收纳。",
+      "status": "placement_required"
+    }
+  ],
+  "operations": [],
+  "validation_plan": ["check_furniture_footprints", "check_circulation_width"],
+  "layout_gate": "placement_required",
+  "generation_report": {"status": "not_rendered", "image_authority": false}
+}

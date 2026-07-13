@@ -98,13 +98,16 @@ def collect_points(model: dict[str, Any], report: dict[str, Any] | None) -> list
 
 
 class SvgCanvas:
-    def __init__(self, points: list[Point], margin: float = 130.0, target_width: float = 1200.0) -> None:
+    def __init__(
+        self,
+        points: list[Point],
+        margin: float = 130.0,
+        target_width: float = 1200.0,
+        bounds: tuple[float, float, float, float] | None = None,
+    ) -> None:
         xs = [p[0] for p in points]
         ys = [p[1] for p in points]
-        self.min_x = min(xs)
-        self.max_x = max(xs)
-        self.min_y = min(ys)
-        self.max_y = max(ys)
+        self.min_x, self.min_y, self.max_x, self.max_y = bounds or (min(xs), min(ys), max(xs), max(ys))
         model_w = max(1.0, self.max_x - self.min_x)
         model_h = max(1.0, self.max_y - self.min_y)
         self.scale = target_width / model_w
@@ -307,8 +310,14 @@ def render_main_dimensions(canvas: SvgCanvas) -> None:
     canvas.screen_text(dim_right + 8, (top + bottom) / 2, f"{height_mm:.0f} mm", 15, "#334155")
 
 
-def render_model(model: dict[str, Any], report: dict[str, Any] | None = None, mode: str = "debug", title: str | None = None) -> str:
-    canvas = SvgCanvas(collect_points(model, report))
+def render_model(
+    model: dict[str, Any],
+    report: dict[str, Any] | None = None,
+    mode: str = "debug",
+    title: str | None = None,
+    bounds: tuple[float, float, float, float] | None = None,
+) -> str:
+    canvas = SvgCanvas(collect_points(model, report), bounds=bounds)
     render_header(canvas, model, report, mode, title)
 
     room_colors = ["#eef2ff", "#ecfdf5", "#fffbeb", "#fdf2f8", "#f0f9ff"]

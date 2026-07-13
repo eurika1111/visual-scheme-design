@@ -19,6 +19,7 @@ $BaseHandoffBuilder = Join-Path $EngineDir 'base_handoff_builder.py'
 $NeedsBriefBuilder = Join-Path $EngineDir 'needs_brief_builder.py'
 $SchemeOptionPlanner = Join-Path $EngineDir 'scheme_option_planner.py'
 $SchemePlacementResolver = Join-Path $EngineDir 'scheme_placement_resolver.py'
+$SchemeReviewBuilder = Join-Path $EngineDir 'scheme_review_package_builder.py'
 $SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
@@ -45,6 +46,8 @@ $DimensionAnchorConfirmationResponse = Join-Path $ExamplesDir 'dimension_anchor_
 $NeedsResponse = Join-Path $ExamplesDir 'needs_response.sample.json'
 $CaseStrategy = Join-Path $ExamplesDir 'case_strategy.sample.json'
 $PlacementSampleIntent = Join-Path $ExamplesDir 'scheme_intent.placement-sample.json'
+$PlacementSampleIntentB = Join-Path $ExamplesDir 'scheme_intent.placement-sample-b.json'
+$PlacementSampleIntentC = Join-Path $ExamplesDir 'scheme_intent.placement-sample-c.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
 $ExportedBaseValidation = Join-Path $OutputDir 'source_extraction.export.validation.json'
@@ -93,8 +96,12 @@ $BlockedDraftDir = Join-Path $OutputDir 'blocked_draft_check'
 $BlockedDraftReport = Join-Path $BlockedDraftDir 'scheme_A_v1.draft_report.json'
 $PlacementDemoDir = Join-Path $OutputDir 'placement_demo'
 $ResolvedPlacementIntent = Join-Path $PlacementDemoDir 'placement_sample.layout_intent.json'
+$ResolvedPlacementIntentB = Join-Path $PlacementDemoDir 'placement_sample_b.layout_intent.json'
+$ResolvedPlacementIntentC = Join-Path $PlacementDemoDir 'placement_sample_c.layout_intent.json'
 $PlacementReport = Join-Path $PlacementDemoDir 'placement_sample.placement_report.json'
 $PlacementDraftReport = Join-Path $PlacementDemoDir 'placement_sample.draft_report.json'
+$SchemeReviewDir = Join-Path $OutputDir 'scheme_review_package'
+$SchemeReviewManifest = Join-Path $SchemeReviewDir 'scheme_review_manifest.json'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
 $PlanSchemeA = Join-Path $OutputDir 'plan.scheme_A_v1.svg'
 $PlanProblem = Join-Path $OutputDir 'plan.problem.svg'
@@ -142,6 +149,7 @@ Invoke-Step 'compile base handoff builder' { & $PythonExe -m py_compile $BaseHan
 Invoke-Step 'compile needs brief builder' { & $PythonExe -m py_compile $NeedsBriefBuilder }
 Invoke-Step 'compile scheme option planner' { & $PythonExe -m py_compile $SchemeOptionPlanner }
 Invoke-Step 'compile scheme placement resolver' { & $PythonExe -m py_compile $SchemePlacementResolver }
+Invoke-Step 'compile scheme review package builder' { & $PythonExe -m py_compile $SchemeReviewBuilder }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
@@ -198,6 +206,8 @@ if ($blockedDraft.status -ne 'blocked_unresolved_placement') {
     throw "Unresolved placement gate did not block the draft"
 }
 Invoke-Step 'resolve validated placement sample' { & $PythonExe $Workflow resolve-layout $BaseModel $PlacementSampleIntent --output-dir $PlacementDemoDir --version 'placement_sample' }
+Invoke-Step 'resolve validated placement sample B' { & $PythonExe $Workflow resolve-layout $BaseModel $PlacementSampleIntentB --output-dir $PlacementDemoDir --version 'placement_sample_b' }
+Invoke-Step 'resolve validated placement sample C' { & $PythonExe $Workflow resolve-layout $BaseModel $PlacementSampleIntentC --output-dir $PlacementDemoDir --version 'placement_sample_c' }
 $placement = Get-Content -Path $PlacementReport -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($placement.layout_gate -ne 'ready' -or $placement.placed_object_count -ne 1) {
     throw "Placement resolver did not produce one ready object"
@@ -206,6 +216,11 @@ Invoke-Step 'render resolved placement sample' { & $PythonExe $Workflow render-s
 $placementDraft = Get-Content -Path $PlacementDraftReport -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($placementDraft.status -ne 'draft_rendered_pending_review') {
     throw "Resolved placement did not render a deterministic draft"
+}
+Invoke-Step 'build same-scale scheme review package' { & $PythonExe $Workflow build-scheme-review $BaseModel $ResolvedPlacementIntent $ResolvedPlacementIntentB $ResolvedPlacementIntentC --output-dir $SchemeReviewDir }
+$schemeReview = Get-Content -Path $SchemeReviewManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($schemeReview.status -ne 'ready' -or $schemeReview.options.Count -ne 3 -or -not $schemeReview.same_scale) {
+    throw "Scheme review package did not pass shared-scale checks"
 }
 Invoke-Step 'render exported base SVG' { & $PythonExe $Renderer $ExportedBaseModel $PlanExportedBase $ValidationExportedBase }
 Invoke-Step 'render scheme A SVG' { & $PythonExe $Renderer $SchemeA $PlanSchemeA $ValidationSchemeA }

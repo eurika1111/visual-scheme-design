@@ -112,7 +112,9 @@ Mark manually anchored bases clearly when source extraction was not fully automa
 9. `Deterministic scheme draft`
    - Before AI visual generation, create a deterministic plan draft when the output is a floor-plan scheme.
    - The draft should include controlled walls, openings, room names, key furniture, proposal objects, rough dimensions or coordinate grid, and option ID.
-   - The client or operator should be able to compare the draft against the base SVG before visual rendering.
+   - Build a client-visible review package with the same base bounds, scale, lower-left origin, dimensions, and annotation rules for every option.
+   - Show every option draft, object list, compact-size fallback, validation summary, and deferred high-risk item before visual rendering.
+   - The client or operator should be able to compare each draft against the base SVG and compare A/B/C directly.
 
 10. `Visual scheme generation`
    - Use visual generation for material, color, atmosphere, and client-friendly polish.

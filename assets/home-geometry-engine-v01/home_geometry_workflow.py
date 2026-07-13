@@ -233,6 +233,22 @@ def resolve_layout(base_model: Path, scheme_intent: Path, output_dir: Path, vers
     run_step("resolve scheme placements", child_args)
 
 
+def build_scheme_review(base_model: Path, scheme_intents: list[Path], output_dir: Path) -> None:
+    base_model = base_model.resolve()
+    scheme_intents = [path.resolve() for path in scheme_intents]
+    output_dir = ensure_dir(output_dir.resolve())
+    run_step(
+        "build same-scale scheme review package",
+        [
+            "scheme_review_package_builder.py",
+            str(base_model),
+            *(str(path) for path in scheme_intents),
+            "--output-dir",
+            str(output_dir),
+        ],
+    )
+
+
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
     base_model = base_model.resolve()
     scheme_intent = scheme_intent.resolve()
@@ -345,6 +361,11 @@ def build_parser() -> argparse.ArgumentParser:
     placement.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     placement.add_argument("--version")
 
+    scheme_review = sub.add_parser("build-scheme-review", help="Build a same-scale client review package for two or three schemes.")
+    scheme_review.add_argument("base_model", type=Path)
+    scheme_review.add_argument("scheme_intents", type=Path, nargs="+")
+    scheme_review.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
     draft.add_argument("scheme_intent", type=Path)
@@ -400,6 +421,8 @@ def main() -> int:
         plan_options(args.base_model, args.needs_brief, args.output_dir, args.case_strategy)
     elif args.command == "resolve-layout":
         resolve_layout(args.base_model, args.scheme_intent, args.output_dir, args.version)
+    elif args.command == "build-scheme-review":
+        build_scheme_review(args.base_model, args.scheme_intents, args.output_dir)
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "run-demo":
