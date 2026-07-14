@@ -57,17 +57,22 @@ def main() -> int:
         }
         if item.get("swing"):
             opening["swing"] = item["swing"]
+        if item.get("mode"):
+            opening["mode"] = item["mode"]
         openings.append(opening)
 
     rooms = []
     for item in spec.get("rooms", []):
-        rooms.append({
+        room = {
             "id": item["id"], "name": item["name"], "type": item["type"],
             "confidence": item.get("confidence", 0.76),
             "polygon": [point(value) for value in item["polygon_px"]],
             "source_area_m2": item.get("source_area_m2"),
             "source_trace_px": item["polygon_px"], "version": spec["version"],
-        })
+        }
+        if item.get("label_position_px"):
+            room["label_position"] = point(item["label_position_px"])
+        rooms.append(room)
 
     fixtures = []
     for item in spec.get("fixed_fixtures", []):

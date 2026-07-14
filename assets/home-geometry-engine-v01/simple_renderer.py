@@ -176,9 +176,8 @@ def room_label(room: dict[str, Any], points: list[Point], mode: str) -> str:
         return room.get("id", "room")
     name = room.get("name") or room.get("label") or room.get("id", "room")
     source_area = room.get("source_area_m2")
-    area_sqm = float(source_area) if isinstance(source_area, (int, float)) else polygon_area(points) / 1_000_000
-    if area_sqm > 0:
-        return f"{name}\n{area_sqm:.1f}m2"
+    if isinstance(source_area, (int, float)) and source_area > 0:
+        return f"{name}\n{float(source_area):.1f}m2"
     return str(name)
 
 
@@ -264,10 +263,13 @@ def render_opening_symbol(canvas: SvgCanvas, opening: dict[str, Any], walls: dic
     else:
         hinge_side = -1 if opening.get("swing", {}).get("hinge") == "left" else 1
         hinge = gap_start if hinge_side < 0 else gap_end
-        leaf_end = offset(hinge, normal, width)
+        swing_sign = -1 if opening.get("swing", {}).get("direction") == "outward" else 1
+        swing_normal = (normal[0] * swing_sign, normal[1] * swing_sign)
+        leaf_end = offset(hinge, swing_normal, width)
         canvas.line(hinge, leaf_end, "#111827", 2.0, cap="butt")
-        start_angle = math.degrees(math.atan2(unit[1] * hinge_side, unit[0] * hinge_side))
-        end_angle = math.degrees(math.atan2(normal[1], normal[0]))
+        closed_direction = (-unit[0] * hinge_side, -unit[1] * hinge_side)
+        start_angle = math.degrees(math.atan2(closed_direction[1], closed_direction[0]))
+        end_angle = math.degrees(math.atan2(swing_normal[1], swing_normal[0]))
         points = []
         sweep = end_angle - start_angle
         while sweep > 180:
@@ -338,9 +340,12 @@ def render_model(
             continue
         fill = room_colors[index % len(room_colors)]
         canvas.polygon(points, fill, "#cbd5e1", 1.2, opacity=0.5 if mode == "client" else 0.35)
-        cx, cy = polygon_centroid(points)
-        for offset, line in enumerate(room_label(room, points, mode).splitlines()):
-            canvas.centered_text((cx, cy - offset * 150 / canvas.scale), line, size=17 if mode == "client" else 18, fill="#334155")
+        cx, cy = as_point(room["label_position"]) if room.get("label_position") else polygon_centroid(points)
+        label_lines = room_label(room, points, mode).splitlines()
+        line_gap = 22 / canvas.scale
+        label_start_y = cy + (len(label_lines) - 1) * line_gap / 2
+        for offset, line in enumerate(label_lines):
+            canvas.centered_text((cx, label_start_y - offset * line_gap), line, size=17 if mode == "client" else 18, fill="#334155")
 
     for wall in model.get("walls", []):
         geom = wall.get("geometry", {})

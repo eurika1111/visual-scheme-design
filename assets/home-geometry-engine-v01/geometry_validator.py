@@ -348,6 +348,8 @@ def door_swing_collision_checks(
     for opening in openings:
         if opening.get("type") != "door":
             continue
+        if opening.get("mode") == "sliding":
+            continue
         host_id = opening.get("host_wall_id")
         host_wall = wall_by_id.get(host_id)
         if host_wall:
