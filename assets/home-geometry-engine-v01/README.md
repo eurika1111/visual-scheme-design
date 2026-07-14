@@ -67,6 +67,7 @@ L4：参考资料整理，仍需现场复尺和专业确认
 常用命令：
 
 - `check-source`：校验方案底图抽取包并审计尺寸。
+- `import-staged-topology`：把已有拓扑主数据无损导入为待复核候选；保留编号、门窗、房间、尺寸和未决项，不自动替换正式底图。
 - `make-checklist`：生成尺寸锚点草案和确认清单。
 - `apply-confirmation`：应用人工确认结果并重新校验。
 - `render-review`：生成尺寸链校对 SVG。
@@ -75,8 +76,9 @@ L4：参考资料整理，仍需现场复尺和专业确认
 - `build-needs-brief`：把客户模糊或明确的回答整理成结构化需求 JSON 和 Markdown 摘要。
 - `plan-options`：把受控底图和需求摘要转换成隔离的 A/B/C 方案意图；坐标未解决时保持草图门禁关闭。
 - `base_fidelity_gate.py`：把原图面积锚点、底图复核图和用户确认状态合并为独立的一致性门禁；未通过时禁止 `plan-options`。
-- `source_wall_mask.py`：无 OpenCV 依赖地提取原图粗墙掩膜，输出墙体掩膜与原图叠加图，只作为描图依据。
-- `build_model_from_trace.py`：把保留原图像素坐标的描图规格转换为左下角原点、毫米单位的对象模型。
+- `staged_topology_importer.py`：优先复用已有 ECF/GCF/拓扑成果，并生成对象数量保全报告。
+- `source_wall_mask.py`：无 OpenCV 依赖地提取原图粗墙掩膜，仅用于没有可复用拓扑时的局部描图依据。
+- `build_model_from_trace.py`：把局部描图规格转换为左下角原点、毫米单位的候选对象；不覆盖已确认对象。
 - `source_trace_overlay.py`：把房间多边形、墙中心线和门窗锚点直接叠加回原图，供客户在方案生成前确认忠实度。
 - `resolve-layout`：把方案中的家具落位请求转换成有编号、尺寸和坐标的对象；候选必须通过房间边界、门扇、碰撞和通行校验。
 - `build-scheme-review`：把两到三套已落位方案生成同一边界、比例、坐标系和标注规则的客户复核包。

@@ -35,6 +35,35 @@ def check_source(package: Path, output_dir: Path) -> None:
     print(f"dimension_audit={audit}")
 
 
+def import_staged_topology(
+    topology: Path,
+    source_image: Path,
+    output_dir: Path,
+    dimension_register: Path | None,
+    package_id: str,
+    version: str,
+) -> None:
+    output_dir = ensure_dir(output_dir)
+    package = output_dir / "source_extraction.staged_import.json"
+    report = output_dir / "staged_topology_import.report.json"
+    child_args = [
+        "staged_topology_importer.py",
+        str(topology.resolve()),
+        str(source_image.resolve()),
+        str(package),
+        str(report),
+        "--package-id",
+        package_id,
+        "--version",
+        version,
+    ]
+    if dimension_register:
+        child_args.extend(["--dimension-register", str(dimension_register.resolve())])
+    run_step("import staged topology", child_args)
+    print(f"imported_package={package}")
+    print(f"preservation_report={report}")
+
+
 def make_checklist(package: Path, output_dir: Path) -> None:
     output_dir = ensure_dir(output_dir)
     draft = output_dir / "dimension_anchor_draft.json"
@@ -384,6 +413,14 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("package", type=Path)
     check.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
 
+    staged_import = sub.add_parser("import-staged-topology", help="Import an existing reviewed topology master without re-reading the source image.")
+    staged_import.add_argument("topology", type=Path)
+    staged_import.add_argument("source_image", type=Path)
+    staged_import.add_argument("--dimension-register", type=Path)
+    staged_import.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    staged_import.add_argument("--package-id", default="staged_topology_import_v1")
+    staged_import.add_argument("--version", default="base_staged_import_v1")
+
     checklist = sub.add_parser("make-checklist", help="Create dimension anchor draft and confirmation checklist.")
     checklist.add_argument("package", type=Path)
     checklist.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
@@ -483,6 +520,15 @@ def main() -> int:
     args = parser.parse_args()
     if args.command == "check-source":
         check_source(args.package, args.output_dir)
+    elif args.command == "import-staged-topology":
+        import_staged_topology(
+            args.topology,
+            args.source_image,
+            args.output_dir,
+            args.dimension_register,
+            args.package_id,
+            args.version,
+        )
     elif args.command == "make-checklist":
         make_checklist(args.package, args.output_dir)
     elif args.command == "apply-confirmation":

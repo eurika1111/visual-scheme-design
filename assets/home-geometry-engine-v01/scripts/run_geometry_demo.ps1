@@ -31,6 +31,7 @@ $SourceQualityGate = Join-Path $EngineDir 'source_quality_gate.py'
 $BaseFidelityGate = Join-Path $EngineDir 'base_fidelity_gate.py'
 $SourceWallMask = Join-Path $EngineDir 'source_wall_mask.py'
 $TraceModelBuilder = Join-Path $EngineDir 'build_model_from_trace.py'
+$StagedTopologyImporter = Join-Path $EngineDir 'staged_topology_importer.py'
 $SourceTraceOverlay = Join-Path $EngineDir 'source_trace_overlay.py'
 $SourceExtractionValidator = Join-Path $EngineDir 'validate_source_extraction.py'
 $BaseModelExporter = Join-Path $EngineDir 'export_base_model_from_extraction.py'
@@ -195,6 +196,7 @@ Invoke-Step 'compile source quality gate' { & $PythonExe -m py_compile $SourceQu
 Invoke-Step 'compile base fidelity gate' { & $PythonExe -m py_compile $BaseFidelityGate }
 Invoke-Step 'compile source wall mask' { & $PythonExe -m py_compile $SourceWallMask }
 Invoke-Step 'compile trace model builder' { & $PythonExe -m py_compile $TraceModelBuilder }
+Invoke-Step 'compile staged topology importer' { & $PythonExe -m py_compile $StagedTopologyImporter }
 Invoke-Step 'compile source trace overlay' { & $PythonExe -m py_compile $SourceTraceOverlay }
 Invoke-Step 'compile source extraction validator' { & $PythonExe -m py_compile $SourceExtractionValidator }
 Invoke-Step 'compile base model exporter' { & $PythonExe -m py_compile $BaseModelExporter }

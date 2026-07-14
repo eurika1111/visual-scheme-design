@@ -797,7 +797,9 @@ def validate(model: dict[str, Any]) -> dict[str, Any]:
     warnings: list[dict[str, Any]] = []
     all_walls = model.get("walls", [])
     active_walls = [wall for wall in all_walls if wall.get("status") != "demolished"]
+    physical_walls = [wall for wall in active_walls if wall.get("render", True) is not False]
     walls: list[dict[str, Any]] = []
+    binding_walls: list[dict[str, Any]] = []
     openings = model.get("openings", [])
     furniture_items = model.get("furniture", [])
     rooms = model.get("rooms", [])
@@ -818,6 +820,10 @@ def validate(model: dict[str, Any]) -> dict[str, Any]:
         wall_errors = wall_geometry_errors(wall, duplicate)
         errors.extend(wall_errors)
         if not wall_errors:
+            binding_walls.extend(wall_line_segments(wall))
+
+    for wall in physical_walls:
+        if not wall_geometry_errors(wall, duplicate):
             walls.extend(wall_line_segments(wall))
 
     for item in find_overlapping_walls(walls, duplicate):
@@ -850,14 +856,14 @@ def validate(model: dict[str, Any]) -> dict[str, Any]:
                 "message": "Wall has no detected junctions",
             })
 
-    opening_bindings = [bind_opening(opening, walls, host_wall) for opening in openings]
+    opening_bindings = [bind_opening(opening, binding_walls, host_wall) for opening in openings]
     for binding in opening_bindings:
         if binding["status"] == "error":
             errors.append({"type": "opening_binding_error", **binding})
         elif binding["status"] == "warning":
             warnings.append({"type": "opening_binding_warning", **binding})
 
-    door_swing_checks = door_swing_collision_checks(openings, walls, furniture_items, swing_tolerance)
+    door_swing_checks = door_swing_collision_checks(openings, binding_walls, furniture_items, swing_tolerance)
     for swing_check in door_swing_checks:
         if swing_check["status"] == "warning":
             if swing_check.get("collides_with_walls"):

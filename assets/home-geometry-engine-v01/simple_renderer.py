@@ -73,6 +73,8 @@ def arc_points(geom: dict[str, Any], max_degrees: float = 10.0) -> list[Point]:
 def collect_points(model: dict[str, Any], report: dict[str, Any] | None) -> list[Point]:
     points: list[Point] = []
     for wall in model.get("walls", []):
+        if wall.get("render") is False:
+            continue
         geom = wall.get("geometry", {})
         if geom.get("kind") == "line":
             points.append(as_point(geom["start"]))
@@ -265,6 +267,8 @@ def render_opening_symbol(canvas: SvgCanvas, opening: dict[str, Any], walls: dic
             1.7,
             cap="butt",
         )
+    elif not opening.get("swing"):
+        canvas.line(gap_start, gap_end, "#94a3b8", 1.5, dash="6 5", cap="butt")
     else:
         hinge_side = -1 if opening.get("swing", {}).get("hinge") == "left" else 1
         hinge = gap_start if hinge_side < 0 else gap_end

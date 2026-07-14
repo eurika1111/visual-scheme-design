@@ -71,8 +71,10 @@ Geometry readiness and source fidelity are separate gates. A geometrically close
    - Do not ask broad style questions before the plan is at least `L1`.
 
 2. `Source objectization`
-   - Extract candidate rooms, walls, doors, windows, balconies, fixed-service points, and key dimensions.
+   - Use this order: accepted staged object data; reviewed topology import candidate; local trace patches for unresolved regions; fresh full-plan extraction only when no usable staged data exists.
+   - Extract only missing candidate rooms, walls, doors, windows, balconies, fixed-service points, and key dimensions.
    - Store them as object data with uncertainty, not as a cleaned raster image.
+   - Keep imported data as a candidate until preservation checks, source overlay review, and user confirmation pass; never auto-promote it over the accepted base.
 
 3. `Client-visible base confirmation`
    - Always show a base review package before scheme generation when a project will continue beyond a quick explanation.

@@ -38,8 +38,11 @@ At the start of a redraw, create an input manifest containing only:
 - transcribed source dimensions
 - user-confirmed facts
 - approved component defaults
+- the accepted parent-stage object data and its validation report, when available
 
-Do not inherit coordinates, polygons, wall classifications, or openings from rejected or historical outputs. Historical files may be opened only for an explicitly requested comparison.
+Accepted ECF/GCF/WSM/OOM or topology masters are reusable parent data, not historical contamination. Import them with stable IDs, provenance, unresolved items, and an object-count preservation report; keep the result as a candidate until overlay and human review pass.
+
+Do not inherit coordinates, polygons, wall classifications, or openings from rejected, superseded, or unreviewed outputs. Historical files may be opened only for an explicitly requested comparison.
 
 For every revision:
 
@@ -208,6 +211,7 @@ Reduce repeated context and rendering work without reducing evidence or validati
 - Lock every confirmed layer. Downstream stages must read its machine-readable data and must not reload or reinterpret its source geometry unless the user reopens that layer.
 - Keep only the confirmed parent and current candidate active. Reject failed candidates and exclude them from discovery and geometry inheritance.
 - For a local correction, crop and inspect the affected node plus enough adjacent geometry to establish continuity. Do not repeatedly analyze the full image when the unchanged layer is locked.
+- Use raster wall masks and tracing only for unresolved local regions. Do not rebuild the whole plan from a wall mask when a usable staged topology master exists.
 - After a local patch, run a lightweight whole-plan topology and unchanged-object check; do not regenerate unrelated diagnostic enlargements.
 - Store image observations as structured evidence: face coordinates, midpoint, wall thickness, confidence, source region, and inference method. Reuse that evidence instead of repeatedly re-reading the same pixels.
 - Use reusable deterministic scripts for hash checks, midpoint calculation, centerline intersection, overlap detection, local crops, overlays, and audit reports.
