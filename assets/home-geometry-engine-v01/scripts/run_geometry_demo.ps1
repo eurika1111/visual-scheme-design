@@ -29,6 +29,9 @@ $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
 $ConfirmRepair = Join-Path $EngineDir 'confirm_repair_draft.py'
 $SourceQualityGate = Join-Path $EngineDir 'source_quality_gate.py'
 $BaseFidelityGate = Join-Path $EngineDir 'base_fidelity_gate.py'
+$SourceWallMask = Join-Path $EngineDir 'source_wall_mask.py'
+$TraceModelBuilder = Join-Path $EngineDir 'build_model_from_trace.py'
+$SourceTraceOverlay = Join-Path $EngineDir 'source_trace_overlay.py'
 $SourceExtractionValidator = Join-Path $EngineDir 'validate_source_extraction.py'
 $BaseModelExporter = Join-Path $EngineDir 'export_base_model_from_extraction.py'
 $DimensionChainAudit = Join-Path $EngineDir 'dimension_chain_audit.py'
@@ -189,6 +192,9 @@ Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
 Invoke-Step 'compile confirm repair' { & $PythonExe -m py_compile $ConfirmRepair }
 Invoke-Step 'compile source quality gate' { & $PythonExe -m py_compile $SourceQualityGate }
 Invoke-Step 'compile base fidelity gate' { & $PythonExe -m py_compile $BaseFidelityGate }
+Invoke-Step 'compile source wall mask' { & $PythonExe -m py_compile $SourceWallMask }
+Invoke-Step 'compile trace model builder' { & $PythonExe -m py_compile $TraceModelBuilder }
+Invoke-Step 'compile source trace overlay' { & $PythonExe -m py_compile $SourceTraceOverlay }
 Invoke-Step 'compile source extraction validator' { & $PythonExe -m py_compile $SourceExtractionValidator }
 Invoke-Step 'compile base model exporter' { & $PythonExe -m py_compile $BaseModelExporter }
 Invoke-Step 'compile dimension chain audit' { & $PythonExe -m py_compile $DimensionChainAudit }

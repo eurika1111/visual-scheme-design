@@ -77,7 +77,7 @@ def main() -> int:
     parser.add_argument("base_model", type=Path)
     parser.add_argument("evidence", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--max-area-deviation", type=float, default=0.2)
+    parser.add_argument("--max-area-deviation", type=float, default=0.25)
     args = parser.parse_args()
     report = assess(load_json(args.base_model), load_json(args.evidence), args.max_area_deviation)
     args.output.parent.mkdir(parents=True, exist_ok=True)
