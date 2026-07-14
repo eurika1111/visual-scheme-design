@@ -175,7 +175,8 @@ def room_label(room: dict[str, Any], points: list[Point], mode: str) -> str:
     if mode == "debug":
         return room.get("id", "room")
     name = room.get("name") or room.get("label") or room.get("id", "room")
-    area_sqm = polygon_area(points) / 1_000_000
+    source_area = room.get("source_area_m2")
+    area_sqm = float(source_area) if isinstance(source_area, (int, float)) else polygon_area(points) / 1_000_000
     if area_sqm > 0:
         return f"{name}\n{area_sqm:.1f}m2"
     return str(name)
