@@ -50,6 +50,7 @@ For every revision:
 - use stable IDs
 - record provenance and changed objects
 - apply object-level patches
+- reject correction manifests that reference unknown object IDs; record every applied room-region, wall, door, or window override in the import report
 - mark failed versions rejected
 - never use a rejected version as a parent
 

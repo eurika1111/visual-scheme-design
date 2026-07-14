@@ -93,6 +93,8 @@ Do not produce residential concept schemes before `L2`. Do not use quick concept
 
 Reuse accepted staged object data before fresh source extraction. Treat full-plan raster tracing as a local fallback, never as permission to overwrite confirmed geometry.
 
+Apply base-review feedback as object-level candidate corrections and rerender from data. Never patch the review image itself.
+
 ## Live Scene And Set-Design Rules
 
 For live-stream sets, temporary staging, interior styling, and execution views:

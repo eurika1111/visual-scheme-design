@@ -89,11 +89,16 @@ def build_package(
     topology: dict[str, Any],
     source_image: Path,
     dimension_register: dict[str, Any] | None,
+    corrections_path: Path | None,
+    corrections: dict[str, Any] | None,
     package_id: str,
     version: str,
     exterior_thickness: float,
     interior_thickness: float,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    corrections = corrections or {}
+    opening_overrides = corrections.get("opening_overrides", {})
+    room_extensions = corrections.get("room_display_extensions_px", {})
     chains_source = (dimension_register or {}).get("dimension_chains", [])
     points = all_wall_points(topology)
     min_x = min(point[0] for point in points)
@@ -120,7 +125,7 @@ def build_package(
             wall_confidence = 0.9
         elif wall_class == "opening_host":
             alteration = "unknown"
-            default_thickness = 1.0
+            default_thickness = exterior_thickness if str(item.get("id", "")).startswith("W-E") else interior_thickness
             wall_confidence = 0.72
         else:
             alteration = "candidate" if wall_class == "non_structural" else "unknown"
@@ -153,8 +158,14 @@ def build_package(
     missing_hosts: list[str] = []
     pending_swings: list[str] = []
     openings = []
+    applied_opening_overrides: list[str] = []
     source_openings = list(topology.get("openings", [])) + list(topology.get("windows", []))
-    for item in source_openings:
+    for source_item in source_openings:
+        item = dict(source_item)
+        override = opening_overrides.get(item["id"])
+        if override:
+            item.update(override)
+            applied_opening_overrides.append(item["id"])
         host_id = item.get("wall")
         if not host_id:
             candidates = sorted(
@@ -167,7 +178,7 @@ def build_package(
             continue
         a, b = point(item["from"]), point(item["to"])
         raw_type = item.get("type", "opening")
-        opening_type = "door" if raw_type in {"door", "sliding_door"} else "window"
+        opening_type = "door" if raw_type in {"door", "sliding_door", "glazed_door"} else "window"
         opening = {
             "id": item["id"],
             "type": opening_type,
@@ -183,8 +194,12 @@ def build_package(
         }
         if raw_type == "sliding_door":
             opening["mode"] = "sliding"
-        elif raw_type == "glazed_opening":
+        elif raw_type in {"glazed_opening", "glazed_door"}:
             opening["mode"] = "glazed"
+        if item.get("mode"):
+            opening["mode"] = item["mode"]
+        if item.get("group_id"):
+            opening["group_id"] = item["group_id"]
         if opening_type == "door" and raw_type != "sliding_door":
             pending_swings.append(item["id"])
             if item.get("design_swing"):
@@ -192,8 +207,9 @@ def build_package(
         openings.append(opening)
 
     rooms = []
+    applied_room_extensions: list[str] = []
     for item in topology.get("rooms", []):
-        rooms.append({
+        room = {
             "id": item["id"],
             "type": room_type(item.get("name", "")),
             "name": item.get("name", item["id"]),
@@ -203,7 +219,15 @@ def build_package(
             "source_stage": "legacy_topology_master",
             "source_trace_px": item.get("points", []),
             "version": version,
-        })
+        }
+        extension_polygons = room_extensions.get(item["id"], [])
+        if extension_polygons:
+            room["display_extensions"] = [
+                [point(value) for value in polygon]
+                for polygon in extension_polygons
+            ]
+            applied_room_extensions.append(item["id"])
+        rooms.append(room)
 
     dimension_chains = []
     for item in chains_source:
@@ -241,6 +265,15 @@ def build_package(
             "confidence": 0.76,
         },
     ]
+    corrected_object_ids = sorted(set(applied_opening_overrides + applied_room_extensions))
+    if corrected_object_ids:
+        source_facts.append({
+            "id": "SF-USER-CORRECTIONS-01",
+            "type": "user_confirmed_object_corrections",
+            "object_ids": corrected_object_ids,
+            "source": source_id,
+            "confidence": 0.92,
+        })
 
     unresolved = [
         {"id": f"U-LEGACY-{index:02d}", "severity": "medium", "question": text, "source": source_id}
@@ -283,6 +316,7 @@ def build_package(
             "pixel_frame": {"left": min_x, "right": max_x, "top": min_y, "bottom": max_y},
             "scale_x_mm_per_px": round(sx, 6),
             "scale_y_mm_per_px": round(sy, 6),
+            "corrections": str(corrections_path) if corrections_path else None,
         },
     }
     package = {
@@ -315,15 +349,27 @@ def build_package(
         "rooms": source_counts["rooms"] - output_counts["rooms"],
         "dimension_chains": source_counts["dimension_chains"] - output_counts["dimension_chains"],
     }
+    known_opening_ids = {item["id"] for item in source_openings}
+    known_room_ids = {item["id"] for item in topology.get("rooms", [])}
+    unknown_corrections = sorted(
+        (set(opening_overrides) - known_opening_ids)
+        | (set(room_extensions) - known_room_ids)
+    )
     report = {
         "schema_version": "staged_topology_import_report_v1",
-        "status": "passed" if not any(dropped.values()) else "failed",
+        "status": "passed" if not any(dropped.values()) and not unknown_corrections else "failed",
         "source_topology": str(topology_path),
         "source_counts": source_counts,
         "output_counts": output_counts,
         "dropped": dropped,
         "missing_opening_hosts": missing_hosts,
         "pending_door_swings": pending_swings,
+        "corrections": {
+            "source": str(corrections_path) if corrections_path else None,
+            "applied_opening_overrides": applied_opening_overrides,
+            "applied_room_display_extensions": applied_room_extensions,
+            "unknown_object_ids": unknown_corrections,
+        },
         "can_replace_confirmed_base": False,
         "next_action": "review imported topology and normalize OOM openings before base acceptance",
     }
@@ -337,6 +383,7 @@ def main() -> int:
     parser.add_argument("output_package", type=Path)
     parser.add_argument("report_output", type=Path)
     parser.add_argument("--dimension-register", type=Path)
+    parser.add_argument("--corrections", type=Path)
     parser.add_argument("--package-id", default="staged_topology_import_v1")
     parser.add_argument("--version", default="base_staged_import_v1")
     parser.add_argument("--exterior-thickness", type=float, default=240.0)
@@ -346,11 +393,14 @@ def main() -> int:
     topology = load_json(args.topology)
     register_path = dimension_register_path(args.topology, topology, args.dimension_register)
     register = load_json(register_path) if register_path else None
+    corrections = load_json(args.corrections) if args.corrections else None
     package, report = build_package(
         args.topology,
         topology,
         args.source_image,
         register,
+        args.corrections,
+        corrections,
         args.package_id,
         args.version,
         args.exterior_thickness,

@@ -40,6 +40,7 @@ def import_staged_topology(
     source_image: Path,
     output_dir: Path,
     dimension_register: Path | None,
+    corrections: Path | None,
     package_id: str,
     version: str,
 ) -> None:
@@ -59,6 +60,8 @@ def import_staged_topology(
     ]
     if dimension_register:
         child_args.extend(["--dimension-register", str(dimension_register.resolve())])
+    if corrections:
+        child_args.extend(["--corrections", str(corrections.resolve())])
     run_step("import staged topology", child_args)
     print(f"imported_package={package}")
     print(f"preservation_report={report}")
@@ -417,6 +420,7 @@ def build_parser() -> argparse.ArgumentParser:
     staged_import.add_argument("topology", type=Path)
     staged_import.add_argument("source_image", type=Path)
     staged_import.add_argument("--dimension-register", type=Path)
+    staged_import.add_argument("--corrections", type=Path)
     staged_import.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     staged_import.add_argument("--package-id", default="staged_topology_import_v1")
     staged_import.add_argument("--version", default="base_staged_import_v1")
@@ -526,6 +530,7 @@ def main() -> int:
             args.source_image,
             args.output_dir,
             args.dimension_register,
+            args.corrections,
             args.package_id,
             args.version,
         )

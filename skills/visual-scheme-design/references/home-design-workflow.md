@@ -80,6 +80,7 @@ Geometry readiness and source fidelity are separate gates. A geometrically close
    - Always show a base review package before scheme generation when a project will continue beyond a quick explanation.
    - Include: base SVG/review image, coordinate origin, main dimension anchors, room/wall/opening IDs, unresolved questions, and pass/fail summary.
    - Ask the client to confirm, circle errors, or approve proceeding with listed assumptions.
+   - Convert confirmed feedback into an ID-based correction manifest, then create and validate a new base candidate from the accepted parent data; never edit the review SVG/PNG as the fix.
    - Do not hide the base SVG as an internal-only artifact.
    - Compare visible room areas and major outline anchors with the source plan; record large deviations instead of explaining them away as simplification.
    - Produce a machine-readable base-fidelity report. Scheme planning remains blocked unless it matches the exact base version and has `can_plan_schemes=true`.

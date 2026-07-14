@@ -219,6 +219,41 @@ def line_wall_frame(wall: dict[str, Any]) -> tuple[Point, Point, Point, Point, f
     return start, end, unit, normal, length, thickness
 
 
+def visible_wall_segments(wall: dict[str, Any], openings: list[dict[str, Any]]) -> list[tuple[Point, Point]]:
+    frame = line_wall_frame(wall)
+    if not frame:
+        return []
+    start, end, unit, _, length, _ = frame
+    intervals: list[tuple[float, float]] = []
+    for opening in openings:
+        if opening.get("host_wall_id") != wall.get("id"):
+            continue
+        position = as_point(opening["position"])
+        center = (position[0] - start[0]) * unit[0] + (position[1] - start[1]) * unit[1]
+        half = float(opening.get("width") or 800) / 2
+        gap_start = max(0.0, center - half)
+        gap_end = min(length, center + half)
+        if gap_end > gap_start:
+            intervals.append((gap_start, gap_end))
+    if not intervals:
+        return [(start, end)]
+    merged: list[list[float]] = []
+    for gap_start, gap_end in sorted(intervals):
+        if merged and gap_start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], gap_end)
+        else:
+            merged.append([gap_start, gap_end])
+    segments: list[tuple[Point, Point]] = []
+    cursor = 0.0
+    for gap_start, gap_end in merged:
+        if gap_start > cursor:
+            segments.append((offset(start, unit, cursor), offset(start, unit, gap_start)))
+        cursor = max(cursor, gap_end)
+    if cursor < length:
+        segments.append((offset(start, unit, cursor), end))
+    return segments
+
+
 def opening_frame(opening: dict[str, Any], walls: dict[str, dict[str, Any]]) -> tuple[Point, Point, Point, float, float] | None:
     wall = walls.get(str(opening.get("host_wall_id")))
     if not wall:
@@ -249,8 +284,6 @@ def render_opening_symbol(canvas: SvgCanvas, opening: dict[str, Any], walls: dic
     half = width / 2
     gap_start = offset(pos, unit, -half)
     gap_end = offset(pos, unit, half)
-    canvas.line(gap_start, gap_end, "#fbfaf7", max(10.0, (thickness + 90) * canvas.scale), cap="butt")
-
     if opening.get("type") == "window":
         for shift in (-thickness * 0.22, thickness * 0.22):
             a = offset(gap_start, normal, shift)
@@ -259,14 +292,16 @@ def render_opening_symbol(canvas: SvgCanvas, opening: dict[str, Any], walls: dic
         canvas.line(gap_start, gap_end, "#0891b2", 2.0, cap="butt")
     elif opening.get("mode") == "sliding":
         slide_offset = max(45.0, thickness * 0.3)
-        canvas.line(gap_start, gap_end, "#2563eb", 2.5, cap="butt")
-        canvas.line(
-            offset(gap_start, normal, slide_offset),
-            offset(gap_end, normal, slide_offset),
-            "#2563eb",
-            1.7,
-            cap="butt",
-        )
+        track_a_start, track_a_end = offset(gap_start, normal, -slide_offset), offset(gap_end, normal, -slide_offset)
+        track_b_start, track_b_end = offset(gap_start, normal, slide_offset), offset(gap_end, normal, slide_offset)
+        midpoint_a = offset(track_a_start, unit, width * 0.58)
+        midpoint_b = offset(track_b_start, unit, width * 0.42)
+        canvas.line(track_a_start, midpoint_a, "#111827", 2.2, cap="butt")
+        canvas.line(midpoint_b, track_b_end, "#111827", 2.2, cap="butt")
+        canvas.line(track_a_start, track_a_end, "#2563eb", 1.1, cap="butt")
+        canvas.line(track_b_start, track_b_end, "#2563eb", 1.1, cap="butt")
+        for anchor in (track_a_start, midpoint_a, midpoint_b, track_b_end):
+            canvas.line(offset(anchor, normal, -35), offset(anchor, normal, 35), "#111827", 1.5, cap="butt")
     elif not opening.get("swing"):
         canvas.line(gap_start, gap_end, "#94a3b8", 1.5, dash="6 5", cap="butt")
     else:
@@ -348,6 +383,10 @@ def render_model(
         if len(points) < 3:
             continue
         fill = room_colors[index % len(room_colors)]
+        for extension in room.get("display_extensions", []):
+            extension_points = [as_point(p) for p in extension]
+            if len(extension_points) >= 3:
+                canvas.polygon(extension_points, fill, "none", 0, opacity=0.5 if mode == "client" else 0.35)
         canvas.polygon(points, fill, "#cbd5e1", 1.2, opacity=0.5 if mode == "client" else 0.35)
         cx, cy = as_point(room["label_position"]) if room.get("label_position") else polygon_centroid(points)
         label_lines = room_label(room, points, mode).splitlines()
@@ -358,6 +397,8 @@ def render_model(
 
     wall_endpoints: dict[Point, list[tuple[float, str]]] = {}
     for wall in model.get("walls", []):
+        if wall.get("render") is False:
+            continue
         geom = wall.get("geometry", {})
         thickness = float(geom.get("thickness", 120))
         stroke = max(6.0, thickness * canvas.scale)
@@ -365,7 +406,8 @@ def render_model(
         if geom.get("kind") == "line":
             start = as_point(geom["start"])
             end = as_point(geom["end"])
-            canvas.line(start, end, color, stroke, cap="butt")
+            for segment_start, segment_end in visible_wall_segments(wall, model.get("openings", [])):
+                canvas.line(segment_start, segment_end, color, stroke, cap="butt")
             for point in (start, end):
                 key = (round(point[0], 3), round(point[1], 3))
                 wall_endpoints.setdefault(key, []).append((stroke, color))
@@ -385,7 +427,7 @@ def render_model(
     for point, endpoint_walls in wall_endpoints.items():
         if len(endpoint_walls) < 2:
             continue
-        stroke = max(item[0] for item in endpoint_walls)
+        stroke = min(item[0] for item in endpoint_walls)
         color = "#111111" if any(item[1] == "#111111" for item in endpoint_walls) else "#2b2b2b"
         canvas.square(point, stroke, color)
 
