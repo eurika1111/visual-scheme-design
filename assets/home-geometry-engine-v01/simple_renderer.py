@@ -141,6 +141,11 @@ class SvgCanvas:
         x, y = self.xy(center)
         self.add(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="{radius:.2f}" fill="{fill}" stroke="{stroke}" stroke-width="{width:.2f}"/>')
 
+    def square(self, center: Point, size: float, fill: str) -> None:
+        x, y = self.xy(center)
+        half = size / 2
+        self.add(f'<rect x="{x - half:.2f}" y="{y - half:.2f}" width="{size:.2f}" height="{size:.2f}" fill="{fill}"/>')
+
     def text(self, pos: Point, text: str, size: float = 18.0, fill: str = "#111827") -> None:
         x, y = self.xy(pos)
         self.add(
@@ -347,13 +352,19 @@ def render_model(
         for offset, line in enumerate(label_lines):
             canvas.centered_text((cx, label_start_y - offset * line_gap), line, size=17 if mode == "client" else 18, fill="#334155")
 
+    wall_endpoints: dict[Point, list[tuple[float, str]]] = {}
     for wall in model.get("walls", []):
         geom = wall.get("geometry", {})
         thickness = float(geom.get("thickness", 120))
         stroke = max(6.0, thickness * canvas.scale)
         color = "#111111" if wall.get("alteration") == "do_not_alter" else "#2b2b2b"
         if geom.get("kind") == "line":
-            canvas.line(as_point(geom["start"]), as_point(geom["end"]), color, stroke, cap="butt")
+            start = as_point(geom["start"])
+            end = as_point(geom["end"])
+            canvas.line(start, end, color, stroke, cap="butt")
+            for point in (start, end):
+                key = (round(point[0], 3), round(point[1], 3))
+                wall_endpoints.setdefault(key, []).append((stroke, color))
             if mode == "debug":
                 mid = ((geom["start"][0] + geom["end"][0]) / 2, (geom["start"][1] + geom["end"][1]) / 2)
                 canvas.text(mid, wall.get("id", "wall"), size=14, fill="#374151")
@@ -366,6 +377,13 @@ def render_model(
                 canvas.line(start, end, color, stroke)
             if mode == "debug":
                 canvas.text(points[len(points) // 2], wall.get("id", "arc"), size=14, fill="#374151")
+
+    for point, endpoint_walls in wall_endpoints.items():
+        if len(endpoint_walls) < 2:
+            continue
+        stroke = max(item[0] for item in endpoint_walls)
+        color = "#111111" if any(item[1] == "#111111" for item in endpoint_walls) else "#2b2b2b"
+        canvas.square(point, stroke, color)
 
     walls = wall_index(model)
     for opening in model.get("openings", []):

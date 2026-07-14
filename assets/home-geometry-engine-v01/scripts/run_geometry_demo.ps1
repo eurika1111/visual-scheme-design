@@ -172,6 +172,7 @@ if (-not (Test-Path -Path $PythonExe)) {
 }
 
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
+Remove-Item -LiteralPath $SchemeHistory -Force -ErrorAction SilentlyContinue
 
 Invoke-Step 'compile validator' { & $PythonExe -m py_compile $Validator }
 Invoke-Step 'compile operation applier' { & $PythonExe -m py_compile $Applier }
