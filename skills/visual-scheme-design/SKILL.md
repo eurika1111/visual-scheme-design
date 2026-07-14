@@ -91,9 +91,9 @@ For residential renovation and whole-home space planning, object data controls i
 
 Do not produce residential concept schemes before `L2`. Do not use quick concept images as geometry authority for deepening. Residential outputs prioritize visual scheme design, not construction drawings.
 
-Reuse accepted staged object data before fresh source extraction. Treat full-plan raster tracing as a local fallback, never as permission to overwrite confirmed geometry.
+Reuse accepted staged object data before fresh source extraction. Treat full-plan raster tracing as a local fallback.
 
-Apply base-review feedback as object-level candidate corrections and rerender from data. Never patch the review image itself.
+Keep technical geometry review separate from the client confirmation base. Apply feedback as object-level candidate corrections and rerender from data; never patch the review image or replace a stronger accepted redraw with a weaker diagnostic render.
 
 ## Live Scene And Set-Design Rules
 

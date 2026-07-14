@@ -71,8 +71,8 @@ L4：参考资料整理，仍需现场复尺和专业确认
 - `make-checklist`：生成尺寸锚点草案和确认清单。
 - `apply-confirmation`：应用人工确认结果并重新校验。
 - `render-review`：生成尺寸链校对 SVG。
-- `build-handoff`：生成客户可确认的底图交接 Markdown；可传入 `--preview-png`，优先给客户查看 PNG 预览，减少 SVG/浏览器权限问题。
-- `build-base-review`：一键生成客户版底图 SVG、PNG 预览和底图交接 Markdown。
+- `build-handoff`：生成技术底图交接 Markdown；可传入 `--preview-png`，用于结构复核和问题确认。
+- `build-base-review`：一键生成技术复核 SVG、PNG 预览和交接 Markdown，不等同于最终客户呈现底图。
 - `build-needs-brief`：把客户模糊或明确的回答整理成结构化需求 JSON 和 Markdown 摘要。
 - `plan-options`：把受控底图和需求摘要转换成隔离的 A/B/C 方案意图；坐标未解决时保持草图门禁关闭。
 - `base_fidelity_gate.py`：把原图面积锚点、底图复核图和用户确认状态合并为独立的一致性门禁；未通过时禁止 `plan-options`。
@@ -799,9 +799,9 @@ simple_renderer.py
 
 后续如果替换 Shapely、增加别的几何库，优先改 `geometry_backend.py`，不要把库调用散落到业务规则里。
 
-## 底图 SVG 客户确认版
+## 底图 SVG 技术确认版
 
-simple_renderer.py 默认输出内部调试版，会显示对象 ID 和校验标记。需要给客户确认底图时，使用 --mode client；它会隐藏内部对象 ID，并显示房间名、主尺寸、坐标原点、比例尺、校验摘要、门洞、门扇开启弧和窗线。
+`simple_renderer.py` 是技术复核渲染器。默认调试模式显示对象 ID 和校验标记；`--mode client` 只会隐藏内部 ID、简化标签，便于和客户确认结构疑点，但仍不是最终呈现底图。正式客户底图还必须通过独立呈现门禁，包括连续墙体面域、清晰门窗符号、尺寸排版、标签可读性和与既有最佳复绘的回归对比。
 
 ## SVG 预览 PNG
 
