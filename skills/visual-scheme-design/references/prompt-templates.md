@@ -238,6 +238,46 @@ Negative constraints:
 - [repeat the specific failure to avoid]
 ```
 
+## Residential First-Use Welcome
+
+Use for a new customer, new project, or explicit clean test. Do not inspect and render the base in the same user-facing turn.
+
+```text
+阶段：开始
+
+当前判断：
+我会先确认户型理解和概念底图，再分几轮了解居住需求，之后先用文字给出 A/B/C 方向；你确认方向后才生成方案图。输出用于方案讨论，不是施工图。
+
+请确认/补充：
+1. 这次希望解决的主要问题是什么？不确定也可以说“先帮我看看”。
+2. 是否先开始户型图理解？这一步不会生成设计方案。
+
+下一步：
+只整理户型结构理解和不确定项，等待你确认后再制作底图候选。
+```
+
+## Residential Source Understanding
+
+Use after the welcome and source audit, before rendering a confirmation base.
+
+```text
+阶段：户型理解
+
+我识别到：
+- rooms and relationships: [short list]
+- orientation and entry: [short statement]
+- doors/windows/fixed zones: [short statement]
+- uncertainties: [only high-impact items]
+
+请确认/补充：
+1. 房间名称和相邻关系是否正确？
+2. 哪些墙、门窗或区域最容易看错，需要重点保留？
+3. 是否按“结构一致、关键尺寸厘米级、非施工图”的标准制作概念底图？
+
+下一步：
+确认后只生成概念底图候选，不生成装修方案。
+```
+
 ## Residential Base Review Handoff
 
 Use after source objectization and before any residential scheme generation.
@@ -266,21 +306,45 @@ Ask the client to confirm:
 
 Use before generating home-design options when the user has not provided enough constraints.
 
+Ask in three short rounds and stop after each round:
+
 ```text
-Before creating options, collect only high-impact needs:
+Round 1 - people and hard limits
+- Who lives here and what daily routines matter?
+- Which room count or functions must remain?
+- Which spaces or objects must not change?
 
-- Who will live here?
-- Must we keep the current number of bedrooms?
-- Can the kitchen become open or semi-open?
-- Is an island or dining island desired?
-- Can any non-structural wall be considered for removal?
-- What storage problems matter most?
-- What budget/risk level is acceptable: conservative, medium, or exploratory?
-- What style direction should options explore?
-- Which spaces must not be changed?
+Round 2 - problems and alteration
+- Which 1-3 current problems matter most?
+- What storage, kitchen, bathroom, work, child, elder, or guest needs matter?
+- Alteration attitude: conservative / moderate / exploratory / not sure, show comparisons.
 
-Separate hard constraints from preferences.
-Allow approximate answers such as "not sure", "show me options", "probably keep it", or "open to ideas". Follow up only where ambiguity changes structure, budget, or required functions.
+Round 3 - feeling and budget
+- Desired feeling or disliked styles; fuzzy descriptions are welcome.
+- Budget expression: controlled / balanced / willing to invest in key areas / not sure.
+- Which uncertain ideas should A/B/C compare rather than decide now?
+
+Ask 1-3 questions at a time. Separate hard constraints from preferences. Do not turn examples into requirements without confirmation.
+```
+
+## Residential Option Direction Approval
+
+Use after needs rounds and before any scheme image generation.
+
+```text
+阶段：方案方向确认
+
+方案 A：[core idea] | 改动程度：[low] | 主要解决：[problem]
+方案 B：[core idea] | 改动程度：[medium] | 主要解决：[problem]
+方案 C：[core idea] | 改动程度：[exploratory] | 主要解决：[problem]
+
+请确认/补充：
+1. 哪些方向保留、替换或合并？
+2. 哪个方向可以更大胆，哪个必须稳妥？
+3. 是否批准按这三个方向生成同底图、同尺寸的概念图？
+
+下一步：
+仅生成获批方向，并在展示前完成结构漂移和基本功能检查。
 ```
 
 ## Residential Case Strategy Extraction

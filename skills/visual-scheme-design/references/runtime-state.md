@@ -33,6 +33,10 @@ Do not store large object models inside state. Store file paths, IDs, status, an
   "domain": "residential",
   "mode": "execute",
   "phase": "production",
+  "interaction_context": "first_use",
+  "interaction_checkpoint": "option_direction_confirmation",
+  "awaiting_confirmation": "approve_or_edit_option_directions",
+  "confirmed_checkpoints": ["welcome", "source_understanding", "base_confirmation", "needs_rounds"],
   "level": "L3",
   "base_level": "L3",
   "base_validation_status": "passed",
@@ -73,9 +77,18 @@ Keep base readiness separate from the active scheme option:
 - `active_option_level` and `active_option_validation_status` decide whether the selected option can enter stable deepening.
 - A warning in one option must not downgrade the base model or contaminate other options.
 - Switching active option updates `active_option`, `active_option_level`, `active_option_validation_status`, related files, and option registry only.
+
+## Interaction gate
+
+- `interaction_checkpoint` identifies the one user-visible decision currently active.
+- `awaiting_confirmation` must be cleared by an explicit answer before moving to the next checkpoint.
+- `confirmed_checkpoints` is append-only for the active branch. Returning to an earlier checkpoint creates a revised branch and invalidates dependent later confirmations.
+- `继续` confirms only the next action previously stated; it does not clear multiple checkpoints.
+- For `first_use` or `clean_test`, do not populate confirmations from prior conversation or prior generated schemes.
 ## Update rules
 
 - Update state after a phase change, validation run, option status change, scheme migration, rollback, or delivery.
+- Update interaction state before stopping at, and after resolving, every mandatory checkpoint.
 - Do not change `source_facts` through state.
 - Do not change or unlock an active residential base through state. Point to a newly confirmed base version after a specific user-requested correction.
 - Do not mark `validation_status` as `passed` without a validation report or explicit manual check.

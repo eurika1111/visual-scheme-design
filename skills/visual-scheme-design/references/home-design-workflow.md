@@ -23,6 +23,22 @@ Data controls structure. The confirmed visual base and its object data form one 
 - Bind every option to one locked `base_id`, canvas size, lower-left origin, scale, framing, and dimension anchors.
 - Store option changes as isolated operations. Images, style changes, labels, repair prompts, and UE edits cannot modify the base.
 
+## Interaction Checkpoints
+
+Treat these as hard stops, not suggestions:
+
+1. `welcome`: for first use, new project, or clean test, briefly explain that the workflow confirms the floor-plan base before needs and concepts. State that outputs are design proposals, not construction drawings. Ask permission for the next single step.
+2. `source_understanding`: summarize recognized rooms, orientation, obvious openings, uncertainties, and intended base accuracy. Ask the user to correct the understanding before producing a confirmation base.
+3. `base_confirmation`: show the candidate base and ask for visible corrections. Lock only after explicit approval; corrections create a new candidate and return to this checkpoint.
+4. `needs_rounds`: collect needs over short rounds, not one long questionnaire.
+5. `option_direction_confirmation`: present A/B/C as short text directions, meaningful differences, alteration risk, and unresolved assumptions. Generate no images until the user approves or edits these directions.
+6. `generated_option_review`: review and show comparable outputs, then ask which option to retain, repair, combine, or reject.
+7. `deepening_confirmation`: state what exact placement, dimensions, export, or optional UE work will start; proceed only after approval.
+
+Do not cross two checkpoints in one assistant turn. `继续`, `下一步`, or silence about later phases confirms only the next action already declared. A user may revise an earlier checkpoint at any time; branch or return without carrying later data backward.
+
+If the user explicitly requests a first-time test, ignore previous conversational preferences and old generated options. Existing project files may be reused only as hidden evidence after checking their accepted/rejected status; present the experience as a fresh project and ask each required confirmation again.
+
 ## Output Roles
 
 | Output | Purpose | May control later geometry |
@@ -75,55 +91,71 @@ Geometry readiness and presentation readiness are separate. An `L2` model may st
 
 ## Core Workflow
 
-1. `Project intake`
+1. `Welcome and scope`
+   - Apply the first-use introduction when required.
+   - Establish only the requested outcome and the next checkpoint.
+
+2. `Project intake`
    - Collect the source plan and intended use.
    - Ask only questions that change the current checkpoint.
 
-2. `Artifact audit`
+3. `Artifact audit`
    - Inventory current, accepted, candidate, rejected, and historical files.
    - Select Route A or Route B.
 
-3. `Base acquisition`
+4. `Source understanding confirmation`
+   - Describe recognized spaces, orientation, openings, uncertainties, and accuracy target without rendering a new base.
+   - Stop for correction or approval.
+
+5. `Base acquisition`
    - Produce or import rooms, walls, openings, dimensions, and source facts.
    - Keep uncertainty explicit.
 
-4. `Technical validation`
+6. `Technical validation`
    - Check topology, continuity, opening hosts, room closure, dimensions, and object preservation.
    - Use overlays and diagnostic SVG/PNG internally.
 
-5. `Client confirmation and lock`
+7. `Client confirmation and lock`
    - Show the user the base before any scheme generation.
    - Render with solid joined walls, recognizable door/window/sliding-door symbols, room names, source areas, key dimensions when available, stable framing, and no debug IDs.
    - Compare against the original source and the best accepted visual baseline.
    - Confirm visible structure, room relationships, openings, kitchen, bathrooms, balcony, orientation, and assumptions.
    - On approval, record `base_id`, `locked_at`, canvas size, coordinate frame, scale, dimension anchors, object-data path, visual path, and confirmation note.
 
-6. `Correction loop`
+8. `Correction loop`
    - Convert confirmed feedback into stable-ID object corrections.
    - Branch from the accepted parent, validate, and rerender.
    - Never patch the review SVG/PNG or use a rejected candidate as parent.
 
-7. `Needs intake`
+9. `Needs intake`
    - Let users answer precisely or approximately.
-   - Capture priorities, household, retained items, storage, kitchen/bathroom needs, style, budget, and change tolerance.
+   - Round 1: residents, daily routines, must-keep rooms, and hard restrictions.
+   - Round 2: pain points, storage, kitchen/bathroom use, room priorities, and alteration tolerance.
+   - Round 3: style feeling, disliked directions, budget expression, and willingness to compare uncertain options.
+   - Ask 1-3 focused questions per round. Accept `不确定` and offer examples without treating them as final choices.
 
-8. `Creative strategy`
+10. `Creative strategy`
    - Learn strategies from relevant cases after needs are known.
    - Create genuinely different low-, medium-, and higher-change directions when suitable.
    - Convert inspiration into object operations and risks, not image copying.
 
-9. `Scheme production`
+11. `Option direction confirmation`
+   - Present A/B/C in text before image generation.
+   - State each option's core idea, meaningful differences, alteration level, and key risk.
+   - Stop for approval or revision.
+
+12. `Scheme production`
    - Read the locked base plus one scheme intent; do not reconstruct the base from chat or another image.
    - Keep unchanged base objects fixed. Represent only authorized demolition, additions, furniture, zones, and style as option differences.
    - Use approximate furniture placement for quick concepts when it is visually and functionally plausible; reserve exact placement for the selected scheme.
    - Keep A/B/C data isolated.
 
-10. `Post-generation control`
+13. `Post-generation control`
    - Register each output to the locked canvas and compare it against the base.
    - Review structural drift, functional omissions, furniture logic, scale, text, and option differentiation.
    - Reject unrequested base changes; repair the smallest failed layer without unlocking the base.
 
-11. `Selection and deepening`
+14. `Selection and deepening`
    - Migrate selected ideas by object ID into a new target version.
    - Resolve exact furniture placement, authorized wall/opening changes, dimensions, clearances, and fixed-service constraints for the selected scheme.
    - Enter visual deepening/reference export at `L3`; offer UE only as a downstream option.
@@ -174,14 +206,14 @@ Before deepening:
 
 ## User Experience
 
-Show the user only meaningful checkpoints:
+Show the user only meaningful checkpoints, but never hide a required decision:
 
-1. source interpretation when uncertain
-2. readable client confirmation base
-3. explicit base-lock confirmation
-4. short, gradual needs brief
-5. differentiated scheme directions
-6. same-scale comparable scheme review
-7. selected-scheme deepening
+1. short first-use introduction and next action
+2. source understanding before base creation
+3. readable client confirmation base and explicit lock
+4. short, gradual needs rounds
+5. text-only differentiated option directions and approval
+6. same-scale comparable generated-option review
+7. selected-scheme deepening approval
 
 Do not make the user watch every internal geometry stage or debug a dense technical report.

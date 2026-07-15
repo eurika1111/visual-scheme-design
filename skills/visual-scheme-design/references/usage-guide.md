@@ -47,6 +47,24 @@ Minimal input also works:
 用 $visual-scheme-design 优化：钱币博物馆三人坐播方案板，低预算，现代展陈感，需要手机直播视图、顶视图、45 度执行视图。
 ```
 
+## First-Use Experience
+
+For residential work, a first request starts with a short introduction and one next-step confirmation. It does not immediately produce a floor-plan redraw or design image.
+
+The required customer-facing sequence is:
+
+```text
+welcome
+-> source understanding confirmation
+-> concept base confirmation and lock
+-> three short needs rounds
+-> text-only A/B/C direction approval
+-> generated option review
+-> selected-scheme deepening approval
+```
+
+Each arrow requires a separate user response. `继续` advances one declared action only. When an answer is vague and could change structure, functions, budget, or output, the assistant asks a focused follow-up and offers `不确定/先比较` instead of guessing.
+
 ## How To Use The Output
 
 1. Confirm the scheme type and scope.

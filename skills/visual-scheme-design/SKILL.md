@@ -28,6 +28,16 @@ Do not re-explain the whole workflow during normal execution. Do not use generat
 
 These rules override downstream residential, generation, repair, export, and UE instructions.
 
+## Mandatory Interaction Contract
+
+For residential first-use, new-project, or clean-test requests, do not inherit unconfirmed preferences, schemes, or decisions from earlier conversation. Start with a short introduction of the service boundary, the staged process, and the next confirmation.
+
+Stop for explicit user confirmation at every material checkpoint. Never chain source interpretation, base rendering, base lock, needs intake, option approval, image generation, and deepening in one turn. `继续` authorizes only the next declared action, not all later phases.
+
+Ask before acting when ambiguity could change structure, room functions, resident needs, alteration scope, budget, style direction, option count, or output type. Offer fuzzy answers such as `不确定`, `先看看方向`, or `都可以比较`; do not silently convert them into hard requirements.
+
+Residential base confirmation and lock cannot be skipped, even when the user asks for immediate end-to-end execution. Image generation requires separate approval of the option directions.
+
 ## Mode System
 
 Use one mode per turn:
@@ -63,6 +73,9 @@ Minimum runtime state fields:
   "level": "L0|L1|L2|L3|L4|null",
   "active_base": null,
   "base_lock_status": "unconfirmed|locked|change_requested|null",
+  "interaction_context": "first_use|returning|clean_test|null",
+  "interaction_checkpoint": null,
+  "awaiting_confirmation": null,
   "active_option": null,
   "option_registry": [],
   "validation_status": "unknown|passed|warning|failed|null",
@@ -200,5 +213,7 @@ For staged guidance mode:
 下一步：
 <what happens after the answer>
 ```
+
+At a mandatory checkpoint, output only the current finding, 1-3 focused confirmation questions, and the next single action. Do not perform that next action in the same turn.
 
 For maintenance work on this skill, keep `SKILL.md` lean; move domain details into `references/`, deterministic helpers into `scripts/`, and do not add untested future business domains.
