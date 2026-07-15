@@ -24,6 +24,20 @@ Do not require millimeter-level precision for concept work. Do flag errors that 
 
 Quick concept starts at `L2`. Visual deepening/reference export starts at `L3`.
 
+## Two Validation Depths
+
+For an `L2` quick concept, run only the controls needed to protect comparison:
+
+- confirmed `base_id` is locked
+- output canvas, coordinate frame, scale, framing, and dimension anchors match the lock record
+- unchanged outline, walls, openings, and fixed-service anchors have not drifted
+- required kitchen, bathroom, bedroom, living, and balcony functions remain recognizable
+- furniture is plausibly oriented and does not visibly block access
+
+Do not block quick concepts on exact loose-furniture coordinates, exhaustive clearance checks, construction details, or full export readiness.
+
+For selected-scheme `L3` deepening, add exact object placement, authorized wall/opening operations, door swings, circulation, kitchen clearances, curved geometry, dimensions, and reference-export checks.
+
 ## Accuracy Policy
 
 Use these practical tolerances as guidance, not施工图 promises:
@@ -77,6 +91,20 @@ Contamination checks:
 - a scheme does not inherit another scheme's object without an operation record
 - rejected versions are not used as parents
 - generated images are not used as geometry authority
+
+## Locked-Base Registration Check
+
+For each comparable quick option:
+
+1. Read the locked base manifest and scheme operation list.
+2. Render or normalize the option to the exact locked canvas; do not use free scaling, stretching, or independent cropping.
+3. Exclude only objects named by authorized `base_change_operations` from the unchanged set.
+4. Compare stable outline corners, wall junctions, opening endpoints, fixed-service anchors, and main dimension anchors against the base.
+5. Report `passed`, `needs_repair`, or `rejected`, with drift grouped by object ID or anchor.
+
+Any unexplained translation, scale change, aspect-ratio change, wall/opening movement, or inconsistent dimension frame is a blocking quick-concept error. Repair the scheme render or generation input; do not alter the locked base to fit the output.
+
+Add room names, coordinate references, and dimensions through deterministic layout after visual generation. Use the same positions and values across A/B/C so image-model text cannot create false size differences.
 
 ## T-Junction Logic
 

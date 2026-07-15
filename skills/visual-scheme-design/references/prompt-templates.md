@@ -247,11 +247,12 @@ Base review package for [project]
 
 Show:
 - original source plan
-- base SVG / deterministic review drawing
+- clean base SVG / confirmation drawing
 - coordinate origin and orientation
 - main dimension anchors
-- room, wall, opening, and fixed-service IDs
 - unresolved questions and assumptions
+
+Keep room, wall, opening, and fixed-service IDs in the backend lock package; do not clutter the client view with debug IDs.
 
 Ask the client to confirm:
 1. Does the outline match the original plan?
@@ -279,6 +280,7 @@ Before creating options, collect only high-impact needs:
 - Which spaces must not be changed?
 
 Separate hard constraints from preferences.
+Allow approximate answers such as "not sure", "show me options", "probably keep it", or "open to ideas". Follow up only where ambiguity changes structure, budget, or required functions.
 ```
 
 ## Residential Case Strategy Extraction
@@ -323,7 +325,7 @@ Must validate: alteration feasibility, wall status, circulation, fixed-service z
 
 ## Residential Deterministic Draft Brief
 
-Use before image generation for plan-like home options.
+Use before image generation when controlled proposal geometry, authorized wall changes, or exact comparison needs a deterministic draft. Do not make this a mandatory delay for every low-risk quick concept.
 
 ```text
 Create a deterministic scheme draft from object data, not from visual guessing.
@@ -340,7 +342,7 @@ Do not use AI-generated concept images as the geometry source.
 
 ## Residential Top-Down Visual Prompt
 
-Use only after base confirmation, needs brief, scheme intent, and preferably deterministic draft exist.
+Use only after the base is confirmed and locked, the needs brief exists, and the current option has an isolated scheme intent. Add a deterministic draft when proposal geometry requires it.
 
 Prefer a generated `visual_generation_handoff` over reconstructing the prompt from chat history. The handoff's structure lock and active accepted version are authoritative; style fields control only visual treatment.
 Do not generate a full-home image when `functional_completeness` is incomplete. Resolve or explicitly confirm missing sleeping, living, kitchen, or bathroom functions first.
@@ -348,8 +350,13 @@ Do not generate a full-home image when `functional_completeness` is incomplete. 
 ```text
 Purpose: Generate one client-facing top-down residential visual concept for [Option ID and short name].
 
-Use the deterministic draft and base plan as the structural reference.
-Preserve the apartment outline, main walls, doors, windows, kitchen, bathrooms, balcony, and fixed-service zones.
+Locked base: [base_id and lock manifest]
+Output canvas: [exact width x height]
+Coordinate frame and scale: [inherit exactly]
+Dimension anchors: [inherit exactly]
+
+Use the locked base plan, and deterministic draft when supplied, as the structural reference.
+Preserve every base object except the objects explicitly named in authorized base-change operations.
 
 Design intent:
 [scheme-specific intent]
@@ -357,13 +364,17 @@ Design intent:
 Controlled proposal objects:
 [island / storage / curved partition / new furniture / local wall change]
 
+Authorized base-change operations:
+[empty by default; stable object IDs and operations only]
+
 Visual direction:
 [style, palette, material, furniture language]
 
 Hard constraints:
-- do not change the base outline or fixed-service zones
-- do not thicken, break, or invent walls
-- do not move doors or windows
+- preserve the exact canvas, aspect ratio, framing, coordinate frame, scale, and unchanged dimension anchors
+- do not change the base outline or fixed-service zones unless explicitly authorized above
+- do not thicken, break, invent, remove, or move walls unless explicitly authorized above
+- do not move, reverse, remove, or invent doors/windows unless explicitly authorized above
 - do not block bathroom, kitchen, balcony, or bedroom access
 - no dense dimensions, small labels, arrows, legends, UI, watermarks, or unreadable text
 - labels and dimensions will be added later by deterministic layout tools
@@ -384,6 +395,7 @@ Use immediately after each generated residential plan image.
 Review status: generated_pending_review
 
 Check:
+- output uses the exact locked base canvas, framing, scale, and dimension frame
 - outline and room topology still match base
 - walls are continuous and not randomly thickened
 - doors and windows remain in plausible host walls
@@ -393,10 +405,12 @@ Check:
 - A/B/C are meaningfully different
 - no garbled labels, watermarks, UI, or dense fake dimensions
 
+Register the output against the locked base and compare unchanged outline corners, wall junctions, opening endpoints, fixed-service anchors, and main dimension anchors. Any unexplained shift, stretch, crop, or object drift is blocking.
+
 Set result:
 - reviewed_passed
 - needs_repair
 - rejected
 
-Repair only the smallest failed layer: prompt, scheme intent, deterministic draft, or base model.
+Repair only the smallest failed layer: prompt, scheme intent, deterministic draft, or generated visual. Do not repair or unlock the confirmed base unless the user requested a specific base correction.
 ```

@@ -101,6 +101,7 @@ The client base is a separate deterministic render from the same candidate data.
 - room names and source area labels without overlap
 - main dimensions arranged outside the plan
 - one stable scale, orientation, and framing
+- a recorded canvas size, lower-left coordinate origin, and dimension anchors shared by later options
 - no debug IDs, warning clutter, code labels, or accidental blank ownership regions
 
 Unknown door swing must not vanish. Use source evidence or a clearly marked candidate swing; if neither is defensible, show the opening location and one focused confirmation callout.
@@ -108,6 +109,22 @@ Unknown door swing must not vanish. Use source evidence or a clearly marked cand
 Window-adjacent and bay-window regions must carry explicit room ownership in data or presentation regions. Do not leave unexplained white gaps that appear outside every room.
 
 Use the best accepted prior redraw as a visual regression baseline. A new renderer must not replace it merely because the new data model is cleaner.
+
+## Confirmation And Lock
+
+Show the confirmation base before needs intake or scheme generation. Ask only whether the visible structure is adequate for concept design: outline, room relationships, main walls, doors/windows, kitchen, bathrooms, balcony, orientation, and listed assumptions.
+
+On user approval:
+
+1. assign one `base_id`
+2. bind the object model and confirmation visual
+3. record canvas, lower-left origin, scale, framing, and dimension anchors
+4. set `base_lock_status: locked`
+5. use this exact parent for every quick option
+
+Do not require construction-grade precision or a polished CAD deliverable to lock an `L2` concept base. Do require centimeter-level key-element consistency where source evidence supports it and no visible topology error that would change the design.
+
+After lock, do not rerun full extraction, smooth geometry, relocate openings, change framing, or replace the visual merely because a newer tool is available. A specific user correction creates a new candidate and requires renewed confirmation.
 
 ## Presentation Gate
 
@@ -126,11 +143,13 @@ Geometry validation alone cannot open this gate.
 ## Correction Loop
 
 1. Record client feedback against stable object IDs.
-2. Separate geometry changes from presentation-only changes.
+2. Separate pre-lock correction, post-lock base-change request, scheme-only change, and presentation-only change.
 3. Apply geometry changes to a new data candidate.
 4. Apply presentation changes to renderer rules or explicit non-authoritative presentation regions.
 5. Run preservation, geometry, and presentation checks.
 6. Rerender from data.
+
+After a base is locked, steps 3-6 may run only for a specific user-requested base correction. Furniture, style, labels, image repair, and option feedback cannot enter this loop.
 
 Never fix a base by painting over its SVG/PNG. Never generalize one project's coordinate patch into the engine without a reusable rule and regression test.
 

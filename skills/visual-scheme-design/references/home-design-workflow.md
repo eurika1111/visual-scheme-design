@@ -9,11 +9,19 @@ This skill creates design-scheme drawings and visual proposals, not construction
 The residential chain is:
 
 ```text
-source evidence -> controlled base data -> technical review -> client confirmation base
--> needs brief -> differentiated schemes -> selected-scheme deepening
+source evidence -> controlled concept base -> user confirmation and base lock
+-> needs brief -> isolated quick concepts -> comparison and selection
+-> selected-scheme deepening -> optional UE handoff
 ```
 
-Data controls structure. A technical review image explains data. A client confirmation base communicates the home clearly. Do not treat these as the same output.
+Data controls structure. The confirmed visual base and its object data form one locked base package: the visual is for human confirmation; the data remains geometry authority.
+
+## Residential Hard Boundary
+
+- Keep the route short and reveal only the current checkpoint.
+- A confirmed base is read-only. Do not modify it without a specific user request.
+- Bind every option to one locked `base_id`, canvas size, lower-left origin, scale, framing, and dimension anchors.
+- Store option changes as isolated operations. Images, style changes, labels, repair prompts, and UE edits cannot modify the base.
 
 ## Output Roles
 
@@ -22,7 +30,7 @@ Data controls structure. A technical review image explains data. A client confir
 | Original source | Evidence | yes |
 | Base object data | Walls, rooms, openings, dimensions, provenance | yes |
 | Technical review/overlay | Internal diagnosis and source comparison | no |
-| Client confirmation base | Clear, dimensioned, readable base for approval | no |
+| Client confirmation base | Clear, readable view bound to the active base for approval | no |
 | Deterministic scheme draft | Placement and option comparison | no |
 | Generated visual | Mood and client presentation | no |
 
@@ -83,10 +91,12 @@ Geometry readiness and presentation readiness are separate. An `L2` model may st
    - Check topology, continuity, opening hosts, room closure, dimensions, and object preservation.
    - Use overlays and diagnostic SVG/PNG internally.
 
-5. `Client confirmation base`
-   - Render with solid joined walls, recognizable door/window/sliding-door symbols, room names, source areas, key dimensions, scale/origin when useful, and no debug IDs.
+5. `Client confirmation and lock`
+   - Show the user the base before any scheme generation.
+   - Render with solid joined walls, recognizable door/window/sliding-door symbols, room names, source areas, key dimensions when available, stable framing, and no debug IDs.
    - Compare against the original source and the best accepted visual baseline.
-   - If no renderer can meet this contract, stop at technical review and say the client base is not ready.
+   - Confirm visible structure, room relationships, openings, kitchen, bathrooms, balcony, orientation, and assumptions.
+   - On approval, record `base_id`, `locked_at`, canvas size, coordinate frame, scale, dimension anchors, object-data path, visual path, and confirmation note.
 
 6. `Correction loop`
    - Convert confirmed feedback into stable-ID object corrections.
@@ -103,13 +113,20 @@ Geometry readiness and presentation readiness are separate. An `L2` model may st
    - Convert inspiration into object operations and risks, not image copying.
 
 9. `Scheme production`
-   - Resolve walls, openings, fixed fixtures, furniture footprints, circulation, and proposal-specific checks before visual generation.
+   - Read the locked base plus one scheme intent; do not reconstruct the base from chat or another image.
+   - Keep unchanged base objects fixed. Represent only authorized demolition, additions, furniture, zones, and style as option differences.
+   - Use approximate furniture placement for quick concepts when it is visually and functionally plausible; reserve exact placement for the selected scheme.
    - Keep A/B/C data isolated.
 
-10. `Review and deepening`
-   - Review generated images for structural drift, functional omissions, furniture logic, scale, text, and option differentiation.
+10. `Post-generation control`
+   - Register each output to the locked canvas and compare it against the base.
+   - Review structural drift, functional omissions, furniture logic, scale, text, and option differentiation.
+   - Reject unrequested base changes; repair the smallest failed layer without unlocking the base.
+
+11. `Selection and deepening`
    - Migrate selected ideas by object ID into a new target version.
-   - Enter visual deepening/reference export only at `L3`.
+   - Resolve exact furniture placement, authorized wall/opening changes, dimensions, clearances, and fixed-service constraints for the selected scheme.
+   - Enter visual deepening/reference export at `L3`; offer UE only as a downstream option.
 
 ## Gates
 
@@ -117,16 +134,24 @@ Before quick concept:
 
 - exact base version is `L2`
 - technical validation has no blocking errors
-- client confirmation base passes presentation review
-- user accepted the base or accepted listed assumptions
+- the user has seen and accepted the confirmation base or listed assumptions
+- the accepted base has `base_lock_status: locked`
 - needs brief and option IDs exist
 
 Before visual generation:
 
-- placements are resolved
+- every option names the same locked `base_id`, canvas, coordinate frame, scale, and dimension anchors
+- each option has an isolated intent and only explicit base-change operations
 - option differentiation is meaningful
 - wet areas and required bathroom/kitchen functions are present
 - style direction or explicit exploratory permission exists
+
+After visual generation:
+
+- align output to the locked canvas without free scaling or cropping
+- compare unchanged wall/opening anchors against the locked base
+- reject unexplained shift, stretch, wall/opening drift, or inconsistent framing
+- keep dimensions and coordinate references deterministic and identical across comparable options
 
 Before deepening:
 
@@ -142,7 +167,7 @@ Before deepening:
 - geometry and source validators: technical gates.
 - `simple_renderer.py`: internal technical review renderer, even when labels are hidden with `--mode client`.
 - project-specific or future polished base renderer: client confirmation base.
-- image models: visual proposal generation only.
+- image models: proposal appearance and concept expression only; never base reconstruction authority.
 
 ## User Experience
 
@@ -150,9 +175,10 @@ Show the user only meaningful checkpoints:
 
 1. source interpretation when uncertain
 2. readable client confirmation base
-3. short needs brief
-4. differentiated scheme directions
-5. comparable scheme review
-6. selected-scheme deepening
+3. explicit base-lock confirmation
+4. short, gradual needs brief
+5. differentiated scheme directions
+6. same-scale comparable scheme review
+7. selected-scheme deepening
 
 Do not make the user watch every internal geometry stage or debug a dense technical report.

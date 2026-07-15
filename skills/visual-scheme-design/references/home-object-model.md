@@ -15,6 +15,7 @@ Keep these layers separate:
 - `source_facts`: immutable evidence from the original client plan, user-confirmed facts, and manually entered measurements.
 - `base_inference`: AI-extracted candidate rooms, walls, doors, windows, dimensions, fixed fixtures, topology, and uncertainty.
 - `base_object_model`: the current versioned object model accepted for design at a declared readiness level.
+- `locked_base_manifest`: the user-confirmed binding between one base version, its visual confirmation image, canvas, coordinates, scale, and dimension anchors.
 - `client_needs_brief`: customer residents, hard constraints, risk tolerance, desired changes, style, budget, and priorities.
 - `case_strategy`: external or supplied case inspiration converted into transferable design strategies.
 - `scheme_intent`: proposal-specific objects and operations such as demolition, new partitions, furniture, island, storage, function zones, style, and circulation ideas.
@@ -36,6 +37,7 @@ outputs/
     base_v1.json
     base_v1_validation.json
     base_v1_review.svg
+    base_v1_lock.json
   client_briefs/
     needs_brief_v1.json
   case_strategies/
@@ -52,6 +54,29 @@ outputs/
 ```
 
 `project_state.json` should identify the active base version, client confirmation status, active scheme versions, rejected versions, readiness level, and unresolved blockers.
+
+## Locked Base Contract
+
+After the user confirms a concept base, create a small immutable lock record:
+
+```json
+{
+  "base_id": "base_v1",
+  "base_lock_status": "locked",
+  "object_model": "base_versions/base_v1.json",
+  "confirmation_visual": "base_versions/base_v1_review.svg",
+  "canvas": {"width": 1600, "height": 1200, "unit": "px"},
+  "coordinates": {"origin": "lower_left", "x": "right", "y": "up", "unit": "mm"},
+  "scale": {"drawing_to_mm": "project_value"},
+  "dimension_anchors": ["DIM-X-01", "DIM-Y-01"],
+  "locked_at": "YYYY-MM-DD",
+  "confirmation": "user_confirmed"
+}
+```
+
+Treat the lock record and referenced base object model as read-only. Do not silently update files behind an existing `base_id`.
+
+A specific user-requested base correction creates `base_vNext` with a change manifest and requires renewed visual confirmation. A scheme-only change remains in that scheme's operations and does not unlock or replace the parent base.
 
 ## Object types
 
@@ -178,6 +203,16 @@ Example: copying an island from scheme A into scheme B:
 
 Do not satisfy this request by visually mixing two generated images. Copy the source object's size, footprint, style intent, and functional role, then re-place it in the target scheme using geometry validation.
 
+Every scheme intent must record:
+
+- `parent_base_id`
+- `parent_base_lock_status: locked`
+- inherited canvas, coordinate frame, scale, and dimension anchors
+- `base_change_operations`, empty by default
+- scheme-only furniture, zone, material, and style operations
+
+An empty `base_change_operations` means all base walls, openings, fixed-service zones, outline geometry, and dimensions are immutable for that option. A vague request such as "make it better" or "try another style" is not permission to add a base-change operation.
+
 ## Deterministic scheme draft
 
 Before generating a plan-like visual, produce or request a deterministic draft when practical.
@@ -217,7 +252,7 @@ Generated images cannot upgrade a scheme's geometry level. Only validated object
 
 ## Version rules
 
-- Changing base geometry creates `base_vNext` and marks dependent schemes as affected.
+- Changing locked base geometry requires a specific user request, creates `base_vNext`, and marks dependent schemes as affected. The new base must be shown and confirmed before use.
 - Changing one scheme creates `scheme_X_vNext` only.
 - Changing style does not alter source facts or base geometry.
 - Changing labels does not alter source facts, base geometry, or scheme operations.
@@ -229,4 +264,6 @@ Generated images cannot upgrade a scheme's geometry level. Only validated object
 
 Rendering tools read object data and generation reports. They should not infer hidden geometry from images or prior conversation when object data exists.
 
-For quick concept images, render visual style and proposal intent from `base_object_model + scheme_intent + deterministic_scheme_draft`. For deepening drawings, render from `base_object_model` that has reached the required readiness level plus validated operation logs.
+For quick concept images, render visual style and proposal intent from `locked_base_manifest + base_object_model + scheme_intent`, plus a deterministic draft when useful. Preserve the locked canvas and dimension frame across A/B/C. For deepening drawings, render from the same parent base plus validated operation logs at the required readiness level.
+
+Post-generation reports must record registration against the locked base, unchanged-anchor comparison, detected drift, and pass/fail status. A failed image may be repaired or rejected; it cannot alter the base or become a geometry parent.

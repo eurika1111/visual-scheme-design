@@ -20,6 +20,14 @@ Keep the active turn cheap and controlled:
 
 Do not re-explain the whole workflow during normal execution. Do not use generated images as geometry or version authority.
 
+## Non-Negotiable Rules
+
+1. Keep this skill lean: route in `SKILL.md`, load domain details only when needed, and prefer existing tested tools over new layers.
+2. After a residential concept base is confirmed, lock it as a read-only version. Do not alter its outline, walls, openings, coordinate system, scale, or framing unless the user requests a specific base change.
+3. Every residential option must inherit the locked base canvas, coordinates, dimensions, and unchanged objects. Express authorized design changes as option-specific operations; never redraw the whole base from visual guesswork.
+
+These rules override downstream residential, generation, repair, export, and UE instructions.
+
 ## Mode System
 
 Use one mode per turn:
@@ -54,6 +62,7 @@ Minimum runtime state fields:
   "domain": "residential|scene_set|interior_style|space_planning|client_board|repair",
   "level": "L0|L1|L2|L3|L4|null",
   "active_base": null,
+  "base_lock_status": "unconfirmed|locked|change_requested|null",
   "active_option": null,
   "option_registry": [],
   "validation_status": "unknown|passed|warning|failed|null",
@@ -85,13 +94,15 @@ For residential renovation and whole-home space planning, object data controls i
 
 - `L0`: unusable; do not generate schemes.
 - `L1`: readable draft; output only understanding draft, object list, uncertainty, and correction needs.
-- `L2`: quick concept may start from a centimeter-level scheme base; each option needs structured intent and generation report.
+- `L2`: after the user confirms and locks the concept base, quick concepts may start from centimeter-level scheme data; each option needs isolated intent and a generation report.
 - `L3`: visual deepening/reference export may start; structure, openings, key dimensions, fixed-service constraints, furniture footprints, and operation logs must be controlled.
 - `L4`: reference documentation/export only; DWG/DXF/SVG outputs are for review and site measurement, not construction-ready drawings.
 
 Do not produce residential concept schemes before `L2`. Do not use quick concept images as geometry authority for deepening. Residential outputs prioritize visual scheme design, not construction drawings.
 
-Reuse accepted staged object data before fresh source extraction. Treat full-plan raster tracing as a local fallback.
+Reuse accepted staged object data before fresh source extraction. Treat full-plan raster tracing as a local fallback. Show the confirmation base to the user before scheme generation.
+
+After lock, treat the base as a read-only parent. A specific user-requested structural change creates a new base branch or an option operation according to scope; style, furniture, labels, generated images, repair prompts, and UE edits never unlock it.
 
 Keep technical geometry review separate from the client confirmation base. Apply feedback as object-level candidate corrections and rerender from data; never patch the review image or replace a stronger accepted redraw with a weaker diagnostic render.
 
@@ -133,6 +144,8 @@ Keep small text, callouts, dimensions, legends, and Chinese labels outside gener
 
 Before image generation, confirm only the information that changes the output: option IDs, count, ratio, viewpoint, reference roles, differentiation map, hard negatives, and output destination.
 
+For residential plans, bind every option to one locked `base_id`. Preserve its exact canvas size, coordinate frame, framing, and unchanged geometry. Compare each output against the locked base; reject unrequested structural drift instead of accepting or writing it back.
+
 ## Repair Rules
 
 In `repair` mode, classify the failure before rewriting:
@@ -147,6 +160,7 @@ In `repair` mode, classify the failure before rewriting:
 - `furniture-mismatch`
 - `taste-mismatch`
 - `text-failure`
+- `base-drift`
 
 Repair one layer at a time when possible: structure, scope, palette, material, lighting, furniture, camera/viewpoint, reference role, budget/buildability, object data, or validation state.
 

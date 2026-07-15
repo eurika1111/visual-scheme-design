@@ -37,6 +37,8 @@ Do not store large object models inside state. Store file paths, IDs, status, an
   "base_level": "L3",
   "base_validation_status": "passed",
   "active_base": "base_v1",
+  "base_lock_status": "locked",
+  "base_lock_manifest": "outputs/base_versions/base_v1_lock.json",
   "active_option": "scheme_A_v1",
   "active_option_level": "L3",
   "active_option_validation_status": "passed",
@@ -67,6 +69,7 @@ Do not store large object models inside state. Store file paths, IDs, status, an
 Keep base readiness separate from the active scheme option:
 
 - `base_level` and `base_validation_status` decide whether quick concepts can continue from the confirmed base.
+- `base_lock_status` must be `locked` before residential quick concepts start.
 - `active_option_level` and `active_option_validation_status` decide whether the selected option can enter stable deepening.
 - A warning in one option must not downgrade the base model or contaminate other options.
 - Switching active option updates `active_option`, `active_option_level`, `active_option_validation_status`, related files, and option registry only.
@@ -74,9 +77,11 @@ Keep base readiness separate from the active scheme option:
 
 - Update state after a phase change, validation run, option status change, scheme migration, rollback, or delivery.
 - Do not change `source_facts` through state.
+- Do not change or unlock an active residential base through state. Point to a newly confirmed base version after a specific user-requested correction.
 - Do not mark `validation_status` as `passed` without a validation report or explicit manual check.
 - If a base version changes, mark dependent schemes affected instead of silently carrying them forward.
 - If an option is rejected, do not use it as a parent for later versions.
+- Each residential option must record the same locked parent `base_id`; cross-option migration changes only the target option branch.
 - Treat rollback as an active-version pointer change to an already accepted version; never overwrite or delete later files.
 - Only `accepted` versions may become active or create branches. `candidate` versions require review, and `rejected` versions are terminal.
 - Register a content hash for each version. Reusing one version ID with different content is a contamination error.

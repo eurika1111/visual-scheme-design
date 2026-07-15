@@ -33,6 +33,7 @@ Use these labels:
 - `furniture-mismatch`: furniture conflicts with background or concept
 - `taste-mismatch`: result feels cheap, old-fashioned, or off-brand
 - `text-failure`: generated text, labels, or UI are wrong
+- `base-drift`: a residential option shifts, stretches, crops, or changes locked base geometry without authorization
 
 ## Repair Rule
 
@@ -48,6 +49,8 @@ Change one layer at a time when possible:
 - budget/buildability
 
 For image edits, preserve everything except the requested change. For regenerations, state what must be kept and what must be changed.
+
+For residential `base-drift`, keep the locked base immutable. Re-register or regenerate only the failed option from its locked `base_id` and isolated intent. Do not patch the base, borrow geometry from another option, or treat the failed image as a new parent.
 
 ## Similarity Repair
 

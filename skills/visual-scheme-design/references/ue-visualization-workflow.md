@@ -8,9 +8,9 @@ Treat the real-time engine as an optional downstream executor and visualization 
 
 ```text
 source facts
--> base object model
+-> locked base object model
 -> client needs
--> scheme intent and operations
+-> selected scheme intent and operations
 -> geometry validation
 -> neutral scene handoff
 -> version-specific engine adapter
@@ -19,10 +19,12 @@ source facts
 
 Do not let UE, MCP, screenshots, imported SVG, or rendered images become geometry authority. Send accepted UE feedback back through scheme operations and validation before changing a controlled scheme.
 
+UE is not part of source extraction, base confirmation, quick-option generation, or quick-option comparison. Do not load this reference during those phases unless the user explicitly asks about future UE use.
+
 ## Readiness
 
-- At residential `L2`, prepare a white-box or spatial-massing handoff candidate only when the base and scheme intent are controlled.
-- At residential `L3`, prepare furniture, material, lighting, camera, and client-preview handoff candidates.
+- For residential work, require a user-selected scheme, its locked parent base, and `L3` readiness before preparing any UE handoff.
+- At residential `L3`, prepare white-box, furniture, material, lighting, camera, and client-preview handoff candidates as optional downstream outputs.
 - For scene/set projects without residential levels, require confirmed dimensions, zones, viewpoints, and option IDs before handoff.
 - Do not describe an engine handoff as working until it has been tested in the target project and engine version.
 
@@ -31,6 +33,7 @@ Do not let UE, MCP, screenshots, imported SVG, or rendered images become geometr
 Keep the handoff engine-neutral and versioned. It should identify:
 
 - source base version and scheme version
+- locked-base ID and lock status
 - units, lower-left origin, axis convention, and engine conversion rule
 - walls, floors, ceilings, openings, fixed fixtures, furniture, zones, and curved elements by stable object ID
 - object operation status: create, retain, modify, hide, or remove
@@ -46,6 +49,7 @@ Use the existing object model as the source. SVG remains a human review output, 
 - Apply cross-option changes through object operations, then regenerate the affected handoff.
 - Record created, updated, skipped, missing, and failed objects in a scene execution report.
 - Never write engine-side exploratory edits directly into `source_facts` or `base_object_model`.
+- Never change canvas, scale, coordinates, walls, or openings to make an engine scene easier to build.
 
 ## Adapter Boundary
 
