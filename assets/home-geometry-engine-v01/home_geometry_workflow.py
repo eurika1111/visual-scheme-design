@@ -340,9 +340,11 @@ def manage_scheme_history(history: Path, history_args: list[str]) -> None:
 
 def build_visual_handoff(
     base_model: Path,
+    base_lock: Path,
     scheme_intent: Path,
-    review_manifest: Path,
-    history: Path,
+    stage: str,
+    review_manifest: Path | None,
+    history: Path | None,
     needs_brief: Path,
     style_brief: Path | None,
     output_dir: Path,
@@ -350,15 +352,66 @@ def build_visual_handoff(
     child_args = [
         "visual_generation_handoff_builder.py",
         "--base-model", str(base_model.resolve()),
+        "--base-lock", str(base_lock.resolve()),
         "--scheme-intent", str(scheme_intent.resolve()),
-        "--review-manifest", str(review_manifest.resolve()),
-        "--history", str(history.resolve()),
+        "--stage", stage,
         "--needs-brief", str(needs_brief.resolve()),
         "--output-dir", str(output_dir.resolve()),
     ]
+    if review_manifest:
+        child_args.extend(["--review-manifest", str(review_manifest.resolve())])
+    if history:
+        child_args.extend(["--history", str(history.resolve())])
     if style_brief:
         child_args.extend(["--style-brief", str(style_brief.resolve())])
     run_step("build visual generation handoff", child_args)
+
+
+def lock_base(
+    base_model: Path,
+    confirmation_visual: Path,
+    output: Path,
+    validation: Path | None,
+    base_id: str | None,
+    confirmed_by: str,
+    confirmation_note: str,
+    force: bool,
+) -> None:
+    child_args = [
+        "base_lock_manifest.py",
+        "--base-model", str(base_model.resolve()),
+        "--confirmation-visual", str(confirmation_visual.resolve()),
+        "--output", str(output.resolve()),
+        "--confirmed-by", confirmed_by,
+        "--confirmation-note", confirmation_note,
+    ]
+    if validation:
+        child_args.extend(["--validation", str(validation.resolve())])
+    if base_id:
+        child_args.extend(["--base-id", base_id])
+    if force:
+        child_args.append("--force")
+    run_step("lock confirmed residential base", child_args)
+
+
+def review_concept_output(
+    base_lock: Path,
+    generated_image: Path,
+    output_dir: Path,
+    review_result: str,
+    notes: str,
+) -> None:
+    run_step(
+        "review generated concept against locked base",
+        [
+            "concept_output_review.py",
+            "--base-lock", str(base_lock.resolve()),
+            "--generated-image", str(generated_image.resolve()),
+            "--output-dir", str(output_dir.resolve()),
+            "--review-result", review_result,
+            "--notes", notes,
+        ],
+    )
 
 
 def render_scheme_draft(base_model: Path, scheme_intent: Path, output_dir: Path, version: str | None) -> None:
@@ -501,12 +554,31 @@ def build_parser() -> argparse.ArgumentParser:
 
     visual_handoff = sub.add_parser("build-visual-handoff", help="Build a gated visual-generation package from the active accepted scheme.")
     visual_handoff.add_argument("--base-model", type=Path, required=True)
+    visual_handoff.add_argument("--base-lock", type=Path, required=True)
     visual_handoff.add_argument("--scheme-intent", type=Path, required=True)
-    visual_handoff.add_argument("--review-manifest", type=Path, required=True)
-    visual_handoff.add_argument("--history", type=Path, required=True)
+    visual_handoff.add_argument("--stage", choices=("quick", "deep"), default="quick")
+    visual_handoff.add_argument("--review-manifest", type=Path)
+    visual_handoff.add_argument("--history", type=Path)
     visual_handoff.add_argument("--needs-brief", type=Path, required=True)
     visual_handoff.add_argument("--style-brief", type=Path)
     visual_handoff.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+
+    base_lock = sub.add_parser("lock-base", help="Create an immutable record for a user-confirmed L2+ concept base.")
+    base_lock.add_argument("--base-model", type=Path, required=True)
+    base_lock.add_argument("--confirmation-visual", type=Path, required=True)
+    base_lock.add_argument("--validation", type=Path)
+    base_lock.add_argument("--base-id")
+    base_lock.add_argument("--confirmed-by", required=True)
+    base_lock.add_argument("--confirmation-note", default="user confirmed concept base")
+    base_lock.add_argument("--output", type=Path, required=True)
+    base_lock.add_argument("--force", action="store_true")
+
+    concept_review = sub.add_parser("review-concept-output", help="Check exact canvas and build visual review aids.")
+    concept_review.add_argument("--base-lock", type=Path, required=True)
+    concept_review.add_argument("--generated-image", type=Path, required=True)
+    concept_review.add_argument("--output-dir", type=Path, required=True)
+    concept_review.add_argument("--review-result", choices=("pending", "passed", "needs_repair", "rejected"), default="pending")
+    concept_review.add_argument("--notes", default="")
 
     draft = sub.add_parser("render-scheme-draft", help="Render a deterministic SVG draft from base model and scheme intent.")
     draft.add_argument("base_model", type=Path)
@@ -582,12 +654,23 @@ def main() -> int:
     elif args.command == "build-visual-handoff":
         build_visual_handoff(
             args.base_model,
+            args.base_lock,
             args.scheme_intent,
+            args.stage,
             args.review_manifest,
             args.history,
             args.needs_brief,
             args.style_brief,
             args.output_dir,
+        )
+    elif args.command == "lock-base":
+        lock_base(
+            args.base_model, args.confirmation_visual, args.output, args.validation,
+            args.base_id, args.confirmed_by, args.confirmation_note, args.force
+        )
+    elif args.command == "review-concept-output":
+        review_concept_output(
+            args.base_lock, args.generated_image, args.output_dir, args.review_result, args.notes
         )
     elif args.command == "render-scheme-draft":
         render_scheme_draft(args.base_model, args.scheme_intent, args.output_dir, args.version)

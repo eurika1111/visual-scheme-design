@@ -23,6 +23,8 @@ $SchemeReviewBuilder = Join-Path $EngineDir 'scheme_review_package_builder.py'
 $SchemeFeedbackMigrator = Join-Path $EngineDir 'scheme_feedback_migrator.py'
 $SchemeHistoryManager = Join-Path $EngineDir 'scheme_history_manager.py'
 $VisualHandoffBuilder = Join-Path $EngineDir 'visual_generation_handoff_builder.py'
+$BaseLockBuilder = Join-Path $EngineDir 'base_lock_manifest.py'
+$ConceptOutputReview = Join-Path $EngineDir 'concept_output_review.py'
 $SchemeDraftRenderer = Join-Path $EngineDir 'scheme_draft_renderer.py'
 $Summarizer = Join-Path $EngineDir 'summarize_validation.py'
 $RepairDraft = Join-Path $EngineDir 'draft_repair_operations.py'
@@ -99,6 +101,8 @@ $ValidationExportedBase = Join-Path $OutputDir 'validation.base_from_extraction_
 $PlanBase = Join-Path $OutputDir 'plan.svg'
 $PlanBaseClient = Join-Path $OutputDir 'plan.client_base.svg'
 $PlanBaseClientPreview = Join-Path $OutputDir 'plan.client_base.preview.png'
+$PlanBaseClientPreviewSmall = Join-Path $OutputDir 'plan.client_base.preview.small.png'
+$BaseLockManifest = Join-Path $OutputDir 'base_sample_v1.lock.json'
 $BaseHandoff = Join-Path $OutputDir 'base_handoff.md'
 $BaseReviewPackageDir = Join-Path $OutputDir 'base_review_package'
 $NeedsBriefJson = Join-Path $OutputDir 'client.needs_brief.json'
@@ -133,6 +137,14 @@ $VisualHandoffReadyDir = Join-Path $OutputDir 'visual_handoff_ready'
 $VisualHandoffNeedsStyle = Join-Path $VisualHandoffNeedsStyleDir 'visual_generation_handoff.json'
 $VisualHandoffReady = Join-Path $VisualHandoffReadyDir 'visual_generation_handoff.json'
 $VisualGenerationPrompt = Join-Path $VisualHandoffReadyDir 'generation_prompt.txt'
+$VisualHandoffQuickDir = Join-Path $OutputDir 'visual_handoff_quick'
+$VisualHandoffQuick = Join-Path $VisualHandoffQuickDir 'visual_generation_handoff.json'
+$VisualHandoffTamperedDir = Join-Path $OutputDir 'visual_handoff_tampered_base'
+$VisualHandoffTampered = Join-Path $VisualHandoffTamperedDir 'visual_generation_handoff.json'
+$ConceptReviewDir = Join-Path $OutputDir 'concept_output_review'
+$ConceptReviewReport = Join-Path $ConceptReviewDir 'concept_output_review.json'
+$ConceptReviewMismatchDir = Join-Path $OutputDir 'concept_output_review_mismatch'
+$ConceptReviewMismatchReport = Join-Path $ConceptReviewMismatchDir 'concept_output_review.json'
 $UpdatedSchemeReviewDir = Join-Path $OutputDir 'scheme_review_after_feedback'
 $UpdatedSchemeReviewManifest = Join-Path $UpdatedSchemeReviewDir 'scheme_review_manifest.json'
 $PlanExportedBase = Join-Path $OutputDir 'plan.base_from_extraction_v1.svg'
@@ -188,6 +200,8 @@ Invoke-Step 'compile scheme review package builder' { & $PythonExe -m py_compile
 Invoke-Step 'compile scheme feedback migrator' { & $PythonExe -m py_compile $SchemeFeedbackMigrator }
 Invoke-Step 'compile scheme history manager' { & $PythonExe -m py_compile $SchemeHistoryManager }
 Invoke-Step 'compile visual generation handoff builder' { & $PythonExe -m py_compile $VisualHandoffBuilder }
+Invoke-Step 'compile base lock builder' { & $PythonExe -m py_compile $BaseLockBuilder }
+Invoke-Step 'compile concept output review' { & $PythonExe -m py_compile $ConceptOutputReview }
 Invoke-Step 'compile scheme draft renderer' { & $PythonExe -m py_compile $SchemeDraftRenderer }
 Invoke-Step 'compile summarizer' { & $PythonExe -m py_compile $Summarizer }
 Invoke-Step 'compile repair draft' { & $PythonExe -m py_compile $RepairDraft }
@@ -240,6 +254,12 @@ Invoke-Step 'validate scheme A from exported base' { & $PythonExe $Validator $Sc
 Invoke-Step 'render base SVG' { & $PythonExe $Renderer $BaseModel $PlanBase $ValidationBase }
 Invoke-Step 'render client base SVG' { & $PythonExe $Renderer $BaseModel $PlanBaseClient $ValidationBase --mode client --title 'Client Base Confirmation' }
 Invoke-Step 'render client base PNG preview' { & $PythonExe $SvgPreviewRenderer $PlanBaseClient $PlanBaseClientPreview --max-width 1600 }
+Invoke-Step 'render mismatched PNG test preview' { & $PythonExe $SvgPreviewRenderer $PlanBaseClient $PlanBaseClientPreviewSmall --max-width 800 }
+Invoke-Step 'lock confirmed concept base' { & $PythonExe $Workflow lock-base --base-model $BaseModel --confirmation-visual $PlanBaseClientPreview --validation $ValidationBase --base-id 'base_sample_v1' --confirmed-by 'demo_user' --output $BaseLockManifest --force }
+$baseLock = Get-Content -Path $BaseLockManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($baseLock.base_lock_status -ne 'locked' -or $baseLock.base_id -ne 'base_sample_v1') {
+    throw "Confirmed base lock was not created"
+}
 Invoke-Step 'build client base handoff with preview' { & $PythonExe $BaseHandoffBuilder --project-root $OutputDir --base-model $BaseModel --review-svg $PlanBaseClient --preview-png $PlanBaseClientPreview --validation $ValidationBase --output $BaseHandoff --title 'Demo Base Review Package' }
 Invoke-Step 'build one-command base review package' { & $PythonExe $Workflow build-base-review --base-model $ExportedBaseModel --validation $ValidationExportedBase --output-dir $BaseReviewPackageDir --project-root $OutputDir --title 'Demo One-Command Base Review' --stem 'base_from_extraction_v1' }
 Invoke-Step 'build needs brief' { & $PythonExe $Workflow build-needs-brief $NeedsResponse --output-dir $OutputDir --stem 'client' }
@@ -293,15 +313,35 @@ $historyData = Get-Content -Path $SchemeHistory -Raw -Encoding UTF8 | ConvertFro
 if ($historyData.active_versions.'方案 B' -ne 'placement_sample_b_layout_v1' -or (Test-Path $RejectedHistoryChild)) {
     throw "Scheme history rollback or rejected-parent gate failed"
 }
-Invoke-Step 'build visual handoff pending style' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --scheme-intent $ResolvedPlacementIntentB --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --output-dir $VisualHandoffNeedsStyleDir }
+Invoke-Step 'build visual handoff pending style' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage deep --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --output-dir $VisualHandoffNeedsStyleDir }
 $handoffNeedsStyle = Get-Content -Path $VisualHandoffNeedsStyle -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($handoffNeedsStyle.status -ne 'needs_style_confirmation' -or $handoffNeedsStyle.generation_gate -ne 'closed') {
     throw "Visual handoff did not close the gate for missing style confirmation"
 }
-Invoke-Step 'build ready visual handoff' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --scheme-intent $ResolvedPlacementIntentB --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffReadyDir }
+Invoke-Step 'build ready visual handoff' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage deep --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffReadyDir }
 $handoffReady = Get-Content -Path $VisualHandoffReady -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($handoffReady.status -ne 'ready' -or $handoffReady.generation_gate -ne 'open' -or -not (Test-Path $VisualGenerationPrompt)) {
     throw "Visual handoff did not open after style confirmation"
+}
+Invoke-Step 'build ready quick visual handoff from locked base' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage quick --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffQuickDir }
+$handoffQuick = Get-Content -Path $VisualHandoffQuick -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($handoffQuick.status -ne 'ready' -or $handoffQuick.stage -ne 'quick' -or $handoffQuick.structure_lock.base_lock_status -ne 'locked') {
+    throw "Quick visual handoff did not inherit the locked base"
+}
+Invoke-Step 'reject changed base behind locked id' { & $PythonExe $Workflow build-visual-handoff --base-model $ProblemModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage quick --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffTamperedDir } @(2)
+$handoffTampered = Get-Content -Path $VisualHandoffTampered -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($handoffTampered.status -ne 'blocked' -or $handoffTampered.blockers -notcontains 'base model content differs from the locked base hash') {
+    throw "Visual handoff did not reject changed content behind a locked base id"
+}
+Invoke-Step 'build same-canvas concept review aids' { & $PythonExe $Workflow review-concept-output --base-lock $BaseLockManifest --generated-image $PlanBaseClientPreview --output-dir $ConceptReviewDir --review-result passed --notes 'deterministic stand-in for pipeline regression' }
+$conceptReview = Get-Content -Path $ConceptReviewReport -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($conceptReview.status -ne 'reviewed_passed' -or -not $conceptReview.canvas_match) {
+    throw "Concept output review did not preserve the locked canvas"
+}
+Invoke-Step 'reject mismatched concept canvas' { & $PythonExe $ConceptOutputReview --base-lock $BaseLockManifest --generated-image $PlanBaseClientPreviewSmall --output-dir $ConceptReviewMismatchDir } @(2)
+$conceptReviewMismatch = Get-Content -Path $ConceptReviewMismatchReport -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($conceptReviewMismatch.status -ne 'rejected_canvas_mismatch' -or $conceptReviewMismatch.canvas_match) {
+    throw "Concept output review did not reject the mismatched canvas"
 }
 Invoke-Step 'build review package after feedback' { & $PythonExe $Workflow build-scheme-review $BaseModel $ResolvedPlacementIntent $MigratedSchemeB $ResolvedPlacementIntentC --output-dir $UpdatedSchemeReviewDir }
 $updatedReview = Get-Content -Path $UpdatedSchemeReviewManifest -Raw -Encoding UTF8 | ConvertFrom-Json

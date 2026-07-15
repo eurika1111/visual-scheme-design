@@ -167,6 +167,9 @@ Before deepening:
 - geometry and source validators: technical gates.
 - `simple_renderer.py`: internal technical review renderer, even when labels are hidden with `--mode client`.
 - project-specific or future polished base renderer: client confirmation base.
+- `base_lock_manifest.py`: freeze the confirmed base ID, hashes, canvas, coordinates, bounds, and dimension anchors.
+- `visual_generation_handoff_builder.py`: build quick or deep image handoffs that must inherit the lock record.
+- `concept_output_review.py`: reject canvas mismatch and create same-size side-by-side, overlay, and deterministic dimension-frame review aids.
 - image models: proposal appearance and concept expression only; never base reconstruction authority.
 
 ## User Experience
