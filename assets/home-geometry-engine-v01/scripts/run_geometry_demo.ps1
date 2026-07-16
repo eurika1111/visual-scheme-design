@@ -54,6 +54,7 @@ $SourceExtractionPackage = Join-Path $ExamplesDir 'source_extraction_package.sam
 $SourceExtractionProblemPackage = Join-Path $ExamplesDir 'source_extraction_package.problem-sample.json'
 $DimensionAnchorConfirmationResponse = Join-Path $ExamplesDir 'dimension_anchor_confirmation_response.sample.json'
 $NeedsResponse = Join-Path $ExamplesDir 'needs_response.sample.json'
+$ApprovedOptionDirections = Join-Path $ExamplesDir 'approved_option_directions.sample.json'
 $CaseStrategy = Join-Path $ExamplesDir 'case_strategy.sample.json'
 $PlacementSampleIntent = Join-Path $ExamplesDir 'scheme_intent.placement-sample.json'
 $PlacementSampleIntentB = Join-Path $ExamplesDir 'scheme_intent.placement-sample-b.json'
@@ -64,6 +65,7 @@ $RotateFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.rotate-object.sa
 $RemoveFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.remove-object.sample.json'
 $ReplaceFeedbackSample = Join-Path $ExamplesDir 'scheme_feedback.replace-object.sample.json'
 $VisualStyleBrief = Join-Path $ExamplesDir 'visual_style_brief.sample.json'
+$SchemeLogicManifest = Join-Path $ExamplesDir 'scheme_logic_manifest.sample.json'
 $AcceptedBaseFidelityEvidence = Join-Path $ExamplesDir 'base_fidelity_evidence.accepted.sample.json'
 
 $ExportedBaseModel = Join-Path $OutputDir 'base_from_extraction_v1.json'
@@ -263,7 +265,7 @@ if ($baseLock.base_lock_status -ne 'locked' -or $baseLock.base_id -ne 'base_samp
 Invoke-Step 'build client base handoff with preview' { & $PythonExe $BaseHandoffBuilder --project-root $OutputDir --base-model $BaseModel --review-svg $PlanBaseClient --preview-png $PlanBaseClientPreview --validation $ValidationBase --output $BaseHandoff --title 'Demo Base Review Package' }
 Invoke-Step 'build one-command base review package' { & $PythonExe $Workflow build-base-review --base-model $ExportedBaseModel --validation $ValidationExportedBase --output-dir $BaseReviewPackageDir --project-root $OutputDir --title 'Demo One-Command Base Review' --stem 'base_from_extraction_v1' }
 Invoke-Step 'build needs brief' { & $PythonExe $Workflow build-needs-brief $NeedsResponse --output-dir $OutputDir --stem 'client' }
-Invoke-Step 'plan isolated A/B/C scheme options' { & $PythonExe $Workflow plan-options $ExportedBaseModel $NeedsBriefJson --output-dir $SchemeOptionsDir --case-strategy $CaseStrategy --base-fidelity-report $BaseFidelityReport }
+Invoke-Step 'plan approved isolated scheme options' { & $PythonExe $Workflow plan-options $ExportedBaseModel $NeedsBriefJson --directions $ApprovedOptionDirections --output-dir $SchemeOptionsDir --case-strategy $CaseStrategy --base-fidelity-report $BaseFidelityReport }
 Invoke-Step 'reject draft with unresolved placements' { & $PythonExe $Workflow render-scheme-draft $ExportedBaseModel $PlannedSchemeAIntent --output-dir $BlockedDraftDir --version 'scheme_A_v1' } @(2)
 $blockedDraft = Get-Content -Path $BlockedDraftReport -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($blockedDraft.status -ne 'blocked_unresolved_placement') {
@@ -313,22 +315,22 @@ $historyData = Get-Content -Path $SchemeHistory -Raw -Encoding UTF8 | ConvertFro
 if ($historyData.active_versions.'方案 B' -ne 'placement_sample_b_layout_v1' -or (Test-Path $RejectedHistoryChild)) {
     throw "Scheme history rollback or rejected-parent gate failed"
 }
-Invoke-Step 'build visual handoff pending style' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage deep --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --output-dir $VisualHandoffNeedsStyleDir }
+Invoke-Step 'build visual handoff pending style' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --scheme-logic $SchemeLogicManifest --stage deep --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --output-dir $VisualHandoffNeedsStyleDir }
 $handoffNeedsStyle = Get-Content -Path $VisualHandoffNeedsStyle -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($handoffNeedsStyle.status -ne 'needs_style_confirmation' -or $handoffNeedsStyle.generation_gate -ne 'closed') {
     throw "Visual handoff did not close the gate for missing style confirmation"
 }
-Invoke-Step 'build ready visual handoff' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage deep --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffReadyDir }
+Invoke-Step 'build ready visual handoff' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --scheme-logic $SchemeLogicManifest --stage deep --review-manifest $SchemeReviewManifest --history $SchemeHistory --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffReadyDir }
 $handoffReady = Get-Content -Path $VisualHandoffReady -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($handoffReady.status -ne 'ready' -or $handoffReady.generation_gate -ne 'open' -or -not (Test-Path $VisualGenerationPrompt)) {
     throw "Visual handoff did not open after style confirmation"
 }
-Invoke-Step 'build ready quick visual handoff from locked base' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage quick --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffQuickDir }
+Invoke-Step 'build ready quick visual handoff from locked base' { & $PythonExe $Workflow build-visual-handoff --base-model $BaseModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --scheme-logic $SchemeLogicManifest --stage quick --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffQuickDir }
 $handoffQuick = Get-Content -Path $VisualHandoffQuick -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($handoffQuick.status -ne 'ready' -or $handoffQuick.stage -ne 'quick' -or $handoffQuick.structure_lock.base_lock_status -ne 'locked') {
     throw "Quick visual handoff did not inherit the locked base"
 }
-Invoke-Step 'reject changed base behind locked id' { & $PythonExe $Workflow build-visual-handoff --base-model $ProblemModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --stage quick --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffTamperedDir } @(2)
+Invoke-Step 'reject changed base behind locked id' { & $PythonExe $Workflow build-visual-handoff --base-model $ProblemModel --base-lock $BaseLockManifest --scheme-intent $ResolvedPlacementIntentB --scheme-logic $SchemeLogicManifest --stage quick --needs-brief $NeedsBriefJson --style-brief $VisualStyleBrief --output-dir $VisualHandoffTamperedDir } @(2)
 $handoffTampered = Get-Content -Path $VisualHandoffTampered -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($handoffTampered.status -ne 'blocked' -or $handoffTampered.blockers -notcontains 'base model content differs from the locked base hash') {
     throw "Visual handoff did not reject changed content behind a locked base id"
@@ -354,7 +356,7 @@ Invoke-Step 'render problem SVG' { & $PythonExe $Renderer $ProblemModel $PlanPro
 Invoke-Step 'render door swing SVG' { & $PythonExe $Renderer $DoorSwingModel $PlanDoorSwing $ValidationDoorSwing }
 Invoke-Step 'render island move SVG' { & $PythonExe $Renderer $IslandMoveModel $PlanIslandMove $ValidationIslandMove }
 Invoke-Step 'render arc partition SVG' { & $PythonExe $Renderer $ArcPartitionModel $PlanArcPartition $ValidationArcPartition }
-Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $ExportedBaseModel --base-validation $ValidationExportedBase --base-version base_from_extraction_v1 --scheme-a-model $SchemeA --scheme-a-validation $ValidationSchemeA --scheme-a-version scheme_A_v1 --problem-validation $ValidationProblem --base-source-quality $SourceQualityExportedBase --base-source-extraction $SourceExtractionValidation --needs-brief $NeedsBriefJson --option-plan $SchemeOptionPlan }
+Invoke-Step 'update project state' { & $PythonExe $StateUpdater --output $ProjectState --base-model $ExportedBaseModel --base-validation $ValidationExportedBase --base-version base_from_extraction_v1 --active-option-id '方案 A' --active-option-code A --active-option-model $SchemeA --active-option-validation $ValidationSchemeA --active-option-version scheme_A_v1 --problem-validation $ValidationProblem --base-source-quality $SourceQualityExportedBase --base-source-extraction $SourceExtractionValidation --needs-brief $NeedsBriefJson --option-plan $SchemeOptionPlan }
 
 Write-Host '== state gate'
 & $PythonExe $StateReader $ProjectState

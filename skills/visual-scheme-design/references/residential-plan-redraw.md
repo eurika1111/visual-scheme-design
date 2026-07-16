@@ -1,5 +1,11 @@
 # Residential Plan Redraw
 
+## Contents
+
+- Source inventory and evidence hierarchy
+- Candidate base reconstruction and confirmation
+- Visual, geometry, and delivery controls
+
 Use this reference when the residential source is a screenshot, platform image, scan, PDF, or an existing staged redraw that needs to become a reliable scheme-design base.
 
 ## Goal

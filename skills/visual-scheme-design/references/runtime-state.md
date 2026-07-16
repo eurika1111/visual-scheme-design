@@ -1,5 +1,11 @@
 # Runtime State
 
+## Contents
+
+- State shape and interaction gate
+- Base, option, generation, and review state
+- Update, version, retry, and staleness rules
+
 Use this reference when a space-scheme task spans multiple turns, creates files, has option versions, or depends on residential geometry validation.
 
 ## Purpose
@@ -34,6 +40,7 @@ Do not store large object models inside state. Store file paths, IDs, status, an
   "mode": "execute",
   "phase": "production",
   "interaction_context": "first_use",
+  "interaction_mode": "staged|accelerated",
   "interaction_checkpoint": "option_direction_confirmation",
   "awaiting_confirmation": "approve_or_edit_option_directions",
   "confirmed_checkpoints": ["welcome", "source_understanding", "base_confirmation", "needs_rounds"],
@@ -51,6 +58,7 @@ Do not store large object models inside state. Store file paths, IDs, status, an
   "option_registry": [
     {
       "id": "方案 A",
+      "option_code": "A",
       "version": "scheme_A_v1",
       "status": "保留",
       "parent": null,
@@ -62,6 +70,29 @@ Do not store large object models inside state. Store file paths, IDs, status, an
     "validation_report": "outputs/base_versions/base_v1_validation.json",
     "operation_log": "outputs/operation_logs/scheme_A.json"
   },
+  "generation_request": {
+    "request_id": "gen_scheme_A_v1_01",
+    "option_id": "方案 A",
+    "base_id": "base_v1",
+    "prompt_package_hash": "sha256:...",
+    "attempt": 1,
+    "status": "not_started|queued|running|failed|partial_untrusted|generated_pending_review|view_passed|displayable|needs_repair|needs_review|rejected",
+    "failure_class": null,
+    "provider_reference": null,
+    "last_error": null
+  },
+  "knowledge_sources": "outputs/evidence/source_registry.yaml",
+  "computational_reports": {
+    "adjacency": null,
+    "circulation": null,
+    "distinctness": null,
+    "comparison": null
+  },
+  "scheme_logic_manifest": "outputs/schemes/scheme_A_v1.logic.yaml",
+  "vertical_and_building_context": null,
+  "support_function_inventory": null,
+  "visual_plausibility_review": "outputs/reviews/scheme_A_v1.visual_plausibility.json",
+  "visual_plausibility_decision": "not_started|view_passed|displayable|needs_repair|needs_review|rejected",
   "blockers": [],
   "evolution_flags": []
 }
@@ -84,6 +115,7 @@ Keep base readiness separate from the active scheme option:
 - `awaiting_confirmation` must be cleared by an explicit answer before moving to the next checkpoint.
 - `confirmed_checkpoints` is append-only for the active branch. Returning to an earlier checkpoint creates a revised branch and invalidates dependent later confirmations.
 - `继续` confirms only the next action previously stated; it does not clear multiple checkpoints.
+- In `accelerated` mode, one explicit response may clear only the non-critical checkpoints listed in one declared accelerated confirmation package. Base lock and image-generation approval remain separate.
 - For `first_use` or `clean_test`, do not populate confirmations from prior conversation or prior generated schemes.
 ## Update rules
 
@@ -99,6 +131,16 @@ Keep base readiness separate from the active scheme option:
 - Only `accepted` versions may become active or create branches. `candidate` versions require review, and `rejected` versions are terminal.
 - Register a content hash for each version. Reusing one version ID with different content is a contamination error.
 - A branch copies one accepted intent into a new candidate version with an explicit `parent_intent`; it does not inherit chat context or generated-image geometry.
+- Treat a provider failure, timeout, or incomplete response as an attempt-state change only. Keep `interaction_checkpoint`, confirmed decisions, `base_id`, option intent, and accepted versions unchanged.
+- On `failed` or `partial_untrusted`, do not advance the checkpoint, create an option version, or mark generation complete.
+- Retry with the same `request_id` lineage, `base_id`, option ID, prompt-package hash, canvas, and approved parameters. Increment `attempt`; create a new request package only after an explicit output-changing decision.
+- Keep provider references and error text diagnostic. Do not treat them as design facts or geometry evidence.
+- Mark image handoffs stale when their structural reference, option operations, camera, or protected-anchor set changes.
+- Mark the scheme logic manifest, visual proof, image handoffs, and prior plausibility decision stale when their option operations or fixed relationships change.
+- Mark option directions and dependent intents stale when the current authoritative base identity, version, lock status, required room identity, or fixed-function mapping conflicts with their recorded parent. Historical, rejected, superseded, demo, and unrelated artifacts cannot create this conflict after classification.
+- Treat legacy fixed A/B/C low/medium/high risk strategy packages as stale; retain only independently confirmed needs and constraints.
+- Keep knowledge-source versions and computational reports outside state; state stores only their current paths and status.
+- When a sourced rule changes, mark dependent options affected instead of silently rescoring or rewriting them.
 - If no state file exists and the task is small, keep a compact inline state in the response instead of creating files.
 
 ## Runtime pattern

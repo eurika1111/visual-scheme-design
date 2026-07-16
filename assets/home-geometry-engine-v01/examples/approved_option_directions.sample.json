@@ -1,0 +1,44 @@
+{
+  "schema_version": "approved_option_directions_v1",
+  "status": "approved",
+  "approved_by": "demo_user",
+  "approved_at": "2026-07-16T10:00:00+08:00",
+  "directions": [
+    {
+      "option_id": "方案 A",
+      "code": "A",
+      "version": "scheme_A_v1",
+      "name": "日常效率与持续使用",
+      "strategy_kind": "daily_efficiency",
+      "primary_problem": "收纳、学习和办公对日常通行形成挤占",
+      "core_move": "在不改变主要结构的前提下重组家具、收纳和持续使用位置",
+      "tradeoff": "公共空间关系保持稳定，餐厨开放度改善有限",
+      "alteration_risk": "low",
+      "differentiation": {"primary_goal": "daily_efficiency", "spatial_character": "stable", "alteration_scope": "none_or_light"}
+    },
+    {
+      "option_id": "方案 B",
+      "code": "B",
+      "version": "scheme_B_v1",
+      "name": "餐厨互动与油烟平衡",
+      "strategy_kind": "kitchen_living_relation",
+      "primary_problem": "餐厨互动不足，但开放后存在油烟顾虑",
+      "core_move": "比较可开可合的餐厨关系以及岛台或餐岛的真实适配",
+      "tradeoff": "局部界面和定制投入增加，并需要核实固定服务条件",
+      "alteration_risk": "medium",
+      "differentiation": {"primary_goal": "kitchen_living_relation", "spatial_character": "connected", "alteration_scope": "local_candidate"}
+    },
+    {
+      "option_id": "方案 C",
+      "code": "C",
+      "version": "scheme_C_v1",
+      "name": "弹性使用与临时住宿",
+      "strategy_kind": "flexible_use",
+      "primary_problem": "学习、办公和老人短住竞争有限空间",
+      "core_move": "用复合家具和连续收纳建立可切换的学习办公与临时住宿模式",
+      "tradeoff": "日常整理和定制家具要求更高",
+      "alteration_risk": "medium",
+      "differentiation": {"primary_goal": "flexible_use", "spatial_character": "adaptive", "alteration_scope": "furniture_and_storage"}
+    }
+  ]
+}

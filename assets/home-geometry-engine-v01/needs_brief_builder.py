@@ -199,11 +199,18 @@ def build_brief(data: dict[str, Any]) -> dict[str, Any]:
         risk_profile["budget"] = "flexible"
 
     unknowns = classify_unknowns(answers)
-    option_strategy = {
-        "scheme_A": "低风险优化：保留主要结构，优先解决收纳、动线和家具布局。",
-        "scheme_B": "中风险升级：在不破坏硬约束的前提下，测试餐厨关系、局部开放和功能复合。",
-        "scheme_C": "高创意探索：把未明确但可探索的想法放入对比方案，所有高风险项标记为需确认。",
-    }
+    comparison_variables = []
+    seen_variables: set[str] = set()
+    for item in [*preferences, *exploration_items]:
+        variable_id = str(item.get("type") or "unknown")
+        if variable_id in seen_variables:
+            continue
+        seen_variables.add(variable_id)
+        comparison_variables.append({
+            "id": variable_id,
+            "source": item.get("source"),
+            "status": "compare_or_resolve_before_option_approval",
+        })
 
     return {
         "schema_version": "needs_brief_v1",
@@ -215,7 +222,8 @@ def build_brief(data: dict[str, Any]) -> dict[str, Any]:
         "exploration_items": exploration_items,
         "unknowns": unknowns,
         "risk_profile": risk_profile,
-        "option_strategy": option_strategy,
+        "option_direction_status": "pending_user_confirmation",
+        "comparison_variables": comparison_variables,
         "source_answers": answers,
     }
 
@@ -235,7 +243,6 @@ def bullet(items: list[Any]) -> str:
 
 
 def build_markdown(brief: dict[str, Any]) -> str:
-    strategy = brief["option_strategy"]
     return f"""# Needs Brief - {brief.get('project_id', 'unknown_project')}
 
 ## Intake Status
@@ -258,11 +265,11 @@ def build_markdown(brief: dict[str, Any]) -> str:
 ## Needs Follow-Up
 
 {bullet(brief.get('unknowns', []))}
-## Option Strategy
+## Comparison Variables
 
-- 方案 A: {strategy.get('scheme_A')}
-- 方案 B: {strategy.get('scheme_B')}
-- 方案 C: {strategy.get('scheme_C')}
+{bullet(brief.get('comparison_variables', []))}
+
+Option directions remain pending user confirmation. Do not assign low/medium/high risk archetypes to option letters.
 """
 
 

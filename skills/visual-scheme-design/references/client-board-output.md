@@ -5,9 +5,9 @@ Use this reference after visual options are selected or when the user asks to pr
 ## Option Registry
 
 Keep stable IDs visible:
-- `方案 A`: stable ID
-- `方案 B`: stable ID
-- `方案 C`: stable ID
+- use one stable ID for every option in the approved set
+- keep the same ID through selection, repair, ranking, and board assembly
+- do not create unused A/B/C placeholders when the user approved fewer options
 
 If presentation order changes, write a mapping:
 
@@ -61,6 +61,7 @@ Before calling a board finished, check:
 - Chinese labels, titles, arrows, and notes are added in the layout tool, not trusted to the image model
 - every option has one practical note or risk, not only mood words
 - residential boards include the base version and validation/readiness status when geometry matters
+- residential delivery boards include a `scheme_package` plausibility decision of `displayable`; `view_passed` alone is insufficient
 - live-stream or temporary set boards identify whether each image is viewer-facing or execution-facing
 
 If a board is visually good but fails registry, version, or label QA, fix the board assembly rather than regenerating design images.

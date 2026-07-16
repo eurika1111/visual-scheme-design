@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -52,7 +53,9 @@ def relative(path: Path, root: Path) -> str:
 
 
 def option_code(intent: dict[str, Any], index: int) -> str:
-    return SCHEME_CODES.get(intent.get("scheme_id"), chr(ord("A") + index))
+    raw_code = str(intent.get("option_code") or SCHEME_CODES.get(intent.get("scheme_id")) or f"OPT-{index + 1}")
+    code = re.sub(r"[^A-Za-z0-9-]+", "-", raw_code).strip("-").upper()
+    return code or f"OPT-{index + 1}"
 
 
 def compact_fallbacks(intent: dict[str, Any]) -> list[str]:
@@ -154,7 +157,7 @@ def build_markdown(options: list[dict[str, Any]], output_dir: Path, manifest_pat
         )
 
     single = len(options) == 1
-    title = "选定方案确认包" if single else "A/B/C 方案草图复核包"
+    title = "选定方案确认包" if single else "方案草图对比复核包"
     usage = (
         "- 当前页面用于确认已选方案的结构、家具、尺寸与待确认事项。"
         if single
@@ -192,8 +195,14 @@ def build_package(base_path: Path, intent_paths: list[Path], output_dir: Path) -
 
     blockers = []
     seen_ids: dict[str, str] = {}
+    seen_codes: dict[str, str] = {}
     for index, intent in enumerate(intents):
         label = intent.get("scheme_id") or f"option_{index + 1}"
+        code = option_code(intent, index)
+        if code in seen_codes:
+            blockers.append(f"{label}: option code {code} already belongs to {seen_codes[code]}")
+        else:
+            seen_codes[code] = label
         if intent.get("layout_gate") != "ready" or unresolved_placements(intent):
             blockers.append(f"{label}: unresolved placement requests")
         if intent.get("parent_base") not in authority_versions:
@@ -302,8 +311,8 @@ def main() -> int:
     parser.add_argument("scheme_intents", type=Path, nargs="+")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    if not 1 <= len(args.scheme_intents) <= 3:
-        parser.error("provide one to three isolated scheme intents")
+    if not args.scheme_intents:
+        parser.error("provide at least one isolated scheme intent")
     manifest = build_package(args.base_model, args.scheme_intents, args.output_dir)
     print(f"review_manifest={args.output_dir / 'scheme_review_manifest.json'}")
     print(f"review_status={manifest['status']} options={len(manifest.get('options', []))}")

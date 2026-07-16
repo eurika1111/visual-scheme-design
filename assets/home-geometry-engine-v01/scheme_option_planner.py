@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build isolated A/B/C residential scheme intents from controlled inputs.
+"""Build isolated residential scheme intents from user-approved directions.
 
 The planner decides strategy, targets, risk, and placement requirements. It does
 not invent final coordinates. Unresolved placement requests intentionally keep
@@ -13,12 +13,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
-OPTION_META = {
-    "方案 A": ("scheme_A_v1", "低风险优化", "low"),
-    "方案 B": ("scheme_B_v1", "功能关系升级", "medium"),
-    "方案 C": ("scheme_C_v1", "弹性空间探索", "medium_high"),
-}
 
 ROOM_KEYWORDS = {
     "kitchen": ("kitchen", "厨房"),
@@ -154,14 +148,18 @@ def request(request_id: str, kind: str, target_spaces: list[str], purpose: str, 
 
 
 def build_option(
-    option_id: str,
+    direction: dict[str, Any],
     base_version: str,
     brief: dict[str, Any],
     roles: dict[str, list[str]],
     protected: list[str],
     case_data: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    version, name, risk = OPTION_META[option_id]
+    option_id = str(direction["option_id"])
+    version = str(direction["version"])
+    name = str(direction["name"])
+    risk = str(direction.get("alteration_risk") or "unassessed")
+    strategy_kind = str(direction.get("strategy_kind") or "custom")
     storage_high = has_text(values_of(brief, "preferences", "storage"), "strong_storage")
     work_focus = has_text(values_of(brief, "preferences", "life_focus"), "居家办公", "home office", "work")
     kitchen_interest = has_text(values_of(brief, "preferences", "kitchen"), "improve_kitchen_openness")
@@ -175,7 +173,7 @@ def build_option(
     requests: list[dict[str, Any]] = []
     operations: list[dict[str, Any]] = []
     blockers: list[str] = []
-    option_code = option_id[-1]
+    option_code = str(direction.get("code") or option_id).strip().replace(" ", "_")
     essential_targets = roles["living"] + roles["bedroom"]
     requests.append(request(
         f"{option_code}-PLACE-ESSENTIAL-FURNITURE-01",
@@ -190,41 +188,53 @@ def build_option(
         "补齐卫生间淋浴和洗手盆，保留底图已有马桶。",
     ))
 
-    if option_id == "方案 A":
+    if strategy_kind == "daily_efficiency":
         targets = roles["living"] + roles["bedroom"] + roles["passage"]
-        operations.append({"id": "A-OP-01", "type": "layout_refine", "target_spaces": targets, "description": "保留主要结构，优化家具、收纳和通行。"})
+        operations.append({"id": f"{option_code}-OP-01", "type": "layout_refine", "target_spaces": targets, "description": "保留主要结构，优化家具、收纳和通行。"})
         if storage_high:
-            requests.append(request("A-PLACE-STORAGE-01", "storage", roles["entry"] + roles["passage"] + roles["bedroom"], "增加收纳但不压缩主通道。", depth_range_mm=[350, 600]))
+            requests.append(request(f"{option_code}-PLACE-STORAGE-01", "storage", roles["entry"] + roles["passage"] + roles["bedroom"], "增加收纳但不压缩主通道。", depth_range_mm=[350, 600]))
         if work_focus:
-            requests.append(request("A-PLACE-WORK-01", "work_area", roles["bedroom"] + roles["living"], "安排可持续使用的学习或办公位置。", preferred_size_mm=[1200, 600]))
+            requests.append(request(f"{option_code}-PLACE-WORK-01", "work_area", roles["bedroom"] + roles["living"], "安排可持续使用的学习或办公位置。", preferred_size_mm=[1200, 600]))
         summary = "保留主要结构和固定服务区，优先解决家具尺度、收纳和日常动线。"
         differentiation = {"alteration_scope": "none_or_light", "primary_goal": "daily_efficiency", "spatial_character": "stable"}
         validation = ["check_furniture_footprints", "check_door_swing_clearance", "check_circulation_width"]
-    elif option_id == "方案 B":
+    elif strategy_kind == "kitchen_living_relation":
         targets = roles["kitchen"] + roles["living"]
-        operations.append({"id": "B-OP-01", "type": "relationship_upgrade", "target_spaces": targets, "description": "测试厨房、餐区和客厅之间更紧密的关系。"})
+        operations.append({"id": f"{option_code}-OP-01", "type": "relationship_upgrade", "target_spaces": targets, "description": "测试厨房、餐区和客厅之间更紧密的关系。"})
         if not roles["kitchen"]:
             blockers.append("missing_kitchen_room_mapping")
         if island_interest:
-            requests.append(request("B-PLACE-ISLAND-01", "kitchen_island", targets, "验证岛台或餐岛是否适配。", preferred_size_mm=[1600, 800], required_clearance_mm=900))
+            requests.append(request(f"{option_code}-PLACE-ISLAND-01", "kitchen_island", targets, "验证岛台或餐岛是否适配。", preferred_size_mm=[1600, 800], required_clearance_mm=900))
         else:
-            requests.append(request("B-PLACE-DINING-01", "dining_layout", targets, "即使保持封闭厨房，也要明确餐区与客厅的家具关系。"))
+            requests.append(request(f"{option_code}-PLACE-DINING-01", "dining_layout", targets, "即使保持封闭厨房，也要明确餐区与客厅的家具关系。"))
         if kitchen_interest or (brief.get("risk_profile") or {}).get("open_kitchen") == "unclear":
-            requests.append(request("B-SELECT-KITCHEN-WALL-01", "wall_change_candidate", targets, "选择可讨论的局部隔墙，不自动拆墙。", status="wall_selection_required", requires_verification=True, blocking=False))
+            requests.append(request(f"{option_code}-SELECT-KITCHEN-WALL-01", "wall_change_candidate", targets, "选择可讨论的局部隔墙，不自动拆墙。", status="wall_selection_required", requires_verification=True, blocking=False))
         summary = "在不触碰硬约束的前提下，重点比较客餐厨关系、局部开放和岛台可行性。"
         differentiation = {"alteration_scope": "local_candidate", "primary_goal": "kitchen_living_relation", "spatial_character": "connected"}
         validation = ["check_kitchen_workflow", "check_island_clearance", "check_fixed_service_zones", "check_circulation_width"]
-    else:
+    elif strategy_kind == "flexible_use":
         targets = roles["bedroom"] + roles["passage"] + roles["entry"] + roles["living"]
-        operations.append({"id": "C-OP-01", "type": "flexible_space_strategy", "target_spaces": targets, "description": "探索弹性房间、复合功能和更鲜明的空间组织。"})
-        requests.append(request("C-PLACE-FLEX-01", "multifunction_layout", targets, "建立与 A/B 不同的弹性功能组合。"))
+        operations.append({"id": f"{option_code}-OP-01", "type": "flexible_space_strategy", "target_spaces": targets, "description": "探索弹性房间、复合功能和更鲜明的空间组织。"})
+        requests.append(request(f"{option_code}-PLACE-FLEX-01", "multifunction_layout", targets, "建立与其他获批方向不同的弹性功能组合。"))
         if storage_high:
-            requests.append(request("C-PLACE-STORAGE-01", "integrated_storage", roles["passage"] + roles["entry"] + roles["bedroom"], "形成连续但不阻断动线的收纳策略。", depth_range_mm=[350, 600]))
+            requests.append(request(f"{option_code}-PLACE-STORAGE-01", "integrated_storage", roles["passage"] + roles["entry"] + roles["bedroom"], "形成连续但不阻断动线的收纳策略。", depth_range_mm=[350, 600]))
         if demolition_risk == "high":
-            requests.append(request("C-PLACE-PARTITION-01", "curved_or_new_partition", roles["living"] + roles["entry"], "探索受控曲线或新隔断。", requires_verification=True))
+            requests.append(request(f"{option_code}-PLACE-PARTITION-01", "curved_or_new_partition", roles["living"] + roles["entry"], "探索受控曲线或新隔断。", requires_verification=True))
         summary = "以弹性功能和空间重组形成高差异方案；拆改未确认时只登记候选，不自动执行。"
         differentiation = {"alteration_scope": "exploratory", "primary_goal": "flexibility", "spatial_character": "distinctive"}
         validation = ["check_room_function", "check_circulation_width", "check_door_swing_clearance", "check_proposal_geometry"]
+    else:
+        operations.extend(direction.get("operations", []) or [])
+        requests.extend(direction.get("placement_requests", []) or [])
+        summary = str(direction.get("intent_summary") or direction.get("core_move") or "用户批准的自定义空间方向。")
+        differentiation = direction.get("differentiation") or {}
+        validation = direction.get("validation_plan", []) or []
+        if not operations and not requests:
+            blockers.append("custom_direction_has_no_operations_or_placement_requests")
+
+    summary = str(direction.get("intent_summary") or summary)
+    differentiation = direction.get("differentiation") or differentiation
+    validation = direction.get("validation_plan") or validation
 
     if not any(roles.values()):
         blockers.append("missing_room_semantics")
@@ -232,12 +242,17 @@ def build_option(
     return {
         "schema_version": "scheme_intent_v1",
         "scheme_id": option_id,
+        "option_code": option_code,
         "version": version,
         "name": name,
         "parent_base": base_version,
         "status": "strategy_ready_with_blockers" if blockers else "strategy_ready",
         "risk_level": risk,
         "intent_summary": summary,
+        "primary_problem": direction.get("primary_problem"),
+        "core_move": direction.get("core_move"),
+        "tradeoff": direction.get("tradeoff"),
+        "direction_approval": "user_approved",
         "differentiation": differentiation,
         "protected_base_objects": protected,
         "hard_constraints": brief.get("hard_constraints", []),
@@ -290,7 +305,7 @@ def differentiation_report(options: list[dict[str, Any]]) -> dict[str, Any]:
         for right in options[index + 1:]:
             left_axes = left["differentiation"]
             right_axes = right["differentiation"]
-            changed = sorted(key for key in left_axes if left_axes.get(key) != right_axes.get(key))
+            changed = sorted(key for key in set(left_axes) | set(right_axes) if left_axes.get(key) != right_axes.get(key))
             comparisons.append({
                 "left": left["scheme_id"],
                 "right": right["scheme_id"],
@@ -304,16 +319,18 @@ def differentiation_report(options: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Plan isolated A/B/C scheme intents without inventing coordinates.")
+    parser = argparse.ArgumentParser(description="Plan isolated approved scheme intents without inventing coordinates.")
     parser.add_argument("base_model", type=Path)
     parser.add_argument("needs_brief", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--case-strategy", type=Path)
     parser.add_argument("--base-fidelity-report", type=Path, required=True)
+    parser.add_argument("--directions", type=Path, required=True)
     args = parser.parse_args()
 
     base = load_json(args.base_model)
     brief = load_json(args.needs_brief)
+    direction_package = load_json(args.directions)
     fidelity = load_json(args.base_fidelity_report)
     effective_base_version = base.get("version") or (base.get("base_inference") or {}).get("version") or "base_v1"
     if fidelity.get("base_version") != effective_base_version or not fidelity.get("can_plan_schemes"):
@@ -324,17 +341,37 @@ def main() -> int:
         raise SystemExit("base model must use millimeters")
     if brief.get("schema_version") != "needs_brief_v1":
         raise SystemExit("needs brief must use needs_brief_v1")
+    if direction_package.get("schema_version") != "approved_option_directions_v1":
+        raise SystemExit("directions must use approved_option_directions_v1")
+    if direction_package.get("status") != "approved":
+        raise SystemExit("option directions must be explicitly approved")
+    directions = direction_package.get("directions") or []
+    if not isinstance(directions, list) or not directions:
+        raise SystemExit("at least one approved option direction is required")
+    required_direction_fields = {"option_id", "version", "name", "code", "strategy_kind", "primary_problem", "core_move", "tradeoff", "alteration_risk", "differentiation"}
+    for index, direction in enumerate(directions):
+        if not isinstance(direction, dict):
+            raise SystemExit(f"approved direction {index} must be an object")
+        missing = sorted(field for field in required_direction_fields if not direction.get(field))
+        if missing:
+            raise SystemExit(f"approved direction {index} is missing: {', '.join(missing)}")
+    for unique_field in ("option_id", "version", "code"):
+        values = [item.get(unique_field) for item in directions]
+        if len(values) != len(directions) or len(set(values)) != len(values):
+            raise SystemExit(f"approved option directions require unique {unique_field} values")
 
     case_data = load_json(args.case_strategy) if args.case_strategy else None
     base_version = base.get("version") or (base.get("base_inference") or {}).get("version") or "base_v1"
     roles = infer_room_roles(base)
     protected = protected_objects(base, brief, roles)
-    options = [build_option(option_id, base_version, brief, roles, protected, case_data) for option_id in OPTION_META]
+    options = [build_option(direction, base_version, brief, roles, protected, case_data) for direction in directions]
     plan = {
         "schema_version": "scheme_option_plan_v1",
         "project_id": brief.get("project_id", "unknown_project"),
         "base_version": base_version,
         "needs_brief_version": brief.get("schema_version"),
+        "approved_direction_package": str(args.directions.resolve()),
+        "approved_option_count": len(directions),
         "status": "strategy_ready_with_blockers" if any(option["blockers"] for option in options) else "strategy_ready",
         "room_roles": roles,
         "protected_base_objects": protected,

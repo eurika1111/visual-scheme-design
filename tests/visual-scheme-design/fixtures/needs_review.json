@@ -1,0 +1,9 @@
+{
+  "fixture_base": "displayable.json",
+  "mutations": [
+    {"path": "blocking_checks.ai_artifacts.status", "value": "unknown"},
+    {"path": "blocking_checks.ai_artifacts.evidence", "value": []},
+    {"path": "blocking_checks.ai_artifacts.notes", "value": "high-risk regions have not yet been visually inspected"}
+  ],
+  "expected": {"decision": "needs_review", "exit_code": 1}
+}

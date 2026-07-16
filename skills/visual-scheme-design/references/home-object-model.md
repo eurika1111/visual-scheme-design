@@ -2,6 +2,13 @@
 
 Use this reference when residential work needs controllable plan data, quick concept options, scheme migration, rollback, creative case strategies, deterministic drafts, or contamination control.
 
+## Contents
+
+- Data layers and lock record
+- Object and optional vertical context
+- Needs, cases, options, and operations
+- Drafts, feedback, versions, and rendering
+
 ## Core principle
 
 Data controls images. Images are rendered outputs and visual discussion aids; they must not become the authority for source geometry, wall positions, door/window locations, room areas, or dimensions.
@@ -15,6 +22,7 @@ Keep these layers separate:
 - `source_facts`: immutable evidence from the original client plan, user-confirmed facts, and manually entered measurements.
 - `base_inference`: AI-extracted candidate rooms, walls, doors, windows, dimensions, fixed fixtures, topology, and uncertainty.
 - `base_object_model`: the current versioned object model accepted for design at a declared readiness level.
+- `vertical_and_building_context`: optional project facts that affect perspective credibility, such as clear height, beams, columns, window/door heights, sills, level changes, shafts, ducts, vents, and major equipment.
 - `locked_base_manifest`: the user-confirmed binding between one base version, its visual confirmation image, canvas, coordinates, scale, and dimension anchors.
 - `client_needs_brief`: customer residents, hard constraints, risk tolerance, desired changes, style, budget, and priorities.
 - `case_strategy`: external or supplied case inspiration converted into transferable design strategies.
@@ -75,6 +83,22 @@ After the user confirms a concept base, create a small immutable lock record:
 ```
 
 Treat the lock record and referenced base object model as read-only. Do not silently update files behind an existing `base_id`.
+
+When perspective or 45-degree views matter, attach a compact optional context record:
+
+```json
+{
+  "schema_version": "vertical_and_building_context_v1",
+  "base_id": "base_v1",
+  "clear_height_mm": {"value": 2700, "status": "confirmed|estimated|unknown"},
+  "vertical_objects": [
+    {"id": "BEAM-01", "type": "beam|column|sill|shaft|duct|vent|equipment|level_change", "geometry": {}, "status": "confirmed|estimated|unknown"}
+  ],
+  "perspective_limitations": []
+}
+```
+
+Keep it lightweight and conditional. Unknown vertical facts do not block a top-down quick concept; they must limit or qualify a perspective that would otherwise invent them.
 
 A specific user-requested base correction creates `base_vNext` with a change manifest and requires renewed visual confirmation. A scheme-only change remains in that scheme's operations and does not unlock or replace the parent base.
 
@@ -144,6 +168,8 @@ Minimal shape:
 
 If no needs are known, mark the brief as `exploratory` and keep options clearly separated by risk level.
 
+Use `residential-design-knowledge.md` to translate this brief into adjacency, conflict, evidence, and option-evaluation records. Keep those decision records separate from source geometry and object operations.
+
 ## Case strategy
 
 Creative cases must be converted into strategy records before entering a scheme.
@@ -157,7 +183,7 @@ Creative cases must be converted into strategy records before entering a scheme.
   "target_spaces": ["R-LIVING", "R-DINING"],
   "risk_level": "medium|high",
   "required_validation": ["arc_geometry", "door_clearance", "circulation_width"],
-  "allowed_in_options": ["方案 C"],
+  "allowed_in_options": ["user-approved option ID"],
   "copy_image_geometry": false
 }
 ```
@@ -171,13 +197,9 @@ Case strategy rules:
 
 ## Scheme risk levels
 
-Default residential option structure:
+Construct the user-approved number of options from different responses to the brief. Assign `low`, `medium`, or `high` alteration risk only after each option's core move is defined; risk is metadata, not an option archetype. Several options may share one risk level when their living logic differs.
 
-- `方案 A / low_risk`: retain structure, optimize furniture, storage, circulation, and style.
-- `方案 B / medium_risk`: partial functional upgrade such as open kitchen, island, dining relation, local partition changes.
-- `方案 C / high_creativity`: bold exploration such as curved partitions, multifunction rooms, larger spatial reorganization, or demolition candidates.
-
-A/B/C must differ by more than furniture swaps. At least two meaningful dimensions should differ: alteration scope, function, circulation, storage strategy, kitchen relationship, style/material direction, or risk level.
+When multiple directions are requested, require more than furniture-model or styling swaps. At least two meaningful dimensions should differ, such as primary problem, functional relationship, circulation, storage/use strategy, privacy, kitchen relationship, alteration scope, or explicit tradeoff.
 
 ## Scheme operations
 
@@ -205,6 +227,7 @@ Do not satisfy this request by visually mixing two generated images. Copy the so
 
 Every scheme intent must record:
 
+- user-facing `option_id`, filesystem-safe unique `option_code`, and unique `option_version`
 - `parent_base_id`
 - `parent_base_lock_status: locked`
 - inherited canvas, coordinate frame, scale, and dimension anchors
@@ -233,7 +256,8 @@ Use explicit states for generated outputs:
 
 - `not_rendered`
 - `generated_pending_review`
-- `reviewed_passed`
+- `view_passed`
+- `displayable`
 - `needs_repair`
 - `rejected`
 
@@ -256,7 +280,7 @@ Generated images cannot upgrade a scheme's geometry level. Only validated object
 - Changing one scheme creates `scheme_X_vNext` only.
 - Changing style does not alter source facts or base geometry.
 - Changing labels does not alter source facts, base geometry, or scheme operations.
-- Failed renderings or failed validations are marked `rejected` and must not become parents.
+- Provider errors, timeouts, and incomplete deliveries remain `failed` or `partial_untrusted` attempt states and create no option version. Only a generated artifact or option version that fails normal review is marked `rejected` and must not become a parent.
 - Migration between schemes must be explicit in `operation_log`.
 - Rollback selects an earlier accepted version without changing its file. Branching creates a new candidate with an accepted `parent_intent`; do not clone rejected or unreviewed candidates.
 
@@ -264,6 +288,6 @@ Generated images cannot upgrade a scheme's geometry level. Only validated object
 
 Rendering tools read object data and generation reports. They should not infer hidden geometry from images or prior conversation when object data exists.
 
-For quick concept images, render visual style and proposal intent from `locked_base_manifest + base_object_model + scheme_intent`, plus a deterministic draft when useful. Preserve the locked canvas and dimension frame across A/B/C. For deepening drawings, render from the same parent base plus validated operation logs at the required readiness level.
+For quick concept images, render visual style and proposal intent from `locked_base_manifest + base_object_model + scheme_intent`, plus a deterministic draft when useful. Preserve the locked canvas and dimension frame across the approved option set. For perspective views, also pass known `vertical_and_building_context` facts or label the result approximate. For deepening drawings, render from the same parent base plus validated operation logs at the required readiness level.
 
 Post-generation reports must record registration against the locked base, unchanged-anchor comparison, detected drift, and pass/fail status. A failed image may be repaired or rejected; it cannot alter the base or become a geometry parent.

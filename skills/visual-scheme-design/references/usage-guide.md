@@ -1,5 +1,11 @@
 # Usage Guide
 
+## Contents
+
+- Triggering and first-use behavior
+- Residential and scene workflow examples
+- Checkpoints, outputs, and recovery
+
 ## How To Trigger
 
 Use the skill explicitly:
@@ -58,7 +64,7 @@ welcome
 -> source understanding confirmation
 -> concept base confirmation and lock
 -> three short needs rounds
--> text-only A/B/C direction approval
+-> text-only approval of the user-selected option count
 -> generated option review
 -> selected-scheme deepening approval
 ```

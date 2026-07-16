@@ -38,6 +38,53 @@ def style_ready(style: dict[str, Any]) -> bool:
     return style.get("status") == "confirmed" and bool(style.get("direction"))
 
 
+LOGIC_REQUIRED_FIELDS = (
+    "primary_problem",
+    "core_move",
+    "user_routines",
+    "functional_relationships",
+    "circulation_story",
+    "furniture_logic",
+    "fixed_elements",
+    "tradeoff",
+    "visual_proof",
+    "blocking_unknowns",
+)
+
+
+def scheme_logic_blockers(logic: dict[str, Any], intent: dict[str, Any], base_lock: dict[str, Any]) -> list[str]:
+    blockers = []
+    if logic.get("schema_version") != "scheme_logic_manifest_v1":
+        blockers.append("scheme logic manifest is missing or has an unsupported schema")
+        return blockers
+    if logic.get("base_id") != base_lock.get("base_id"):
+        blockers.append("scheme logic base_id does not match the locked base")
+    if logic.get("option_id") != intent.get("scheme_id"):
+        blockers.append("scheme logic option_id does not match the selected scheme")
+    if logic.get("option_version") != intent.get("version"):
+        blockers.append("scheme logic option_version does not match the selected version")
+    for field in LOGIC_REQUIRED_FIELDS:
+        if field not in logic:
+            blockers.append(f"scheme logic is missing required field: {field}")
+        elif field != "blocking_unknowns" and not logic.get(field):
+            blockers.append(f"scheme logic field is empty: {field}")
+    if logic.get("blocking_unknowns"):
+        blockers.append("scheme logic has unresolved blocking unknowns")
+    proof_objects = logic.get("core_proof_objects", []) or []
+    if not isinstance(proof_objects, list):
+        blockers.append("scheme logic core_proof_objects must be a list")
+    else:
+        for index, item in enumerate(proof_objects):
+            if not isinstance(item, dict) or not item.get("id"):
+                blockers.append(f"core proof object {index} is missing an object id")
+                continue
+            if item.get("status") != "passed":
+                blockers.append(f"core proof object is not validated: {item.get('id')}")
+            if not item.get("evidence"):
+                blockers.append(f"core proof object has no validation evidence: {item.get('id')}")
+    return blockers
+
+
 def functional_completeness(base: dict[str, Any], intent: dict[str, Any]) -> dict[str, Any]:
     roles = infer_room_roles(base)
     rooms = room_index(base)
@@ -121,7 +168,8 @@ def structure_lock(
 
 
 def prompt_text(
-    intent: dict[str, Any], style: dict[str, Any], selected: dict[str, Any], base_lock: dict[str, Any], stage: str
+    intent: dict[str, Any], logic: dict[str, Any], style: dict[str, Any], selected: dict[str, Any],
+    base_lock: dict[str, Any], stage: str
 ) -> str:
     palette = ", ".join(style.get("palette", []) or []) or "coherent restrained palette"
     materials = ", ".join(style.get("materials", []) or []) or "realistic residential materials"
@@ -149,6 +197,22 @@ Authorized base-change operations:
 Design intent:
 {intent.get('intent_summary', '')}
 
+Scheme logic to make visibly legible:
+- Primary problem: {logic.get('primary_problem')}
+- Core move: {logic.get('core_move')}
+- Linked obligations: {json.dumps(logic.get('linked_obligations', []), ensure_ascii=False)}
+- User routines: {json.dumps(logic.get('user_routines', []), ensure_ascii=False)}
+- Functional relationships: {json.dumps(logic.get('functional_relationships', []), ensure_ascii=False)}
+- Circulation story: {logic.get('circulation_story')}
+- Furniture-use logic: {json.dumps(logic.get('furniture_logic', []), ensure_ascii=False)}
+- Validated core proof objects: {json.dumps(logic.get('core_proof_objects', []), ensure_ascii=False)}
+- Project support functions: {json.dumps(logic.get('support_function_inventory', []), ensure_ascii=False)}
+- Concurrent-use scenarios: {json.dumps(logic.get('concurrent_use_scenarios', []), ensure_ascii=False)}
+- Environmental comfort: {json.dumps(logic.get('environmental_comfort', []), ensure_ascii=False)}
+- Fixed elements to respect: {json.dumps(logic.get('fixed_elements', []), ensure_ascii=False)}
+- Honest tradeoff: {logic.get('tradeoff')}
+- Required visual proof: {json.dumps(logic.get('visual_proof', []), ensure_ascii=False)}
+
 Visual direction:
 {style.get('direction')}
 Palette: {palette}
@@ -163,6 +227,8 @@ Hard constraints:
 - do not move doors, windows, kitchen, bathrooms, balcony, or fixed fixtures except through the authorized operations above
 - do not mirror, stretch, freely crop, or independently reframe the apartment
 - do not invent a second TV wall, extra island, missing shower, missing toilet, or blocked access
+- make the core move and required visual proof immediately understandable; decoration cannot substitute for scheme logic
+- keep furniture orientation, access, use clearances, and relationships credible for the named routines
 - no dimensions, labels, arrows, legends, captions, UI, watermark, or fake CAD text; these are added later
 - render one coherent top-down plan image on the exact locked canvas
 
@@ -192,6 +258,7 @@ def style_confirmation_markdown(intent: dict[str, Any], needs: dict[str, Any]) -
 
 def build_markdown(package: dict[str, Any]) -> str:
     refs = package["references"]
+    logic = package.get("scheme_logic_manifest") or {}
     return f"""# 视觉生成交接包
 
 - 方案：{package.get('scheme_id')} `{package.get('scheme_version')}`
@@ -202,6 +269,13 @@ def build_markdown(package: dict[str, Any]) -> str:
 - 图像权威：`false`
 - 确定性 SVG：`{refs.get('review_svg')}`
 - 结构参考 PNG：`{refs.get('review_png')}`
+
+## 方案逻辑
+
+- 要解决的问题：{logic.get('primary_problem')}
+- 核心动作：{logic.get('core_move')}
+- 必须在图中看懂：{json.dumps(logic.get('visual_proof', []), ensure_ascii=False)}
+- 主动接受的取舍：{logic.get('tradeoff')}
 
 ## 可调整
 
@@ -215,7 +289,7 @@ def build_markdown(package: dict[str, Any]) -> str:
 
 ## 生图后
 
-结果先标记为 `generated_pending_review`，检查结构漂移、墙体连续性、门窗、厨卫完整性、家具朝向、通行和水印文字；通过后才能进入客户展示。
+结果先标记为 `generated_pending_review`，检查结构漂移、功能完整性、方案逻辑、家具使用、跨视图一致性和 AI 伪影；再经视觉合理性门控后才能进入客户展示。
 """
 
 
@@ -227,6 +301,7 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
     history = load_json(args.history)
     needs = load_json(args.needs_brief)
     style = load_json(args.style_brief)
+    logic = load_json(args.scheme_logic)
     version = intent.get("version")
     selected = review_option(manifest, version)
     entry = history_entry(history, version)
@@ -242,6 +317,7 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
     canvas = base_lock.get("canvas") or {}
     if not canvas.get("width") or not canvas.get("height"):
         blockers.append("locked base has no usable canvas")
+    blockers.extend(scheme_logic_blockers(logic, intent, base_lock))
 
     if args.stage == "deep":
         if intent.get("layout_gate") != "ready":
@@ -282,6 +358,8 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
         "deferred_visual_rule": "keep current confirmed geometry; do not visualize unconfirmed structural changes",
         "style_status": style.get("status", "not_provided"),
         "style_brief": style,
+        "scheme_logic_manifest": logic,
+        "scheme_logic_status": "ready" if not scheme_logic_blockers(logic, intent, base_lock) else "blocked",
         "structure_lock": structure_lock(base, intent, manifest, base_lock),
         "functional_completeness": completeness,
         "visual_freedom": ["materials", "palette", "lighting", "textures", "soft_furnishing_mood", "small_nonstructural_decor"],
@@ -291,6 +369,8 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
             "base_lock": str(args.base_lock.resolve()),
             "confirmation_visual": (base_lock.get("confirmation_visual") or {}).get("path"),
             "scheme_intent": str(args.scheme_intent.resolve()),
+            "scheme_logic": str(args.scheme_logic.resolve()),
+            "scheme_logic_sha256": file_sha256(args.scheme_logic),
             "review_manifest": str(args.review_manifest.resolve()) if args.review_manifest else None,
             "review_svg": selected.get("svg"),
             "review_png": selected.get("png"),
@@ -298,7 +378,7 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
             "needs_brief": str(args.needs_brief.resolve()),
             "history": str(args.history.resolve()) if args.history else None,
         },
-        "prompt": prompt_text(intent, style, selected, base_lock, args.stage) if status == "ready" else None,
+        "prompt": prompt_text(intent, logic, style, selected, base_lock, args.stage) if status == "ready" else None,
         "post_generation_status": "generated_pending_review",
         "post_generation_checks": [
             "outline_and_room_topology",
@@ -307,8 +387,17 @@ def build_package(args: argparse.Namespace) -> dict[str, Any]:
             "kitchen_bathroom_completeness",
             "furniture_position_orientation_count",
             "circulation",
+            "scheme_logic_alignment",
+            "furniture_usability",
+            "core_proof_object_validation",
+            "support_function_alignment",
+            "concurrent_use_scenarios",
+            "environmental_comfort_when_relevant",
+            "ai_artifacts",
+            "multi_view_consistency",
             "labels_watermarks_ui",
             "locked_canvas_and_dimension_frame",
+            "visual_plausibility_gate",
         ],
     }
     return package
@@ -319,6 +408,7 @@ def main() -> int:
     parser.add_argument("--base-model", type=Path, required=True)
     parser.add_argument("--base-lock", type=Path, required=True)
     parser.add_argument("--scheme-intent", type=Path, required=True)
+    parser.add_argument("--scheme-logic", type=Path, required=True)
     parser.add_argument("--stage", choices=("quick", "deep"), default="quick")
     parser.add_argument("--review-manifest", type=Path)
     parser.add_argument("--history", type=Path)

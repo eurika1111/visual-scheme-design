@@ -1,185 +1,123 @@
 ---
 name: visual-scheme-design
-description: Direct home-design, interior-space styling, live-stream staging, temporary set-design, and space-scheme workflows. Use when Codex should turn a residential or staging brief into staged space directions, GPT Image/Midjourney/Stable Diffusion/Flux prompts, client-facing concept boards, live-stream set boards, top-view or 45-degree execution views, decoration/style proposals, spatial mood references, real-time engine handoff plans, repair prompts, iteration rules, or deterministic post-layout assembly guidance. Also use when generated space options are too similar, inaccurate, cluttered, impractical, too expensive, too studio-like, or full of broken labels.
+description: Direct visually credible residential design, interior styling, live-stream staging, temporary set design, and controlled space-scheme workflows. Use when Codex should interpret a floor plan, develop logically coherent spatial options, explain why a scheme is usable, create image prompts or client boards, produce top-view or 45-degree execution views, preserve a confirmed base, reject obvious spatial or AI-generated errors, repair similar or drifting options, recover failed image-generation requests without losing approved state, or prepare a real-time-engine handoff.
 ---
 
 # Space Scheme Design
 
-Use this skill as a lightweight router and execution guardrail for interior space, home-design, live-stream staging, temporary set design, spatial mood, option repair, and client-facing space boards. Do not use it for non-spatial posters, products, UI, logos, or general graphic design.
+Route spatial design work to the smallest relevant workflow. Optimize for a visually credible proposal whose spatial logic is easy to understand and free of obvious contradictions. Keep geometry, approved decisions, option versions, generated visuals, and client presentation as separate layers.
 
 ## Runtime Rule
 
-Keep the active turn cheap and controlled:
+1. Classify the domain, mode, current checkpoint, audience, and final use.
+2. Inspect project-local files and state before creating anything.
+3. Read only the references required for the current action.
+4. Execute one phase or one approved transition.
+5. Run deterministic checks when available.
+6. Update state, option registry, operation log, or validation report.
+7. Report the current result and one useful next action.
 
-1. Classify the domain and mode.
-2. Read only the needed reference files.
-3. Use project-local state when files or versions exist.
-4. Execute the current phase.
-5. Update state, option registry, operation log, or validation report when applicable.
-6. Output only the current result and next useful action.
+Do not reconstruct approved facts from chat when project files exist. Do not use generated images as geometry or version authority.
 
-Do not re-explain the whole workflow during normal execution. Do not use generated images as geometry or version authority.
+## Non-Negotiable Contracts
 
-## Non-Negotiable Rules
+- Treat a confirmed residential base as read-only. Change it only through a specific user-requested correction and a newly confirmed base version.
+- Bind every residential option to one locked `base_id`, canvas, coordinate frame, scale, framing, and dimension-anchor set.
+- Store authorized changes as option-specific object operations. Never redraw the whole base from visual guesswork.
+- Keep source facts, object models, operation logs, validation reports, generated images, and presentation boards separate.
+- Require every residential option to explain one primary problem, one core move, its use logic, its tradeoff, and the visual proof that makes it believable.
+- Describe residential outputs as visual design proposals or review references, not construction drawings.
+- Preserve approved state across provider errors. A failed request is not a generated option, accepted version, or completed checkpoint.
+- When the user asks only for structure, a plan, or an outline, do not generate images, videos, boards, or other extra assets.
 
-1. Keep this skill lean: route in `SKILL.md`, load domain details only when needed, and prefer existing tested tools over new layers.
-2. After a residential concept base is confirmed, lock it as a read-only version. Do not alter its outline, walls, openings, coordinate system, scale, or framing unless the user requests a specific base change.
-3. Every residential option must inherit the locked base canvas, coordinates, dimensions, and unchanged objects. Express authorized design changes as option-specific operations; never redraw the whole base from visual guesswork.
+These contracts override downstream generation, repair, export, and UE instructions.
 
-These rules override downstream residential, generation, repair, export, and UE instructions.
+## Interaction Contract
 
-## Mandatory Interaction Contract
+For residential first-use, new-project, or clean-test requests:
 
-For residential first-use, new-project, or clean-test requests, do not inherit unconfirmed preferences, schemes, or decisions from earlier conversation. Start with a short introduction of the service boundary, the staged process, and the next confirmation.
+- Introduce the service boundary and staged process briefly.
+- Stop at every material checkpoint defined in `references/home-design-workflow.md`.
+- Use staged guidance by default. When the user supplies complete evidence and explicitly asks for a faster route, combine only the non-critical checkpoints allowed by the workflow's accelerated confirmation package.
+- Treat `继续` as approval for only the next declared action.
+- Ask before acting when ambiguity changes structure, room function, resident needs, alteration scope, budget, style, option count, or output type.
+- Accept fuzzy answers such as `不确定`, `先看看方向`, or `都可以比较` without converting them into hard requirements.
+- Require separate approval for the confirmation-base lock and for image-generation directions.
 
-Stop for explicit user confirmation at every material checkpoint. Never chain source interpretation, base rendering, base lock, needs intake, option approval, image generation, and deepening in one turn. `继续` authorizes only the next declared action, not all later phases.
+At a checkpoint, return only the current finding, 1-3 focused questions or a confirmation request, and the next single action.
 
-Ask before acting when ambiguity could change structure, room functions, resident needs, alteration scope, budget, style direction, option count, or output type. Offer fuzzy answers such as `不确定`, `先看看方向`, or `都可以比较`; do not silently convert them into hard requirements.
-
-Residential base confirmation and lock cannot be skipped, even when the user asks for immediate end-to-end execution. Image generation requires separate approval of the option directions.
-
-## Mode System
+## Modes And Phases
 
 Use one mode per turn:
 
-- `explore`: create directions, options, or prompt strategy.
-- `select`: compare, rank, preserve, or reject options.
-- `execute`: produce prompts, diagrams, boards, object operations, or validation outputs.
-- `repair`: diagnose failures before rewriting prompts or changing data.
+- `explore`: develop directions, options, or prompt strategy.
+- `select`: compare, preserve, combine, rank, or reject options.
+- `execute`: produce object operations, prompts, diagrams, boards, or validation outputs.
+- `repair`: diagnose a failure before changing prompts, data, or versions.
 
-## Phase System
-
-Use these checkpoints, skipping irrelevant ones only when the task is clearly narrower:
-
-1. `classification`: identify domain, mode, audience, and final use.
-2. `intake`: collect only the inputs needed for the current checkpoint.
-3. `constraints`: separate hard constraints from taste or mood.
-4. `strategy`: choose spatial/data workflow before visual generation.
-5. `production`: create prompts, object operations, checks, or board content.
-6. `diagnosis`: update option status and repair the smallest failed layer.
-7. `delivery`: assemble or summarize client-facing outputs and QA notes.
-
-## State Contract
-
-When a project has local files, versions, options, or validation reports, look for or create a compact state record before doing multi-step work. Read `references/runtime-state.md` for the state schema and update rules.
-
-Minimum runtime state fields:
-
-```json
-{
-  "mode": "explore|select|execute|repair",
-  "phase": "classification|intake|constraints|strategy|production|diagnosis|delivery",
-  "domain": "residential|scene_set|interior_style|space_planning|client_board|repair",
-  "level": "L0|L1|L2|L3|L4|null",
-  "active_base": null,
-  "base_lock_status": "unconfirmed|locked|change_requested|null",
-  "interaction_context": "first_use|returning|clean_test|null",
-  "interaction_checkpoint": null,
-  "awaiting_confirmation": null,
-  "active_option": null,
-  "option_registry": [],
-  "validation_status": "unknown|passed|warning|failed|null",
-  "last_action": null,
-  "evolution_flags": []
-}
-```
-
-State summarizes the current project; it does not replace source facts, object models, validation reports, operation logs, or user confirmation.
+Track one current phase: `classification`, `intake`, `constraints`, `strategy`, `production`, `diagnosis`, or `delivery`. Store multi-turn state according to `references/runtime-state.md`.
 
 ## Domain Routing
 
-Read references only as needed:
-
-- Residential renovation, whole-home layout, source-plan objectization, quick concepts, stable deepening: read `references/home-design-workflow.md` first.
-- Residential option migration, rollback, object IDs, generation reports, contamination control: read `references/home-object-model.md`.
-- Residential readiness levels, wall topology, openings, curved partitions, furniture clearance, kitchen clearance, circulation checks: read `references/home-geometry-validation.md`.
-- Raster floor-plan redraw, listing screenshots, dimensioned platform plans, source-plan confirmation gates: read `references/residential-plan-redraw.md`.
-- Live-stream set design, temporary staging, interior styling, spatial mood, top view, 45-degree execution view: read `references/scene-and-space-workflows.md`.
-- UE or another real-time engine handoff, object-driven 3D visualization, or MCP scene execution planning: read `references/ue-visualization-workflow.md` after the relevant residential or scene reference.
-- Failed generations, similar options, user visual feedback, repair prompts: read `references/repair-and-iteration.md`.
-- Client-facing option boards, ranking, copy, delivery QA: read `references/client-board-output.md`.
-- Copy-paste image prompts or staged prompt packages: read `references/prompt-templates.md`.
-- User asks how to use this skill: read `references/usage-guide.md`.
+- Residential workflow, checkpoints, readiness authority, and generation gates: read `references/home-design-workflow.md` first.
+- Residential needs programming, adjacency, priorities, evaluation, alteration risk, and evidence levels: read `references/residential-design-knowledge.md` after the workflow when developing or comparing options.
+- Scheme logic manifests, visible proof, obvious-error blockers, quality review, and delivery decisions: read `references/scheme-logic-and-visual-plausibility.md` before generating or accepting a residential visual.
+- Case strategy, human-use patterns, professional heuristics, product facts, or named safety concerns: read `references/professional-knowledge-sourcing.md` before searching or citing them.
+- Residential relationship maps, named access routes, furniture-use logic, constraint propagation, and option distinctness: read `references/residential-computational-design.md` when they would prevent an obvious contradiction or clarify a decision.
+- Geometry-tool discovery, CLI contracts, project adapters, and honest no-tool degradation: read `references/geometry-tool-adapter.md` before claiming an `L2/L3` tool result outside a known project workflow.
+- Object IDs, version isolation, operations, migration, rollback, and contamination control: read `references/home-object-model.md`.
+- Geometry checks, openings, wall topology, furniture clearance, kitchen clearance, and curved partitions: read `references/home-geometry-validation.md`.
+- Raster plans, listing screenshots, source interpretation, and confirmation-base reconstruction: read `references/residential-plan-redraw.md`.
+- Live-stream sets, temporary staging, interior styling, spatial mood, top views, and 45-degree execution views: read `references/scene-and-space-workflows.md`.
+- Provider failures, similar options, visual feedback, and minimal repair: read `references/repair-and-iteration.md`.
+- Client-facing boards, option copy, ranking, and delivery QA: read `references/client-board-output.md`.
+- Copy-paste or staged image prompts and recovery messages: read `references/prompt-templates.md`.
+- Reference-image editing, GPT Image handoff, geometry-preserving generation, and post-generation drift acceptance: read `references/image-generation-control.md` before generating a residential visual from a locked base.
+- UE or another real-time-engine handoff: read `references/ue-visualization-workflow.md` after the relevant spatial reference.
+- User asks how to use the skill: read `references/usage-guide.md`.
 
 ## Residential Object Data Gate
 
-For residential renovation and whole-home space planning, object data controls images.
+Use `references/home-design-workflow.md` as the only authority for `L0-L4` definitions and checkpoint order.
 
-- `L0`: unusable; do not generate schemes.
-- `L1`: readable draft; output only understanding draft, object list, uncertainty, and correction needs.
-- `L2`: after the user confirms and locks the concept base, quick concepts may start from centimeter-level scheme data; each option needs isolated intent and a generation report.
-- `L3`: visual deepening/reference export may start; structure, openings, key dimensions, fixed-service constraints, furniture footprints, and operation logs must be controlled.
-- `L4`: reference documentation/export only; DWG/DXF/SVG outputs are for review and site measurement, not construction-ready drawings.
+- Do not create residential schemes before the exact base is confirmed, locked, and at least `L2`.
+- Treat text-only option directions as scheme work. Compare only the current authoritative and accepted artifacts after classifying historical, rejected, superseded, and demo files. If the authoritative set disagrees on the active `base_id`, version, lock status, required room identity, or fixed-function mapping, stop and resolve the conflict; do not provide tentative directions.
+- Do not enter selected-scheme visual deepening or reference export before `L3`.
+- Reuse accepted staged object data before attempting fresh source extraction.
+- Keep technical diagnostics separate from the client confirmation base.
+- Apply corrections to object data and rerender. Never patch a review image or replace an accepted redraw with a weaker diagnostic render.
+- Reject unexplained canvas, scale, wall, opening, fixed-service, or framing drift instead of writing it back to the base.
 
-Do not produce residential concept schemes before `L2`. Do not use quick concept images as geometry authority for deepening. Residential outputs prioritize visual scheme design, not construction drawings.
+## Option And Generation Rules
 
-Reuse accepted staged object data before fresh source extraction. Treat full-plan raster tracing as a local fallback. Show the confirmation base to the user before scheme generation.
+- Use the user-approved option count and assign stable client-facing IDs such as `方案 A / 方案 B`; three options are a comparison default, not a fixed requirement.
+- Keep each option in an isolated branch with an explicit parent, status, round, and short reason.
+- Require at least two meaningful differentiation dimensions when multiple directions are requested.
+- Reject obvious structural, functional, access, furniture-use, scheme-logic, cross-view, or AI-artifact failures before presentation. Do not let style or a weighted total hide an invalid scheme.
+- Use one image prompt for one coherent visual. Split viewpoints, dense labels, exact Chinese text, floor plans, execution diagrams, and board assembly into controlled stages.
+- Use image models for appearance and communication. Supply a deterministic structural reference for layout-sensitive outputs, and never ask an image model to infer an exact perspective from a floor plan when a camera-controlled proxy can be produced.
+- Add small text, dimensions, legends, and Chinese labels later with deterministic layout tools.
+- Use dimensions and geometry as guardrails where they prevent visible or functional mistakes; do not equate parameter density with design reasonableness.
+- Validate any furniture, island, cabinet, operable partition, or door that carries the option's core promise before generating its concept image; other loose furniture may remain approximate at quick-concept depth.
+- Confirm only output-changing generation inputs: option IDs, count, ratio, viewpoint, reference roles, differentiation map, hard negatives, and destination.
 
-After lock, treat the base as a read-only parent. A specific user-requested structural change creates a new base branch or an option operation according to scope; style, furniture, labels, generated images, repair prompts, and UE edits never unlock it.
+For live scenes, keep viewer-facing frames free of cameras, lights, cables, monitor screens, UI, captions, watermarks, phone frames, and black borders unless requested. Produce execution views separately and keep temporary solutions movable, affordable, and buildable.
 
-Keep technical geometry review separate from the client confirmation base. Apply feedback as object-level candidate corrections and rerender from data; never patch the review image or replace a stronger accepted redraw with a weaker diagnostic render.
+## Failure And Recovery Rule
 
-## Live Scene And Set-Design Rules
+Classify failures before retrying. For a provider error, timeout, or incomplete response:
 
-For live-stream sets, temporary staging, interior styling, and execution views:
+1. Keep the current checkpoint and all approved spatial state unchanged.
+2. Record a failed generation attempt against its request ID, option ID, `base_id`, and prompt-package hash.
+3. Do not create an option version or mark the checkpoint complete.
+4. Retry from the same immutable request package unless the user explicitly changes an output parameter.
+5. Review any partial artifact as untrusted; never use it as geometry, a parent version, or proof of success.
 
-- Separate viewer-facing frames from execution diagrams.
-- Keep viewer-facing live images free of cameras, lights, cables, monitor screens, UI, captions, watermarks, phone frames, and black borders unless requested.
-- Use top view or 45-degree execution views as separate outputs when accuracy matters.
-- Keep temporary and low-budget solutions lightweight, movable, and buildable.
-- Define 2-4 options with at least two meaningful differences when multiple directions are requested.
-
-## Option Registry
-
-Assign stable option IDs as soon as options exist. Prefer `方案 A / 方案 B / 方案 C` for client-facing options.
-
-Track only the fields needed for the current project:
-
-```json
-{
-  "id": "方案 A",
-  "name": "short direction name",
-  "status": "保留|待修改|淘汰|替换中|已替换",
-  "source": "original|edited|uploaded_reference|copied_object|generated",
-  "round": 1,
-  "parent": null,
-  "notes": "one short reason or requested change"
-}
-```
-
-Translate user feedback into registry changes before prompting or rendering.
-
-## Generation Rules
-
-Use one image prompt only for one coherent visual. Split into staged outputs when the task includes multiple viewpoints, dense labels, exact Chinese text, floor plans, execution diagrams, or client-board assembly.
-
-Keep small text, callouts, dimensions, legends, and Chinese labels outside generated images whenever possible. Add them later in deterministic layout tools.
-
-Before image generation, confirm only the information that changes the output: option IDs, count, ratio, viewpoint, reference roles, differentiation map, hard negatives, and output destination.
-
-For residential plans, bind every option to one locked `base_id`. Preserve its exact canvas size, coordinate frame, framing, and unchanged geometry. Compare each output against the locked base; reject unrequested structural drift instead of accepting or writing it back.
-
-## Repair Rules
-
-In `repair` mode, classify the failure before rewriting:
-
-- `style-collapse`
-- `scope-drift`
-- `budget-drift`
-- `studio-drift`
-- `prop-packing`
-- `reference-domination`
-- `camera-drift`
-- `furniture-mismatch`
-- `taste-mismatch`
-- `text-failure`
-- `base-drift`
-
-Repair one layer at a time when possible: structure, scope, palette, material, lighting, furniture, camera/viewpoint, reference role, budget/buildability, object data, or validation state.
+Use `references/runtime-state.md` for retry state and `references/repair-and-iteration.md` for failure labels.
 
 ## Output Schema
 
-For normal direct package mode:
+For normal package mode:
 
 ```text
 判断：
@@ -211,9 +149,9 @@ For staged guidance mode:
 <1-3 focused questions or a confirmation request>
 
 下一步：
-<what happens after the answer>
+<one action after confirmation>
 ```
 
-At a mandatory checkpoint, output only the current finding, 1-3 focused confirmation questions, and the next single action. Do not perform that next action in the same turn.
+## Maintenance Rule
 
-For maintenance work on this skill, keep `SKILL.md` lean; move domain details into `references/`, deterministic helpers into `scripts/`, and do not add untested future business domains.
+Keep `SKILL.md` as a lean router. Put domain knowledge in `references/`, deterministic behavior in `scripts/`, and evaluation fixtures in the project repository. Do not add untested business domains, duplicate readiness definitions, or vendor-specific generation recipes to the core workflow.

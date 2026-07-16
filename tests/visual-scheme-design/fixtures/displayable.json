@@ -1,0 +1,53 @@
+{
+  "schema_version": "visual_plausibility_review_v1",
+  "review_scope": "scheme_package",
+  "base_id": "base_v1",
+  "option_id": "方案 A",
+  "view_ids": ["top"],
+  "image_reviewed": true,
+  "review_method": "deterministic_and_visual_review",
+  "reviewed_at": "2026-07-15T10:00:00+08:00",
+  "reviewer": "fixture-reviewer",
+  "evidence_artifacts": [
+    {"id": "overlay:top", "kind": "overlay", "path": "evidence/base_overlay.svg", "sha256": "sha256:7c34af8c8c00ca9ee4facbe6e0621d68813d0c0dde8e36284043f3c787abc9b8", "view_id": "top"},
+    {"id": "anchors:main", "kind": "overlay", "path": "evidence/base_overlay.svg", "sha256": "sha256:7c34af8c8c00ca9ee4facbe6e0621d68813d0c0dde8e36284043f3c787abc9b8", "view_id": "top"},
+    {"id": "validation:functions", "kind": "validation", "path": "evidence/validation.json", "sha256": "sha256:9921dbb9ff0133fae2d2f9604a0422ecad5c02957ce2b1614f046780cac2a994"},
+    {"id": "view:top", "kind": "image", "path": "evidence/top_view.svg", "sha256": "sha256:4b7bd53e1a5d295839d8ee5b03e74568148dda57ccbb0ba7288e98f4e8b0a4d2", "view_id": "top"},
+    {"id": "region:dining", "kind": "image", "path": "evidence/top_view.svg", "sha256": "sha256:4b7bd53e1a5d295839d8ee5b03e74568148dda57ccbb0ba7288e98f4e8b0a4d2", "view_id": "top"},
+    {"id": "region:entry", "kind": "image", "path": "evidence/top_view.svg", "sha256": "sha256:4b7bd53e1a5d295839d8ee5b03e74568148dda57ccbb0ba7288e98f4e8b0a4d2", "view_id": "top"},
+    {"id": "logic:visual_proof", "kind": "document", "path": "evidence/scheme_logic.json", "sha256": "sha256:948a10c23d69b172bc39fbcf73453c6fad344afc4569a7c4000d916f89b594a7"},
+    {"id": "logic:user_routines", "kind": "document", "path": "evidence/scheme_logic.json", "sha256": "sha256:948a10c23d69b172bc39fbcf73453c6fad344afc4569a7c4000d916f89b594a7"},
+    {"id": "comparison:approved-set", "kind": "comparison", "path": "evidence/comparison.json", "sha256": "sha256:4cbb37a67124324372ea06cfe341057837d849830fe2df6649b85117be551f63"}
+  ],
+  "scheme_logic_manifest": {
+    "primary_problem": "improve dining use",
+    "core_move": "connect dining and kitchen",
+    "user_routines": ["shared meals"],
+    "functional_relationships": ["kitchen near dining"],
+    "circulation_story": ["main routes remain clear"],
+    "furniture_logic": ["seats retain use sides"],
+    "fixed_elements": ["base walls and openings"],
+    "tradeoff": "less enclosed storage",
+    "visual_proof": ["visible kitchen-dining relationship"],
+    "blocking_unknowns": []
+  },
+  "blocking_checks": [
+    {"id": "base_fidelity", "status": "pass", "evidence": [{"kind": "overlay", "reference": "overlay:top", "finding": "locked outline and openings align"}]},
+    {"id": "functional_completeness", "status": "pass", "evidence": [{"kind": "deterministic_validation", "reference": "validation:functions", "finding": "required functions remain present"}]},
+    {"id": "access_logic", "status": "pass", "evidence": [{"kind": "full_image_review", "reference": "view:top", "finding": "named routes remain visibly open"}]},
+    {"id": "furniture_usability", "status": "pass", "evidence": [{"kind": "region_review", "reference": "region:dining", "finding": "seating has believable use and passage sides"}]},
+    {"id": "scheme_logic_alignment", "status": "pass", "evidence": [{"kind": "scheme_document", "reference": "logic:visual_proof", "finding": "core move is visible in the top view"}]},
+    {"id": "ai_artifacts", "status": "pass", "evidence": [{"kind": "full_image_review", "reference": "view:top", "finding": "full image and high-risk joins show no obvious artifacts"}]},
+    {"id": "multi_view_consistency", "status": "not_applicable", "covered_by": "single-view package"}
+  ],
+  "quality_checks": [
+    {"id": "structural_credibility", "rating": "strong", "evidence": [{"kind": "full_image_review", "reference": "view:top", "finding": "space reads as one coherent environment"}]},
+    {"id": "routine_readability", "rating": "acceptable", "evidence": [{"kind": "scheme_document", "reference": "logic:user_routines", "finding": "shared dining routine is understandable"}]},
+    {"id": "circulation_intuition", "rating": "acceptable", "evidence": [{"kind": "full_image_review", "reference": "view:top", "finding": "primary routes are legible"}]},
+    {"id": "furniture_logic", "rating": "strong", "evidence": [{"kind": "region_review", "reference": "region:dining", "finding": "furniture forms a believable use relationship"}]},
+    {"id": "scale_plausibility", "rating": "acceptable", "evidence": [{"kind": "anchor_comparison", "reference": "anchors:main", "finding": "major proportions remain plausible"}]},
+    {"id": "strategy_visibility", "rating": "strong", "evidence": [{"kind": "full_image_review", "reference": "view:top", "finding": "kitchen-dining connection is immediately visible"}]},
+    {"id": "option_distinctness", "rating": "acceptable", "evidence": [{"kind": "scheme_document", "reference": "comparison:approved-set", "finding": "core move differs from the other approved direction"}]},
+    {"id": "visual_coherence", "rating": "acceptable", "evidence": [{"kind": "full_image_review", "reference": "view:top", "finding": "appearance supports the spatial intent"}]}
+  ]
+}

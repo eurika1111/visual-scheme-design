@@ -30,10 +30,12 @@ def option_entry(
     model_path: Path,
     validation_path: Path,
     parent: str | None = None,
+    option_code: str | None = None,
 ) -> dict[str, Any]:
     status = validation_status(report)
     return {
         "id": label,
+        "option_code": option_code,
         "version": version,
         "status": "保留" if status == "passed" else "待修改",
         "parent": parent,
@@ -53,25 +55,27 @@ def main() -> int:
     parser.add_argument("--base-model", required=True, type=Path)
     parser.add_argument("--base-validation", required=True, type=Path)
     parser.add_argument("--base-version", default="base_v1")
-    parser.add_argument("--scheme-a-model", required=True, type=Path)
-    parser.add_argument("--scheme-a-validation", required=True, type=Path)
-    parser.add_argument("--scheme-a-version", default="scheme_A_v1")
+    parser.add_argument("--active-option-id", default="方案 A")
+    parser.add_argument("--active-option-code", default="A")
+    parser.add_argument("--active-option-model", "--scheme-a-model", dest="active_option_model", required=True, type=Path)
+    parser.add_argument("--active-option-validation", "--scheme-a-validation", dest="active_option_validation", required=True, type=Path)
+    parser.add_argument("--active-option-version", "--scheme-a-version", dest="active_option_version", default="scheme_A_v1")
     parser.add_argument("--problem-validation", required=True, type=Path)
     parser.add_argument("--base-source-quality", type=Path, help="Optional source quality gate report for the base model")
     parser.add_argument("--base-source-extraction", type=Path, help="Optional source extraction validation report for the base model")
     parser.add_argument("--needs-brief", type=Path, help="Optional structured client needs brief")
-    parser.add_argument("--option-plan", type=Path, help="Optional A/B/C scheme option strategy plan")
+    parser.add_argument("--option-plan", type=Path, help="Optional approved scheme option strategy plan")
     args = parser.parse_args()
 
     base_report = load_json(args.base_validation)
-    scheme_a_report = load_json(args.scheme_a_validation)
+    active_option_report = load_json(args.active_option_validation)
     problem_report = load_json(args.problem_validation)
     source_quality_report = load_json(args.base_source_quality) if args.base_source_quality else None
     source_extraction_report = load_json(args.base_source_extraction) if args.base_source_extraction else None
     option_plan = load_json(args.option_plan) if args.option_plan else None
 
     base_status = validation_status(base_report)
-    scheme_a_status = validation_status(scheme_a_report)
+    active_option_status = validation_status(active_option_report)
     source_gate = source_quality_report.get("source_gate") if source_quality_report else None
     source_level = source_quality_report.get("source_level") if source_quality_report else None
     source_quality_status = source_gate or "unknown"
@@ -95,20 +99,20 @@ def main() -> int:
         "base_source_extraction_level": extraction_level,
         "base_source_extraction_status": extraction_status,
         "active_base": args.base_version,
-        "active_option": args.scheme_a_version,
-        "active_option_level": scheme_a_report.get("readiness"),
-        "active_option_validation_status": scheme_a_status,
-        "validation_status": "passed" if base_status == "passed" and scheme_a_status == "passed" and source_quality_status in {"passed", "unknown"} and extraction_status in {"passed", "unknown"} else "warning",
+        "active_option": args.active_option_version,
+        "active_option_level": active_option_report.get("readiness"),
+        "active_option_validation_status": active_option_status,
+        "validation_status": "passed" if base_status == "passed" and active_option_status == "passed" and source_quality_status in {"passed", "unknown"} and extraction_status in {"passed", "unknown"} else "warning",
         "last_action": "run_geometry_demo",
         "option_registry": [
             option_entry("底图", args.base_version, base_report, args.base_model, args.base_validation),
-            option_entry("方案 A", args.scheme_a_version, scheme_a_report, args.scheme_a_model, args.scheme_a_validation, parent=args.base_version),
+            option_entry(args.active_option_id, args.active_option_version, active_option_report, args.active_option_model, args.active_option_validation, parent=args.base_version, option_code=args.active_option_code),
         ],
         "files": {
             "base_model": str(args.base_model),
             "base_validation_report": str(args.base_validation),
-            "active_scheme_model": str(args.scheme_a_model),
-            "active_scheme_validation_report": str(args.scheme_a_validation),
+            "active_scheme_model": str(args.active_option_model),
+            "active_scheme_validation_report": str(args.active_option_validation),
             "problem_sample_validation_report": str(args.problem_validation),
             "base_source_quality_report": str(args.base_source_quality) if args.base_source_quality else None,
             "base_source_extraction_report": str(args.base_source_extraction) if args.base_source_extraction else None,
@@ -128,10 +132,12 @@ def main() -> int:
                 "differentiation_status": (option_plan.get("differentiation_check") or {}).get("status"),
                 "option_count": len(option_plan.get("options", [])),
             } if option_plan else {},
-            "scheme_A": {
-                "readiness": scheme_a_report.get("readiness"),
-                "status": scheme_a_status,
-                "summary": scheme_a_report.get("summary", {}),
+            "active_option": {
+                "id": args.active_option_id,
+                "option_code": args.active_option_code,
+                "readiness": active_option_report.get("readiness"),
+                "status": active_option_status,
+                "summary": active_option_report.get("summary", {}),
             },
             "problem_sample": {
                 "readiness": problem_report.get("readiness"),

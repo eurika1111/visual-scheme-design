@@ -2,6 +2,13 @@
 
 Use this reference when residential plan data must be judged before quick concepts, visual deepening, wall edits, curved partitions, opening placement, furniture clearance, or reference export.
 
+## Contents
+
+- Readiness and validation depth
+- Geometry kernel and required checks
+- Core proof objects and vertical context
+- Coordinate, opening, furniture, and repair rules
+
 ## Core Principle
 
 Geometry checks protect visual scheme reliability. They do not turn the output into construction drawings.
@@ -14,15 +21,9 @@ structure-level consistency + centimeter-level key element accuracy
 
 Do not require millimeter-level precision for concept work. Do flag errors that could visibly change the scheme, room relationship, opening position, fixed-service layout, or furniture fit.
 
-## Readiness Levels
+## Readiness Authority
 
-- `L0 unusable`: exterior outline, room identity, or main wall topology is broken. Do not generate schemes.
-- `L1 readable draft`: spaces are recognizable, but geometry cannot yet support controlled scheme options.
-- `L2 scheme-base ready`: topology, room identity, main walls, main openings, and fixed-service spaces are controlled enough for quick visual concepts.
-- `L3 reference-base ready`: key dimensions, openings, door swings, fixed-service constraints, furniture footprints, and operation logs are controlled enough for visual deepening and reference export.
-- `L4 reference documentation`: outputs may support review or site measurement; do not claim construction readiness.
-
-Quick concept starts at `L2`. Visual deepening/reference export starts at `L3`.
+Use the `L0-L4` definitions and checkpoint order in `home-design-workflow.md`; do not redefine them here. This file determines which geometry findings support that readiness decision. Quick concepts require the workflow's `L2` gate, and selected-scheme visual deepening or reference export requires its `L3` gate.
 
 ## Two Validation Depths
 
@@ -35,6 +36,8 @@ For an `L2` quick concept, run only the controls needed to protect comparison:
 - furniture is plausibly oriented and does not visibly block access
 
 Do not block quick concepts on exact loose-furniture coordinates, exhaustive clearance checks, construction details, or full export readiness.
+
+Core-proof exception: if an island, table, cabinet, bed, sofa, operable partition, or door carries the option's `core_move` or `visual_proof`, validate its real footprint, use side, relevant opening envelope, and one named access route before the concept image. Do not defer a test that could invalidate the option's main promise.
 
 For selected-scheme `L3` deepening, add exact object placement, authorized wall/opening operations, door swings, circulation, kitchen clearances, curved geometry, dimensions, and reference-export checks.
 
@@ -85,6 +88,18 @@ Scheme checks:
 - circulation width meets the declared scheme threshold
 - kitchen islands and cabinets preserve plausible operating clearance or are flagged
 
+## Conditional Vertical Context
+
+For a top-down quick concept, unknown heights may remain explicit assumptions. For a perspective, 45-degree view, built-in elevation, or selected-scheme deepening, check only the vertical/building facts that can visibly change the proposal:
+
+- clear height and relevant ceiling drops
+- beams, columns, shafts, ducts, vents, and major equipment
+- door/window opening heights and sills
+- level changes or raised platforms
+- cabinetry, curtain, lighting, exhaust, or air-conditioning conflicts when those elements are shown
+
+Use confirmed facts where available. Mark estimated or unknown items and state the resulting perspective limitation; do not let an image model invent a high ceiling, floor step, window height, beam-free cabinet, or equipment route and then treat it as accepted geometry.
+
 Contamination checks:
 
 - proposal objects do not overwrite `source_facts`
@@ -104,7 +119,7 @@ For each comparable quick option:
 
 Any unexplained translation, scale change, aspect-ratio change, wall/opening movement, or inconsistent dimension frame is a blocking quick-concept error. Repair the scheme render or generation input; do not alter the locked base to fit the output.
 
-Add room names, coordinate references, and dimensions through deterministic layout after visual generation. Use the same positions and values across A/B/C so image-model text cannot create false size differences.
+Add room names, coordinate references, and dimensions through deterministic layout after visual generation. Use the same positions and values across the approved option set so image-model text cannot create false size differences.
 
 ## T-Junction Logic
 

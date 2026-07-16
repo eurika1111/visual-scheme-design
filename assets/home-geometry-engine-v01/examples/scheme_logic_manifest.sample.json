@@ -1,0 +1,54 @@
+{
+  "schema_version": "scheme_logic_manifest_v1",
+  "base_id": "base_sample_v1",
+  "option_id": "方案 B",
+  "option_version": "placement_sample_b_layout_v1",
+  "primary_problem": "东南侧房间缺少一个不干扰主要生活动线的稳定办公位置。",
+  "core_move": "利用东南侧房间布置独立书桌，把工作行为从公共起居区中分离。",
+  "linked_obligations": [
+    "保持公共起居区的亲子与会客活动完整",
+    "不阻塞东南侧房间入口"
+  ],
+  "user_routines": [
+    "从房门进入后可直接落座办公",
+    "日常通行不需要绕过书桌",
+    "工作结束后公共起居区仍保持纯粹"
+  ],
+  "functional_relationships": [
+    "办公位属于东南侧房间",
+    "书桌与入口通道互不冲突",
+    "办公功能与客厅活动相互独立"
+  ],
+  "circulation_story": "房门到主要使用位置保持直观路径，书桌不占用门口和房间主通道。",
+  "furniture_logic": [
+    "书桌朝向与墙面及采光关系合理",
+    "座椅后方保留可感知的进出空间",
+    "桌面尺度与单人长期办公用途相符"
+  ],
+  "core_proof_objects": [
+    {
+      "id": "B-PLACE-WORK-SAMPLE-01",
+      "status": "passed",
+      "evidence": "placement_sample_b.placement_report.json"
+    }
+  ],
+  "support_function_inventory": [
+    "办公设备与常用文件在书桌附近收纳"
+  ],
+  "concurrent_use_scenarios": [
+    "有人在书桌工作时，另一人仍可正常进出房间"
+  ],
+  "environmental_comfort": [
+    "办公位利用现有窗侧自然光，同时避免占用主通道"
+  ],
+  "fixed_elements": [
+    "保留锁定底图的墙体、门窗、房间边界和固定设施"
+  ],
+  "tradeoff": "东南侧房间的自由活动面积减少，但换来独立、稳定且容易理解的办公场景。",
+  "visual_proof": [
+    "一眼可见的独立办公区",
+    "书桌、座椅、房门和通道之间没有明显冲突",
+    "公共起居区未被办公家具侵占"
+  ],
+  "blocking_unknowns": []
+}

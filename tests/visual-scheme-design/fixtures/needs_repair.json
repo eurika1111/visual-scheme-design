@@ -1,0 +1,7 @@
+{
+  "fixture_base": "displayable.json",
+  "mutations": [
+    {"path": "quality_checks.structural_credibility.rating", "value": "weak"}
+  ],
+  "expected": {"decision": "needs_repair", "exit_code": 1}
+}

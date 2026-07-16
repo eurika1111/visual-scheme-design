@@ -1,0 +1,8 @@
+{
+  "fixture_base": "displayable.json",
+  "mutations": [
+    {"path": "blocking_checks.access_logic.status", "value": "fail"},
+    {"path": "blocking_checks.access_logic.evidence", "value": [{"kind": "region_review", "reference": "region:entry", "finding": "proposal furniture visibly blocks the entry route"}]}
+  ],
+  "expected": {"decision": "rejected", "exit_code": 2}
+}

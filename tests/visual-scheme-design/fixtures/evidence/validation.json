@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "base_id": "base_v1",
+  "option_id": "方案 A",
+  "checks": ["required_functions", "named_access"]
+}

@@ -1,6 +1,12 @@
 # Repair And Iteration
 
-Use this reference when generated images fail, options are too similar, or the user gives visual feedback.
+## Contents
+
+- Failure diagnosis and minimal repair
+- Option replacement and version control
+- Provider failure recovery
+
+Use this reference when generated images fail, providers are unavailable, options are too similar, or the user gives visual feedback.
 
 ## Feedback First
 
@@ -34,6 +40,21 @@ Use these labels:
 - `taste-mismatch`: result feels cheap, old-fashioned, or off-brand
 - `text-failure`: generated text, labels, or UI are wrong
 - `base-drift`: a residential option shifts, stretches, crops, or changes locked base geometry without authorization
+- `provider-error`: the generation service rejects or cannot complete the request
+- `provider-timeout`: the request has no trustworthy completion result within the expected window
+- `partial-output`: the provider returns an incomplete, corrupt, or unverifiable artifact
+- `invalid-output`: the provider reports success but the artifact cannot enter normal review
+
+## Provider Failure Recovery
+
+Treat provider failures as delivery failures, not design revisions.
+
+1. Preserve the current checkpoint, locked base, needs brief, approved option direction, isolated scheme intent, and prompt-package hash.
+2. Record the failed attempt and failure class in runtime state.
+3. Do not add the artifact to the option registry as a valid generated version.
+4. Treat partial output as untrusted and never use it as geometry, a parent, or a visual baseline.
+5. Retry idempotently from the same request package unless the user explicitly changes ratio, viewpoint, style, reference role, option count, or destination.
+6. After a successful retry, run the complete post-generation review; a provider success flag is not a design pass.
 
 ## Repair Rule
 

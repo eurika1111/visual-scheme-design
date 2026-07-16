@@ -45,7 +45,7 @@ Use the existing object model as the source. SVG remains a human review output, 
 
 ## Option Isolation
 
-- Keep A/B/C in separate scheme versions and separate engine layers, folders, levels, or sandboxes.
+- Keep every approved option in a separate scheme version and separate engine layer, folder, level, or sandbox.
 - Apply cross-option changes through object operations, then regenerate the affected handoff.
 - Record created, updated, skipped, missing, and failed objects in a scene execution report.
 - Never write engine-side exploratory edits directly into `source_facts` or `base_object_model`.

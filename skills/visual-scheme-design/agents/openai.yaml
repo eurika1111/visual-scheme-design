@@ -1,4 +1,4 @@
 interface:
   display_name: "空间方案设计助手"
-  short_description: "Plan interior, staging, home, and temporary space schemes"
-  default_prompt: "Use $visual-scheme-design to turn this interior, staging, home, or temporary-space idea into staged directions, prompts, and iteration rules."
+  short_description: "Create visually credible, logically coherent spatial schemes"
+  default_prompt: "Use $visual-scheme-design to develop this residential, interior, staging, or temporary-space request through appropriate checkpoints, user-approved option counts, explicit scheme logic, core-proof validation, geometry guardrails, recoverable visual generation, and evidence-backed visual plausibility review."

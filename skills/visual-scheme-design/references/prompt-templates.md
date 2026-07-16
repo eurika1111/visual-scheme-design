@@ -1,5 +1,12 @@
 # Prompt Templates
 
+## Contents
+
+- General image and scene prompts
+- Residential intake, base, needs, and option prompts
+- Residential logic, deterministic draft, and image handoff prompts
+- Review, repair, and provider-failure recovery
+
 Use these templates as starting points. Replace bracketed fields and delete irrelevant lines.
 
 ## Direction Exploration
@@ -10,9 +17,8 @@ Before writing prompts for multiple options, define a differentiation map.
 
 ```text
 Differentiation map:
-Option A: [palette] / [material] / [lighting] / [set density] / [budget tier]
-Option B: [palette] / [material] / [lighting] / [set density] / [budget tier]
-Option C: [palette] / [material] / [lighting] / [set density] / [budget tier]
+Repeat for each approved direction:
+Option [ID]: [palette] / [material] / [lighting] / [set density] / [budget tier]
 ```
 
 Each option should differ on at least two meaningful dimensions. Do not treat furniture swaps or small prop changes as separate directions.
@@ -246,7 +252,7 @@ Use for a new customer, new project, or explicit clean test. Do not inspect and 
 阶段：开始
 
 当前判断：
-我会先确认户型理解和概念底图，再分几轮了解居住需求，之后先用文字给出 A/B/C 方向；你确认方向后才生成方案图。输出用于方案讨论，不是施工图。
+我会先确认户型理解和概念底图，再了解居住需求，之后按你确认的数量给出文字方案方向；你确认方向后才生成方案图。输出用于方案讨论，不是施工图。
 
 请确认/补充：
 1. 这次希望解决的主要问题是什么？不确定也可以说“先帮我看看”。
@@ -322,7 +328,7 @@ Round 2 - problems and alteration
 Round 3 - feeling and budget
 - Desired feeling or disliked styles; fuzzy descriptions are welcome.
 - Budget expression: controlled / balanced / willing to invest in key areas / not sure.
-- Which uncertain ideas should A/B/C compare rather than decide now?
+- Which uncertain ideas should the approved option set compare rather than decide now?
 
 Ask 1-3 questions at a time. Separate hard constraints from preferences. Do not turn examples into requirements without confirmation.
 ```
@@ -331,17 +337,20 @@ Ask 1-3 questions at a time. Separate hard constraints from preferences. Do not 
 
 Use after needs rounds and before any scheme image generation.
 
+Use this template only when the artifact audit confirms the same exact locked `base_id` and version across current authoritative and accepted files and required room and fixed-function mappings are consistent. Classify demo, historical, rejected, superseded, and unrelated files before comparison. If the authoritative set conflicts, stop with a conflict report and focused correction questions; do not fill this template with tentative directions.
+
 ```text
 阶段：方案方向确认
 
-方案 A：[core idea] | 改动程度：[low] | 主要解决：[problem]
-方案 B：[core idea] | 改动程度：[medium] | 主要解决：[problem]
-方案 C：[core idea] | 改动程度：[exploratory] | 主要解决：[problem]
+已确认方案数量：[N]
+
+对每个方案重复：
+方案 [ID]：[core idea] | 改动程度：[independent risk assessment] | 主要解决：[problem] | 主动取舍：[tradeoff]
 
 请确认/补充：
 1. 哪些方向保留、替换或合并？
 2. 哪个方向可以更大胆，哪个必须稳妥？
-3. 是否批准按这三个方向生成同底图、同尺寸的概念图？
+3. 是否批准按以上保留方向生成同底图、同尺寸的概念图？
 
 下一步：
 仅生成获批方向，并在展示前完成结构漂移和基本功能检查。
@@ -349,42 +358,69 @@ Use after needs rounds and before any scheme image generation.
 
 ## Residential Case Strategy Extraction
 
-Use after needs are known and before A/B/C scheme intents.
+Use after needs are known and before the approved option intents.
 
 ```text
 For each reference case, extract strategy only:
 
 Case: [name/source]
 Observed idea: [what is interesting]
-Transferable strategy: [principle that could apply]
-Possible placement in current plan: [room/zone/object]
+Problem solved: [what use problem it addresses]
+Why it works: [relationship / access / furniture / storage / privacy / light / perception logic]
+Conditions: [what must be true]
+Failure modes: [how the same move becomes implausible]
+Current plan mapping: [room/zone/object]
 Risk level: [low / medium / high]
 Required validation: [clearance / demolition feasibility / wet-zone risk / curved geometry / door swing]
-Use in option: [A / B / C / none]
+Use in option: [approved option ID / none]
+Visual proof: [what the final output must visibly demonstrate]
 
 Do not copy reference geometry directly.
 Do not let case images override the source plan.
 ```
 
-## Residential Differentiated Options
+## Residential Scheme Logic Manifest
 
-Use to create A/B/C before visual rendering.
+Use after option directions are approved and before deterministic drafting or image generation.
 
 ```text
-Option A - Low-risk optimization
-Scope: retain structure; improve furniture, storage, circulation, and style.
-Risk: low.
-Must validate: door swings, furniture fit, storage not blocking circulation.
+Option: [Option ID and version]
+Primary problem: [one named user problem]
+Core move: [one main spatial decision]
+Linked obligations: [one to three related duties that must remain satisfied]
+User routines: [daily activities supported]
+Functional relationships: [near / connected / separated / protected]
+Circulation story: [entry, doors, major destinations, work zones]
+Furniture logic: [orientation, use side, seating, viewing, storage, access]
+Core proof objects: [objects whose fit/use/access proves the core move]
+Support functions: [only relevant laundry / drying / cleaning / food / waste / entry / linen / child / elder / pet / maintenance needs]
+Concurrent use: [one to three relevant simultaneous activities]
+Environmental comfort: [affected daylight / glare / ventilation / exhaust / privacy / noise / odor relationships]
+Fixed elements: [unchanged base relationships]
+Tradeoff: [what becomes less convenient or is sacrificed]
+Visual proof: [what the requested view must visibly show]
+Blocking unknowns: [empty before normal generation]
 
-Option B - Medium-risk functional upgrade
-Scope: open or semi-open kitchen, island/dining island, local partition or dining-living relation changes.
-Risk: medium.
-Must validate: kitchen workflow, island clearance, fixed-service zones, door/window access.
+If the core move cannot be explained or visibly demonstrated without contradicting the base, revise the option before generating an image.
+```
 
-Option C - High-creativity exploration
-Scope: curved partition, multifunction room, stronger spatial reorganization, demolition candidates, bold storage/function strategy.
-Risk: medium-high or high.
-Must validate: alteration feasibility, wall status, circulation, fixed-service zones, curved geometry, furniture fit.
+## Residential Differentiated Options
+
+Use to create the user-approved option set before visual rendering. Repeat the block for each option; do not assign its strategy from its letter or list position.
+
+```text
+Option [ID] - [short name]
+Primary problem: [confirmed need]
+Core move: [spatial decision]
+Linked obligations: [related duties preserved]
+Functional/circulation consequence: [what changes in daily use]
+Furniture/support strategy: [how use is supported]
+Core proof objects: [objects requiring pre-generation fit/use/access validation]
+Environmental or concurrent-use consequence: [only when relevant]
+Tradeoff: [what becomes less convenient]
+Alteration risk: [low / medium / high, assessed after the core move]
+Must validate: [option-specific blockers]
+Visual proof: [what the requested view must visibly demonstrate]
 ```
 
 ## Residential Deterministic Draft Brief
@@ -408,6 +444,8 @@ Do not use AI-generated concept images as the geometry source.
 
 Use only after the base is confirmed and locked, the needs brief exists, and the current option has an isolated scheme intent. Add a deterministic draft when proposal geometry requires it.
 
+Read `image-generation-control.md` first. Build one immutable handoff for one option and one view; use the generated image only after drift review passes.
+
 Prefer a generated `visual_generation_handoff` over reconstructing the prompt from chat history. The handoff's structure lock and active accepted version are authoritative; style fields control only visual treatment.
 Do not generate a full-home image when `functional_completeness` is incomplete. Resolve or explicitly confirm missing sleeping, living, kitchen, or bathroom functions first.
 
@@ -421,9 +459,17 @@ Dimension anchors: [inherit exactly]
 
 Use the locked base plan, and deterministic draft when supplied, as the structural reference.
 Preserve every base object except the objects explicitly named in authorized base-change operations.
+The structural reference controls layout. Style references control appearance only.
 
 Design intent:
 [scheme-specific intent]
+
+Scheme logic:
+- primary problem: [problem]
+- core move: [decision]
+- furniture/use logic: [short statement]
+- tradeoff: [short statement]
+- required visual proof: [what must be visible]
 
 Controlled proposal objects:
 [island / storage / curved partition / new furniture / local wall change]
@@ -451,6 +497,47 @@ Avoid:
 - duplicate TV walls unless requested
 ```
 
+## Residential Perspective Visual Prompt
+
+Use for a 45-degree or room perspective only after a selected option has stable placement. Supply a camera-controlled proxy when spatial fidelity matters; if none exists, state that perspective consistency is approximate.
+
+```text
+Purpose: Visually deepen one [45-degree / room-perspective] view of [Option ID].
+
+Locked lineage: [base_id / option version / view_id]
+Structural reference: [camera-controlled proxy path and hash]
+Projection or camera: [fixed definition]
+Vertical/building context: [path/hash/status or concept-height assumptions]
+Perspective limitations: [unknown beam/sill/equipment/level facts that remain approximate]
+
+The structural reference controls walls, openings, fixed services, furniture placement, camera, and framing.
+Style references control only [materials / furniture language / lighting / mood].
+
+Scheme logic:
+- primary problem: [problem]
+- core move: [decision]
+- required furniture/use relationships: [relationships]
+- tradeoff: [short statement]
+- required visual proof: [what this view must visibly show]
+
+Authorized visual changes:
+[appearance-only changes]
+
+Authorized structural changes:
+[stable object operations, empty by default]
+
+Hard constraints:
+- preserve the supplied camera and all unchanged structural anchors
+- preserve required access, kitchen, bathroom, balcony, and bedroom functions
+- do not invent rooms, openings, built-ins, level changes, or exterior views
+- no labels, dimensions, arrows, UI, watermarks, or generated construction details
+
+Avoid:
+- reinterpreting the proxy as loose inspiration
+- changing furniture count or orientation without authorization
+- claiming exact multi-view consistency without shared object-model proxies
+```
+
 ## Residential Post-Generation Review
 
 Use immediately after each generated residential plan image.
@@ -466,15 +553,57 @@ Check:
 - kitchen and bathrooms are complete and not moved
 - furniture orientation is usable
 - island/storage/partition does not block circulation
-- A/B/C are meaningfully different
+- the approved options are meaningfully different when multiple directions were requested
 - no garbled labels, watermarks, UI, or dense fake dimensions
+- the image visibly proves the scheme's core move and does not contradict its tradeoff, fixed elements, or furniture-use logic
+- no fake openings, ghost spaces, repeated furniture, impossible joins, or other obvious AI artifacts
 
 Register the output against the locked base and compare unchanged outline corners, wall junctions, opening endpoints, fixed-service anchors, and main dimension anchors. Any unexplained shift, stretch, crop, or object drift is blocking.
 
+Create a `visual_plausibility_review_v1` package according to `scheme-logic-and-visual-plausibility.md` and run `scripts/evaluate_visual_plausibility.py` when available.
+
+The package must record actual image inspection metadata plus an `evidence_artifacts` registry. Every referenced file must exist, include its SHA-256 hash, and match the current option/view package. Use `review_scope: view` for one image; `view_passed` is not a delivery decision. Use `review_scope: scheme_package` for final delivery, which alone may return `displayable`.
+
 Set result:
-- reviewed_passed
+- view_passed
+- displayable
 - needs_repair
+- needs_review
 - rejected
 
 Repair only the smallest failed layer: prompt, scheme intent, deterministic draft, or generated visual. Do not repair or unlock the confirmed base unless the user requested a specific base correction.
+```
+
+## Provider Failure Recovery
+
+Use when an approved image-generation request fails, times out, or returns an incomplete artifact.
+
+```text
+阶段：[unchanged interaction checkpoint]
+
+当前判断：
+本次生成未形成可验收的方案图；已确认底图、需求、方案方向和提示包保持不变。
+
+失败记录：
+- request_id: [same lineage]
+- option_id: [option ID]
+- base_id: [locked base ID]
+- attempt: [number]
+- failure_class: provider-error | provider-timeout | partial-output | invalid-output
+- prompt_package_hash: [hash]
+- valid_generated_version_created: false
+
+保留：
+- locked base, canvas, coordinate frame, scale, and anchors
+- approved option intent and visual direction
+- confirmed reference roles and hard negatives
+
+重试规则：
+- reuse the same immutable request package
+- increment attempt only
+- do not advance the checkpoint before normal post-generation review passes
+- treat partial artifacts as untrusted
+
+下一步：
+在连接恢复后重试同一请求；若需要更改比例、视角、风格、参考图角色、方案数量或输出位置，请先确认变更。
 ```

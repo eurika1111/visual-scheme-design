@@ -1,5 +1,12 @@
 # Home Design Workflow
 
+## Contents
+
+- Product boundary, base authority, and checkpoints
+- Source routes and readiness levels
+- Residential workflow and gates
+- Provider recovery, tool roles, and user experience
+
 Use this reference for residential renovation, whole-home layout, source-plan reconstruction, client base confirmation, creative options, feedback, and visual deepening.
 
 ## Product Boundary
@@ -25,17 +32,19 @@ Data controls structure. The confirmed visual base and its object data form one 
 
 ## Interaction Checkpoints
 
-Treat these as hard stops, not suggestions:
+Use `staged` mode by default. In `accelerated` mode, the user must have supplied complete evidence, explicitly requested a faster route, and have no unresolved high-impact ambiguity. Base lock and image-generation approval remain separate hard stops in both modes.
 
 1. `welcome`: for first use, new project, or clean test, briefly explain that the workflow confirms the floor-plan base before needs and concepts. State that outputs are design proposals, not construction drawings. Ask permission for the next single step.
 2. `source_understanding`: summarize recognized rooms, orientation, obvious openings, uncertainties, and intended base accuracy. Ask the user to correct the understanding before producing a confirmation base.
 3. `base_confirmation`: show the candidate base and ask for visible corrections. Lock only after explicit approval; corrections create a new candidate and return to this checkpoint.
 4. `needs_rounds`: collect needs over short rounds, not one long questionnaire.
-5. `option_direction_confirmation`: present A/B/C as short text directions, meaningful differences, alteration risk, and unresolved assumptions. Generate no images until the user approves or edits these directions.
+5. `option_direction_confirmation`: present the approved number of short text directions with meaningful differences, alteration risk, and unresolved assumptions. Three is a useful comparison default, not a fixed requirement. Generate no images until the user approves or edits these directions.
 6. `generated_option_review`: review and show comparable outputs, then ask which option to retain, repair, combine, or reject.
 7. `deepening_confirmation`: state what exact placement, dimensions, export, or optional UE work will start; proceed only after approval.
 
-Do not cross two checkpoints in one assistant turn. `继续`, `下一步`, or silence about later phases confirms only the next action already declared. A user may revise an earlier checkpoint at any time; branch or return without carrying later data backward.
+In staged mode, do not cross two checkpoints in one assistant turn. `继续`, `下一步`, or silence about later phases confirms only the next action already declared. A user may revise an earlier checkpoint at any time; branch or return without carrying later data backward.
+
+In accelerated mode, combine only `welcome + source_understanding` or `needs_rounds + option_direction_confirmation` into one clearly labeled confirmation package. List every bundled decision and unresolved assumption. Do not combine base lock with needs/options, and do not combine option approval with image generation. If evidence conflicts or the user gives a partial answer, fall back to staged mode.
 
 If the user explicitly requests a first-time test, ignore previous conversational preferences and old generated options. Existing project files may be reused only as hidden evidence after checking their accepted/rejected status; present the experience as a fresh project and ask each required confirmation again.
 
@@ -101,6 +110,9 @@ Geometry readiness and presentation readiness are separate. An `L2` model may st
 
 3. `Artifact audit`
    - Inventory current, accepted, candidate, rejected, and historical files.
+   - Classify demo, historical, rejected, superseded, and unrelated files before conflict detection. They may provide trace evidence but cannot create a conflict in the current authoritative set.
+   - Resolve conflicts among current authoritative and accepted artifacts in active `base_id`, version, lock manifest, room identity, and fixed-function mapping before treating any option artifact as current.
+   - Mark legacy option plans that assign fixed low/medium/high risk archetypes to A/B/C as stale strategy evidence; do not reuse their directions without user confirmation.
    - Select Route A or Route B.
 
 4. `Source understanding confirmation`
@@ -135,25 +147,35 @@ Geometry readiness and presentation readiness are separate. An `L2` model may st
    - Ask 1-3 focused questions per round. Accept `不确定` and offer examples without treating them as final choices.
 
 10. `Creative strategy`
-   - Learn strategies from relevant cases after needs are known.
-   - Create genuinely different low-, medium-, and higher-change directions when suitable.
+   - Learn strategies from relevant cases after needs are known. Extract the move, problem solved, why it works, conditions, failure modes, current-plan mapping, and required visual proof according to `professional-knowledge-sourcing.md`.
+   - Derive genuinely different directions from the user's conflict variables. Assess alteration risk after each core move is defined; do not use risk tiers as the direction generator.
    - Convert inspiration into object operations and risks, not image copying.
+   - Use `residential-computational-design.md` when relationship, access, furniture-use, placement, or option-diversity checks would prevent an obvious contradiction.
+   - Create one `scheme_logic_manifest_v1` per option according to `scheme-logic-and-visual-plausibility.md`.
 
 11. `Option direction confirmation`
-   - Present A/B/C in text before image generation.
-   - State each option's core idea, meaningful differences, alteration level, and key risk.
+   - Enter this checkpoint only when the current authoritative and accepted artifacts name the same exact locked base and the required room and fixed-function mappings are consistent. Ignore demo, historical, rejected, superseded, and unrelated files after recording their status.
+   - Text-only directions are scheme work, not harmless brainstorming. On a base or mapping conflict, report the conflict and stop before proposing any tentative direction.
+   - Present the user-approved option set in text before image generation.
+   - State each option's primary problem, core move, meaningful differences, use consequence, tradeoff, and key risk.
    - Stop for approval or revision.
 
 12. `Scheme production`
    - Read the locked base plus one scheme intent; do not reconstruct the base from chat or another image.
    - Keep unchanged base objects fixed. Represent only authorized demolition, additions, furniture, zones, and style as option differences.
    - Use approximate furniture placement for quick concepts when it is visually and functionally plausible; reserve exact placement for the selected scheme.
-   - Keep A/B/C data isolated.
+   - Exception: when furniture, an island, cabinetry, an operable partition, or a door is a `core_proof_object`, validate its footprint, use side, opening envelope, and one named access route before concept generation.
+   - Keep every approved option's data isolated regardless of option count.
+   - Keep the logic manifest bound to the same base and option version; mark it stale when operations change.
 
 13. `Post-generation control`
    - Register each output to the locked canvas and compare it against the base.
    - Review structural drift, functional omissions, furniture logic, scale, text, and option differentiation.
    - Reject unrequested base changes; repair the smallest failed layer without unlocking the base.
+   - If the provider fails, times out, or returns an incomplete artifact, keep the checkpoint open and record a failed attempt; do not register an option version.
+   - Retry from the same immutable generation package unless the user changes an output parameter.
+   - Use `image-generation-control.md` for reference roles, camera/proxy requirements, drift acceptance, and multi-view consistency claims.
+   - Review the output against `scheme-logic-and-visual-plausibility.md`; run `scripts/evaluate_visual_plausibility.py` when a structured review package exists.
 
 14. `Selection and deepening`
    - Migrate selected ideas by object ID into a new target version.
@@ -177,6 +199,11 @@ Before visual generation:
 - option differentiation is meaningful
 - wet areas and required bathroom/kitchen functions are present
 - style direction or explicit exploratory permission exists
+- each layout-sensitive request has one deterministic structural reference; perspective views that require fidelity have a camera-controlled proxy or are labeled approximate
+- each option has a current scheme logic manifest with no unaccepted blocking unknowns
+- the requested view can visibly demonstrate the manifest's `visual_proof`
+- every `core_proof_object` has a minimum fit/use/access validation record
+- a perspective or 45-degree view carries known vertical/building facts or is explicitly labeled concept-height/approximate
 
 After visual generation:
 
@@ -184,6 +211,17 @@ After visual generation:
 - compare unchanged wall/opening anchors against the locked base
 - reject unexplained shift, stretch, wall/opening drift, or inconsistent framing
 - keep dimensions and coordinate references deterministic and identical across comparable options
+- keep the output in `generated_pending_review` until canvas, structural anchors, authorized operations, required functions, and option identity pass review
+- reject confirmed base-fidelity, functional, access, furniture-use, scheme-logic, AI-artifact, or claimed multi-view consistency failures
+- do not call a result displayable until its structured plausibility decision is `displayable`
+
+On provider failure:
+
+- preserve the current checkpoint, confirmed base, needs brief, approved option direction, and isolated scheme intent
+- record request ID, option ID, `base_id`, prompt-package hash, failure class, and attempt number
+- do not create a generated option, accepted version, or completed checkpoint
+- treat partial artifacts as untrusted until normal post-generation review passes
+- retry idempotently from the same package; branch only when the user changes an output parameter
 
 Before deepening:
 
@@ -194,6 +232,8 @@ Before deepening:
 
 ## Tool Roles
 
+Resolve project tools and degradation behavior through `geometry-tool-adapter.md`; filenames below are compatible examples, not globally installed commands.
+
 - `staged_topology_importer.py`: import existing staged data as a candidate with preservation reporting.
 - `source_wall_mask.py` and trace tools: local evidence helpers, not primary full-plan reconstruction when staged data exists.
 - geometry and source validators: technical gates.
@@ -202,6 +242,9 @@ Before deepening:
 - `base_lock_manifest.py`: freeze the confirmed base ID, hashes, canvas, coordinates, bounds, and dimension anchors.
 - `visual_generation_handoff_builder.py`: build quick or deep image handoffs that must inherit the lock record.
 - `concept_output_review.py`: reject canvas mismatch and create same-size side-by-side, overlay, and deterministic dimension-frame review aids.
+- current web research: close named professional-knowledge gaps and create versioned evidence records; never replace site or qualified verification.
+- adjacency, circulation, placement, and option evaluation tools: produce reports tied to the same base and option hashes; if unavailable, keep the assessment explicit and qualitative instead of inventing computed precision.
+- `evaluate_visual_plausibility.py`: validate structured evidence, referenced file existence, and hashes, then return `view_passed`, `displayable`, `needs_repair`, `needs_review`, or `rejected`; it does not inspect pixels by itself.
 - image models: proposal appearance and concept expression only; never base reconstruction authority.
 
 ## User Experience
@@ -211,8 +254,8 @@ Show the user only meaningful checkpoints, but never hide a required decision:
 1. short first-use introduction and next action
 2. source understanding before base creation
 3. readable client confirmation base and explicit lock
-4. short, gradual needs rounds
-5. text-only differentiated option directions and approval
+4. short, gradual needs rounds or one accelerated needs package when eligible
+5. text-only differentiated option directions using the approved option count
 6. same-scale comparable generated-option review
 7. selected-scheme deepening approval
 

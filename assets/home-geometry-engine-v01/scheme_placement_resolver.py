@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -145,7 +146,12 @@ def existing_in_room(
 
 
 def make_object_id(intent: dict[str, Any], category: str, room_id: str, sequence: int) -> str:
-    scheme = {"方案 A": "A", "方案 B": "B", "方案 C": "C"}.get(intent.get("scheme_id"), "X")
+    legacy = {"方案 A": "A", "方案 B": "B", "方案 C": "C"}
+    raw_code = str(intent.get("option_code") or legacy.get(intent.get("scheme_id")) or "")
+    scheme = re.sub(r"[^A-Za-z0-9]+", "-", raw_code).strip("-").upper()
+    if not scheme:
+        stable_source = str(intent.get("scheme_id") or intent.get("version") or "unknown-option")
+        scheme = "OPT-" + hashlib.sha256(stable_source.encode("utf-8")).hexdigest()[:8].upper()
     category_code = re.sub(r"[^A-Za-z0-9]+", "-", category).strip("-").upper()
     room_code = re.sub(r"[^A-Za-z0-9]+", "-", room_id).strip("-").upper()
     return f"{scheme}-F-{category_code}-{room_code}-{sequence:02d}"

@@ -1,5 +1,11 @@
 # Scene And Space Workflows
 
+## Contents
+
+- Domain classification and visual direction
+- Viewer, layout, execution, and board outputs
+- Temporary buildability and validation
+
 Use this reference for live-stream set design, temporary staging, interior styling, spatial mood, and execution-view planning. Residential renovation and whole-home layout work are routed to the home-design references.
 
 ## Scope Split

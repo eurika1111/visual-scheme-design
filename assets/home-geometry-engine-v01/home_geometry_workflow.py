@@ -230,12 +230,14 @@ def build_needs_brief(response: Path, output_dir: Path, stem: str) -> None:
 def plan_options(
     base_model: Path,
     needs_brief: Path,
+    directions: Path,
     output_dir: Path,
     case_strategy: Path | None,
     base_fidelity_report: Path,
 ) -> None:
     base_model = base_model.resolve()
     needs_brief = needs_brief.resolve()
+    directions = directions.resolve()
     case_strategy = case_strategy.resolve() if case_strategy else None
     output_dir = ensure_dir(output_dir.resolve())
     child_args = [
@@ -244,6 +246,8 @@ def plan_options(
         str(needs_brief),
         "--output-dir",
         str(output_dir),
+        "--directions",
+        str(directions),
         "--base-fidelity-report",
         str(base_fidelity_report.resolve()),
     ]
@@ -342,6 +346,7 @@ def build_visual_handoff(
     base_model: Path,
     base_lock: Path,
     scheme_intent: Path,
+    scheme_logic: Path,
     stage: str,
     review_manifest: Path | None,
     history: Path | None,
@@ -354,6 +359,7 @@ def build_visual_handoff(
         "--base-model", str(base_model.resolve()),
         "--base-lock", str(base_lock.resolve()),
         "--scheme-intent", str(scheme_intent.resolve()),
+        "--scheme-logic", str(scheme_logic.resolve()),
         "--stage", stage,
         "--needs-brief", str(needs_brief.resolve()),
         "--output-dir", str(output_dir.resolve()),
@@ -523,9 +529,10 @@ def build_parser() -> argparse.ArgumentParser:
     needs.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     needs.add_argument("--stem", default="client")
 
-    options = sub.add_parser("plan-options", help="Build isolated A/B/C scheme intents from base and needs brief.")
+    options = sub.add_parser("plan-options", help="Build isolated scheme intents from approved option directions.")
     options.add_argument("base_model", type=Path)
     options.add_argument("needs_brief", type=Path)
+    options.add_argument("--directions", type=Path, required=True)
     options.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     options.add_argument("--case-strategy", type=Path)
     options.add_argument("--base-fidelity-report", type=Path, required=True)
@@ -556,6 +563,7 @@ def build_parser() -> argparse.ArgumentParser:
     visual_handoff.add_argument("--base-model", type=Path, required=True)
     visual_handoff.add_argument("--base-lock", type=Path, required=True)
     visual_handoff.add_argument("--scheme-intent", type=Path, required=True)
+    visual_handoff.add_argument("--scheme-logic", type=Path, required=True)
     visual_handoff.add_argument("--stage", choices=("quick", "deep"), default="quick")
     visual_handoff.add_argument("--review-manifest", type=Path)
     visual_handoff.add_argument("--history", type=Path)
@@ -642,7 +650,7 @@ def main() -> int:
     elif args.command == "build-needs-brief":
         build_needs_brief(args.response, args.output_dir, args.stem)
     elif args.command == "plan-options":
-        plan_options(args.base_model, args.needs_brief, args.output_dir, args.case_strategy, args.base_fidelity_report)
+        plan_options(args.base_model, args.needs_brief, args.directions, args.output_dir, args.case_strategy, args.base_fidelity_report)
     elif args.command == "resolve-layout":
         resolve_layout(args.base_model, args.scheme_intent, args.output_dir, args.version)
     elif args.command == "build-scheme-review":
@@ -656,6 +664,7 @@ def main() -> int:
             args.base_model,
             args.base_lock,
             args.scheme_intent,
+            args.scheme_logic,
             args.stage,
             args.review_manifest,
             args.history,
